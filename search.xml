@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>基于C语言简易OOP实现</title>
+    <url>/2025/07/17/%E5%9F%BA%E4%BA%8EC%E8%AF%AD%E8%A8%80%E7%AE%80%E6%98%93OOP%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<p>最近在倒腾C语言实现类似于OOP的东西，在油管上看到了这样一种实现方法，昨天尝试了一下，现在记录一下</p>
+<blockquote>
+<p><a href="https://www.youtube.com/watch?v=e99VxS8ljjY">Object-Oriented Programming in regular C</a></p>
+</blockquote>
+<p>最终的主函数长这样，实现了一个非常简陋的String类以及字符串拼接功能，当然，也几乎没有健壮性。这位博主只是简单提供了一种思路。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc,<span class="type">char</span> *argv[])</span>&#123;</span><br><span class="line">	String *s1;</span><br><span class="line">	String *s2;</span><br><span class="line">	s1 = mkstring(<span class="string">&quot;Hello &quot;</span>);</span><br><span class="line">	s2 = mkstring(<span class="string">&quot;World&quot;</span>);</span><br><span class="line">	$(s1)-&gt;concat(s2);</span><br><span class="line">	printfstr(s1);</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">free</span>(s1);</span><br><span class="line">	<span class="built_in">free</span>(s2);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个设计的核心在于全局this指针以及宏定义(虽然全局的this指针不是很安全)。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">s_string</span> <span class="title">String</span>;</span> </span><br><span class="line"><span class="keyword">typedef</span> String* (*method)(String*);</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">s_string</span>&#123;</span></span><br><span class="line">	method concat;</span><br><span class="line">	<span class="type">int8_t</span> length;</span><br><span class="line">	<span class="type">char</span> data[];</span><br><span class="line">&#125;String;</span><br></pre></td></tr></table></figure>
+
+<p>首先我们需要用结构体模拟一个String类出来，其中包含了concat方法、长度length以及一个char数组(之前在别处见到的另一种实现多态的方法好像用到了接口结构体跟聚合表，我暂时还没太弄明白，等我弄明白了或许会再写个博客出来)。</p>
+<blockquote>
+<p>实际上这个 data[]也可以写成<code>char *data;</code>,本质上没什么区别</p>
+</blockquote>
+<p>method实际上是一个函数指针，指向一个返回值为<strong>String*</strong>,参数为**String***的函数，我们需要自己实现这个函数。</p>
+<p>接下来我们为这个类实现构造函数以及打印函数，下面是这两个函数的声明。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">String *<span class="title function_">mkstring</span><span class="params">(<span class="type">char</span>*)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">printfstr</span><span class="params">(<span class="type">const</span> String*)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>printfstr函数没什么好讲的，这里讲一下mkstring函数。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">String *<span class="title function_">mkstring</span><span class="params">(<span class="type">char</span>*str)</span>&#123;</span><br><span class="line">	<span class="type">int16_t</span> len;</span><br><span class="line">	<span class="type">int16_t</span> size;</span><br><span class="line">	String *p;</span><br><span class="line">	</span><br><span class="line">	assert(str);</span><br><span class="line">	len = <span class="built_in">strlen</span>(str);</span><br><span class="line">	assert(len);</span><br><span class="line">	</span><br><span class="line">	size = len +<span class="keyword">sizeof</span>(String) +<span class="number">1</span>;</span><br><span class="line">	p = (String*)<span class="built_in">malloc</span>(size);</span><br><span class="line">	assert(p);</span><br><span class="line">	<span class="built_in">memset</span>(p,<span class="number">0</span>,size);</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">memcpy</span>(p-&gt;data,str,len);</span><br><span class="line">	p-&gt;length = len;</span><br><span class="line">	p-&gt;concat = concat_;</span><br><span class="line">	<span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以先忽略掉这些<strong>assert</strong>(断言)，这个函数进行了以下操作:</p>
+<ol>
+<li><p>根据输入参数计算了String对象中length参数的长度并赋值。</p>
+</li>
+<li><p>根据输入字符数组的长度申请了足够的内存空间，并且使用memcpy函数将字符数组的内容复制进String对象中。</p>
+</li>
+<li><p>将自己实现的concat_函数与类中的函数指针进行了绑定。</p>
+</li>
+<li><p>最后返回了一个指向初始化好的String对象的指针。</p>
+</li>
+</ol>
+<blockquote>
+<p>此处需要注意，C语言字符数组以’\0’作为结尾，在这个函数中，通过memset将整个结构体置0时就相当于将类中char数组最后一位置0了，所以不再需要显式的置0。</p>
+</blockquote>
+<p>现在来看一下这个设计最核心的部分，全局this指针</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">void</span> thisptr;</span><br><span class="line">thisptr* _this;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到我们创建了一个全局this指针，它将始终指向我们正在操作的String对象。</p>
+<p>接下来我们来实现这个concat_方法函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">String* <span class="title function_">concat_</span><span class="params">(String* input)</span> &#123;</span><br><span class="line">	String* current_this = _this; </span><br><span class="line">	</span><br><span class="line">	<span class="type">char</span>* temp_input_data = (<span class="type">char</span>*)<span class="built_in">malloc</span>(input-&gt;length + <span class="number">1</span>);</span><br><span class="line">	<span class="built_in">strcpy</span>(temp_input_data, input-&gt;data);</span><br><span class="line">	</span><br><span class="line">	<span class="type">int16_t</span> original_current_this_length = current_this-&gt;length; </span><br><span class="line">	<span class="type">int16_t</span> new_length = original_current_this_length + input-&gt;length;</span><br><span class="line">	<span class="type">size_t</span> new_size = <span class="keyword">sizeof</span>(String) + new_length + <span class="number">1</span>;</span><br><span class="line">	</span><br><span class="line">	String* reallocated_string = (String*)<span class="built_in">realloc</span>(current_this, new_size);</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> (reallocated_string == <span class="literal">NULL</span>) &#123;</span><br><span class="line">		perror(<span class="string">&quot;realloc 失败，无法原地扩展字符串&quot;</span>);</span><br><span class="line">		<span class="built_in">free</span>(temp_input_data);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	current_this = reallocated_string; </span><br><span class="line">	_this = current_this; </span><br><span class="line">	</span><br><span class="line">	current_this-&gt;length = new_length;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">memcpy</span>(current_this-&gt;data + original_current_this_length, temp_input_data, input-&gt;length);</span><br><span class="line">	</span><br><span class="line">	current_this-&gt;data[new_length] = <span class="string">&#x27;\0&#x27;</span>; </span><br><span class="line"></span><br><span class="line">	<span class="built_in">free</span>(temp_input_data);</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> current_this;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们先忽略掉错误处理部分，这个函数实现了以下的功能</p>
+<ol>
+<li><p><strong>保存输入字符串数据</strong> 函数首先将 <code>input</code> 字符串的数据复制到一个临时缓冲区 <code>temp_input_data</code> 中。这是为了防止在 <code>realloc</code> 失败时，<code>input-&gt;data</code> 中的数据丢失，或者如果在 <code>realloc</code> 后 <code>input-&gt;data</code> 指向的内存被释放或移动而导致后续操作出错。</p>
+</li>
+<li><p><strong>计算新字符串长度和所需内存大小</strong> 它计算了连接后的新字符串的总长度 <code>new_length</code>（原字符串长度 + 输入字符串长度），并根据这个新长度计算了 <code>String</code> 结构体加上字符串数据所需的总内存大小 <code>new_size</code>。</p>
+</li>
+<li><p><strong>重新分配内存</strong> 函数尝试使用 <code>realloc</code> 来扩展当前字符串 <code>_this</code> 所占用的内存。<code>realloc</code> 会尝试在原地扩展内存，如果原地扩展失败，它会分配一块新的内存区域并将原有数据复制过去，然后释放旧的内存区域。</p>
+</li>
+<li><p><strong>处理内存重新分配失败</strong> 如果 <code>realloc</code> 返回 <code>NULL</code>，表示内存重新分配失败。此时，函数会打印错误信息，释放之前分配的临时缓冲区，并返回 <code>NULL</code>。</p>
+</li>
+<li><p><strong>更新当前字符串指针和长度</strong> 如果内存重新分配成功，<code>current_this</code>（以及全局或成员变量 <code>_this</code>）会更新为 <code>reallocated_string</code> 返回的新地址。然后，<code>current_this</code> 的 <code>length</code> 字段会被更新为 <code>new_length</code>。</p>
+</li>
+<li><p><strong>拷贝输入字符串数据</strong> 使用 <code>memcpy</code> 将 <code>temp_input_data</code>（即 <code>input</code> 字符串的数据）拷贝到 <code>current_this-&gt;data</code> 的末尾，从 <code>original_current_this_length</code> 的位置开始。</p>
+</li>
+<li><p><strong>添加字符串结束符</strong> 在新字符串的末尾（<code>new_length</code> 的位置）添加空字符 <code>\0</code>，以确保它是一个合法的 C 字符串。</p>
+</li>
+<li><p><strong>释放临时缓冲区并返回</strong> 最后，释放之前为 <code>temp_input_data</code> 分配的内存，并返回更新后的 <code>current_this</code> 指针。</p>
+</li>
+</ol>
+<p>这个函数是我修改过的，博主原代码如下:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">String *<span class="title function_">concat_</span><span class="params">(String *input)</span>&#123;</span><br><span class="line">    <span class="type">int16_t</span> len;</span><br><span class="line">    <span class="type">int16_t</span> size;</span><br><span class="line">    <span class="type">char</span> *p;</span><br><span class="line">    String *this;</span><br><span class="line">    this = (String*)_this;</span><br><span class="line">    len = this-&gt;length + input-&gt;length;</span><br><span class="line">    size = len+<span class="keyword">sizeof</span>(<span class="keyword">struct</span> s_string)+<span class="number">1</span>;</span><br><span class="line">    p = this-&gt;data +this-&gt;length;</span><br><span class="line">    this = (String*)<span class="built_in">realloc</span>(this,size);</span><br><span class="line">    assert(this);</span><br><span class="line">    <span class="built_in">memcpy</span>(p,input-&gt;data,input-&gt;length);</span><br><span class="line">    p = this-&gt;data +len;</span><br><span class="line">    *p = <span class="string">&#x27;0&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span> this;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可能是因为编译环境不同，这种写法在我的编译环境下会导致严重的内存问题。</p>
+<p>现在如果我们想要在主函数中实现字符串拼接，需要以下步骤:</p>
+<ol>
+<li>初始化s1,s2。</li>
+<li>this指针指向s1。</li>
+<li>调用s1的concat方法，将s2传入。</li>
+</ol>
+<p>体现在代码上如下</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">_this = s1;</span><br><span class="line">s1 = s1-&gt;concat(s2);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里会出现<code>s1 = s1-&gt;concat(*)</code>的写法,是因为在concat函数中进行realloc操作时，会改变s1指针指向的内存，不管是原地扩容还是在新内存空间扩容，在扩容完成后将地址返回给s1就可以保证不出现悬空指针了。</p>
+</blockquote>
+<p>接下来我们可以实现一个操作宏来简化我们的操作</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> $(x) _this = (x);(x) = (x)</span></span><br></pre></td></tr></table></figure>
+
+<p>这个宏让我们可以以<code>$(s1)-&gt;concat(s2);</code>的形式直接调用对象中的方法，展开后本质上跟上面的写法是一样的。</p>
+<blockquote>
+<p>注意：这种写法实际上是不安全的，我只是将博主的实现方法照抄下来并且进行记录，暂时还没想到怎么才能优化这种写法</p>
+<p>但是有一点显而易见的就是这个全局的this指针是不安全的。</p>
+</blockquote>
+]]></content>
+      <tags>
+        <tag>OOP</tag>
+      </tags>
+  </entry>
+</search>
