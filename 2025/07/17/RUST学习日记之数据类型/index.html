@@ -21,30 +21,32 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="谁躺在漆黑的舞台上，用身体迎接着光芒">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Chillward的博客">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="变量的声明rust的变量分为可变变量与不可变变量，声明变量使用let关键字，类型可以不显式声明，可变变量用mut关键字。 12345let x:i32 &#x3D; 42; &#x2F;&#x2F;显式告知编译器变量类型let guess &#x3D; 42; &#x2F;&#x2F; 编译器推断 guess 是 i32 类型let pi &#x3D; 3.14;   &#x2F;&#x2F; 编译器推断 pi 是 f64 类型let active &#x3D; true; &#x2F;&#x2F; 编译器推断 a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RUST学习日记之数据类型">
+<meta property="og:url" content="http://example.com/2025/07/17/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/index.html">
 <meta property="og:site_name" content="Chillward的博客">
-<meta property="og:description" content="谁躺在漆黑的舞台上，用身体迎接着光芒">
+<meta property="og:description" content="变量的声明rust的变量分为可变变量与不可变变量，声明变量使用let关键字，类型可以不显式声明，可变变量用mut关键字。 12345let x:i32 &#x3D; 42; &#x2F;&#x2F;显式告知编译器变量类型let guess &#x3D; 42; &#x2F;&#x2F; 编译器推断 guess 是 i32 类型let pi &#x3D; 3.14;   &#x2F;&#x2F; 编译器推断 pi 是 f64 类型let active &#x3D; true; &#x2F;&#x2F; 编译器推断 a">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-07-17T15:17:40.000Z">
+<meta property="article:modified_time" content="2025-07-18T01:43:29.452Z">
 <meta property="article:author" content="Chillward">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/">
+<link rel="canonical" href="http://example.com/2025/07/17/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>Chillward的博客</title>
+  <title>RUST学习日记之数据类型 | Chillward的博客</title>
   
 
 
@@ -185,9 +187,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -203,10 +206,9 @@
       <meta itemprop="name" content="Chillward的博客">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/07/17/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" class="post-title-link" itemprop="url">RUST学习日记之数据类型</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          RUST学习日记之数据类型
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -250,7 +252,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h3 id="变量的声明"><a href="#变量的声明" class="headerlink" title="变量的声明"></a>变量的声明</h3><p>rust的变量分为可变变量与不可变变量，声明变量使用<strong>let</strong>关键字，类型可以不显式声明，可变变量用<strong>mut</strong>关键字。</p>
+        <h3 id="变量的声明"><a href="#变量的声明" class="headerlink" title="变量的声明"></a>变量的声明</h3><p>rust的变量分为可变变量与不可变变量，声明变量使用<strong>let</strong>关键字，类型可以不显式声明，可变变量用<strong>mut</strong>关键字。</p>
 <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">x</span>:<span class="type">i32</span> = <span class="number">42</span>; <span class="comment">//显式告知编译器变量类型</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">guess</span> = <span class="number">42</span>; <span class="comment">// 编译器推断 guess 是 i32 类型</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">pi</span> = <span class="number">3.14</span>;   <span class="comment">// 编译器推断 pi 是 f64 类型</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">active</span> = <span class="literal">true</span>; <span class="comment">// 编译器推断 active 是 bool 类型</span></span><br><span class="line"><span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">y</span> = <span class="number">10</span>; <span class="comment">// 声明一个可变变量 y 并赋值为 10</span></span><br></pre></td></tr></table></figure>
 
 <h3 id="变量的遮蔽"><a href="#变量的遮蔽" class="headerlink" title="变量的遮蔽"></a>变量的遮蔽</h3><p>在 Rust 中，<strong>变量遮蔽</strong>指的是你可以声明一个与之前变量同名的新变量。这个新变量会“遮盖”（或“隐藏”）之前声明的同名变量，使得在当前作用域内，对这个名字的引用会指向新的变量，而不是旧的。</p>
@@ -569,178 +571,47 @@
 <p>理解这些细微差别对于编写高效、安全且符合 Rust 习惯的代码至关重要。</p>
 <p>但是&amp;[&amp;mut String]是可以对包含的字符串内容进行修改的，可以类比C语言中的字符数组数组。</p>
 
-      
     </div>
 
     
     
     
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Chillward
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/07/17/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" title="RUST学习日记之数据类型">http://example.com/2025/07/17/RUST学习日记之数据类型/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/17/%E5%9F%BA%E4%BA%8EC%E8%AF%AD%E8%A8%80%E7%AE%80%E6%98%93OOP%E5%AE%9E%E7%8E%B0/">
+        
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/avatar.png">
-      <meta itemprop="name" content="Chillward">
-      <meta itemprop="description" content="谁躺在漆黑的舞台上，用身体迎接着光芒">
-    </span>
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Chillward的博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/07/17/%E5%9F%BA%E4%BA%8EC%E8%AF%AD%E8%A8%80%E7%AE%80%E6%98%93OOP%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">基于C语言简易OOP实现</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-07-17 10:09:13 / 修改时间：11:44:02" itemprop="dateCreated datePublished" datetime="2025-07-17T10:09:13+08:00">2025-07-17</time>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>最近在倒腾C语言实现类似于OOP的东西，在油管上看到了这样一种实现方法，昨天尝试了一下，现在记录一下</p>
-<blockquote>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=e99VxS8ljjY">Object-Oriented Programming in regular C</a></p>
-</blockquote>
-<p>最终的主函数长这样，实现了一个非常简陋的String类以及字符串拼接功能，当然，也几乎没有健壮性。这位博主只是简单提供了一种思路。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc,<span class="type">char</span> *argv[])</span>&#123;</span><br><span class="line">	String *s1;</span><br><span class="line">	String *s2;</span><br><span class="line">	s1 = mkstring(<span class="string">&quot;Hello &quot;</span>);</span><br><span class="line">	s2 = mkstring(<span class="string">&quot;World&quot;</span>);</span><br><span class="line">	$(s1)-&gt;concat(s2);</span><br><span class="line">	printfstr(s1);</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">free</span>(s1);</span><br><span class="line">	<span class="built_in">free</span>(s2);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这个设计的核心在于全局this指针以及宏定义(虽然全局的this指针不是很安全)。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">s_string</span> <span class="title">String</span>;</span> </span><br><span class="line"><span class="keyword">typedef</span> String* (*method)(String*);</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">s_string</span>&#123;</span></span><br><span class="line">	method concat;</span><br><span class="line">	<span class="type">int8_t</span> length;</span><br><span class="line">	<span class="type">char</span> data[];</span><br><span class="line">&#125;String;</span><br></pre></td></tr></table></figure>
-
-<p>首先我们需要用结构体模拟一个String类出来，其中包含了concat方法、长度length以及一个char数组(之前在别处见到的另一种实现多态的方法好像用到了接口结构体跟聚合表，我暂时还没太弄明白，等我弄明白了或许会再写个博客出来)。</p>
-<blockquote>
-<p>实际上这个 data[]也可以写成<code>char *data;</code>,本质上没什么区别</p>
-</blockquote>
-<p>method实际上是一个函数指针，指向一个返回值为<strong>String*</strong>,参数为**String***的函数，我们需要自己实现这个函数。</p>
-<p>接下来我们为这个类实现构造函数以及打印函数，下面是这两个函数的声明。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String *<span class="title function_">mkstring</span><span class="params">(<span class="type">char</span>*)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">printfstr</span><span class="params">(<span class="type">const</span> String*)</span>;</span><br></pre></td></tr></table></figure>
-
-<p>printfstr函数没什么好讲的，这里讲一下mkstring函数。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">String *<span class="title function_">mkstring</span><span class="params">(<span class="type">char</span>*str)</span>&#123;</span><br><span class="line">	<span class="type">int16_t</span> len;</span><br><span class="line">	<span class="type">int16_t</span> size;</span><br><span class="line">	String *p;</span><br><span class="line">	</span><br><span class="line">	assert(str);</span><br><span class="line">	len = <span class="built_in">strlen</span>(str);</span><br><span class="line">	assert(len);</span><br><span class="line">	</span><br><span class="line">	size = len +<span class="keyword">sizeof</span>(String) +<span class="number">1</span>;</span><br><span class="line">	p = (String*)<span class="built_in">malloc</span>(size);</span><br><span class="line">	assert(p);</span><br><span class="line">	<span class="built_in">memset</span>(p,<span class="number">0</span>,size);</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">memcpy</span>(p-&gt;data,str,len);</span><br><span class="line">	p-&gt;length = len;</span><br><span class="line">	p-&gt;concat = concat_;</span><br><span class="line">	<span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们可以先忽略掉这些<strong>assert</strong>(断言)，这个函数进行了以下操作:</p>
-<ol>
-<li><p>根据输入参数计算了String对象中length参数的长度并赋值。</p>
-</li>
-<li><p>根据输入字符数组的长度申请了足够的内存空间，并且使用memcpy函数将字符数组的内容复制进String对象中。</p>
-</li>
-<li><p>将自己实现的concat_函数与类中的函数指针进行了绑定。</p>
-</li>
-<li><p>最后返回了一个指向初始化好的String对象的指针。</p>
-</li>
-</ol>
-<blockquote>
-<p>此处需要注意，C语言字符数组以’\0’作为结尾，在这个函数中，通过memset将整个结构体置0时就相当于将类中char数组最后一位置0了，所以不再需要显式的置0。</p>
-</blockquote>
-<p>现在来看一下这个设计最核心的部分，全局this指针</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">void</span> thisptr;</span><br><span class="line">thisptr* _this;</span><br></pre></td></tr></table></figure>
-
-<p>可以看到我们创建了一个全局this指针，它将始终指向我们正在操作的String对象。</p>
-<p>接下来我们来实现这个concat_方法函数</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">String* <span class="title function_">concat_</span><span class="params">(String* input)</span> &#123;</span><br><span class="line">	String* current_this = _this; </span><br><span class="line">	</span><br><span class="line">	<span class="type">char</span>* temp_input_data = (<span class="type">char</span>*)<span class="built_in">malloc</span>(input-&gt;length + <span class="number">1</span>);</span><br><span class="line">	<span class="built_in">strcpy</span>(temp_input_data, input-&gt;data);</span><br><span class="line">	</span><br><span class="line">	<span class="type">int16_t</span> original_current_this_length = current_this-&gt;length; </span><br><span class="line">	<span class="type">int16_t</span> new_length = original_current_this_length + input-&gt;length;</span><br><span class="line">	<span class="type">size_t</span> new_size = <span class="keyword">sizeof</span>(String) + new_length + <span class="number">1</span>;</span><br><span class="line">	</span><br><span class="line">	String* reallocated_string = (String*)<span class="built_in">realloc</span>(current_this, new_size);</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> (reallocated_string == <span class="literal">NULL</span>) &#123;</span><br><span class="line">		perror(<span class="string">&quot;realloc 失败，无法原地扩展字符串&quot;</span>);</span><br><span class="line">		<span class="built_in">free</span>(temp_input_data);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	current_this = reallocated_string; </span><br><span class="line">	_this = current_this; </span><br><span class="line">	</span><br><span class="line">	current_this-&gt;length = new_length;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">memcpy</span>(current_this-&gt;data + original_current_this_length, temp_input_data, input-&gt;length);</span><br><span class="line">	</span><br><span class="line">	current_this-&gt;data[new_length] = <span class="string">&#x27;\0&#x27;</span>; </span><br><span class="line"></span><br><span class="line">	<span class="built_in">free</span>(temp_input_data);</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> current_this;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们先忽略掉错误处理部分，这个函数实现了以下的功能</p>
-<ol>
-<li><p><strong>保存输入字符串数据</strong> 函数首先将 <code>input</code> 字符串的数据复制到一个临时缓冲区 <code>temp_input_data</code> 中。这是为了防止在 <code>realloc</code> 失败时，<code>input-&gt;data</code> 中的数据丢失，或者如果在 <code>realloc</code> 后 <code>input-&gt;data</code> 指向的内存被释放或移动而导致后续操作出错。</p>
-</li>
-<li><p><strong>计算新字符串长度和所需内存大小</strong> 它计算了连接后的新字符串的总长度 <code>new_length</code>（原字符串长度 + 输入字符串长度），并根据这个新长度计算了 <code>String</code> 结构体加上字符串数据所需的总内存大小 <code>new_size</code>。</p>
-</li>
-<li><p><strong>重新分配内存</strong> 函数尝试使用 <code>realloc</code> 来扩展当前字符串 <code>_this</code> 所占用的内存。<code>realloc</code> 会尝试在原地扩展内存，如果原地扩展失败，它会分配一块新的内存区域并将原有数据复制过去，然后释放旧的内存区域。</p>
-</li>
-<li><p><strong>处理内存重新分配失败</strong> 如果 <code>realloc</code> 返回 <code>NULL</code>，表示内存重新分配失败。此时，函数会打印错误信息，释放之前分配的临时缓冲区，并返回 <code>NULL</code>。</p>
-</li>
-<li><p><strong>更新当前字符串指针和长度</strong> 如果内存重新分配成功，<code>current_this</code>（以及全局或成员变量 <code>_this</code>）会更新为 <code>reallocated_string</code> 返回的新地址。然后，<code>current_this</code> 的 <code>length</code> 字段会被更新为 <code>new_length</code>。</p>
-</li>
-<li><p><strong>拷贝输入字符串数据</strong> 使用 <code>memcpy</code> 将 <code>temp_input_data</code>（即 <code>input</code> 字符串的数据）拷贝到 <code>current_this-&gt;data</code> 的末尾，从 <code>original_current_this_length</code> 的位置开始。</p>
-</li>
-<li><p><strong>添加字符串结束符</strong> 在新字符串的末尾（<code>new_length</code> 的位置）添加空字符 <code>\0</code>，以确保它是一个合法的 C 字符串。</p>
-</li>
-<li><p><strong>释放临时缓冲区并返回</strong> 最后，释放之前为 <code>temp_input_data</code> 分配的内存，并返回更新后的 <code>current_this</code> 指针。</p>
-</li>
-</ol>
-<p>这个函数是我修改过的，博主原代码如下:</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">String *<span class="title function_">concat_</span><span class="params">(String *input)</span>&#123;</span><br><span class="line">    <span class="type">int16_t</span> len;</span><br><span class="line">    <span class="type">int16_t</span> size;</span><br><span class="line">    <span class="type">char</span> *p;</span><br><span class="line">    String *this;</span><br><span class="line">    this = (String*)_this;</span><br><span class="line">    len = this-&gt;length + input-&gt;length;</span><br><span class="line">    size = len+<span class="keyword">sizeof</span>(<span class="keyword">struct</span> s_string)+<span class="number">1</span>;</span><br><span class="line">    p = this-&gt;data +this-&gt;length;</span><br><span class="line">    this = (String*)<span class="built_in">realloc</span>(this,size);</span><br><span class="line">    assert(this);</span><br><span class="line">    <span class="built_in">memcpy</span>(p,input-&gt;data,input-&gt;length);</span><br><span class="line">    p = this-&gt;data +len;</span><br><span class="line">    *p = <span class="string">&#x27;0&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span> this;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可能是因为编译环境不同，这种写法在我的编译环境下会导致严重的内存问题。</p>
-<p>现在如果我们想要在主函数中实现字符串拼接，需要以下步骤:</p>
-<ol>
-<li>初始化s1,s2。</li>
-<li>this指针指向s1。</li>
-<li>调用s1的concat方法，将s2传入。</li>
-</ol>
-<p>体现在代码上如下</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">_this = s1;</span><br><span class="line">s1 = s1-&gt;concat(s2);</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>这里会出现<code>s1 = s1-&gt;concat(*)</code>的写法,是因为在concat函数中进行realloc操作时，会改变s1指针指向的内存，不管是原地扩容还是在新内存空间扩容，在扩容完成后将地址返回给s1就可以保证不出现悬空指针了。</p>
-</blockquote>
-<p>接下来我们可以实现一个操作宏来简化我们的操作</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> $(x) _this = (x);(x) = (x)</span></span><br></pre></td></tr></table></figure>
-
-<p>这个宏让我们可以以<code>$(s1)-&gt;concat(s2);</code>的形式直接调用对象中的方法，展开后本质上跟上面的写法是一样的。</p>
-<blockquote>
-<p>注意：这种写法实际上是不安全的，我只是将博主的实现方法照抄下来并且进行记录，暂时还没想到怎么才能优化这种写法</p>
-<p>但是有一点显而易见的就是这个全局的this指针是不安全的。</p>
-</blockquote>
-
-      
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/07/17/%E5%9F%BA%E4%BA%8EC%E8%AF%AD%E8%A8%80%E7%AE%80%E6%98%93OOP%E5%AE%9E%E7%8E%B0/" rel="prev" title="基于C语言简易OOP实现">
+      <i class="fa fa-chevron-left"></i> 基于C语言简易OOP实现
+    </a></div>
+      <div class="post-nav-item"></div>
     </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
       </footer>
+    
   </article>
   
   
-  
-
-
   
 
 
@@ -793,6 +664,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E7%9A%84%E5%A3%B0%E6%98%8E"><span class="nav-number">1.</span> <span class="nav-text">变量的声明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E7%9A%84%E9%81%AE%E8%94%BD"><span class="nav-number">2.</span> <span class="nav-text">变量的遮蔽</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-number"></span> <span class="nav-text">基本数据类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%8D%E5%90%88%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-number"></span> <span class="nav-text">复合数据类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%83%E7%BB%84-tuple"><span class="nav-number">0.1.</span> <span class="nav-text">元组(tuple):</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E7%BB%84-array"><span class="nav-number">0.2.</span> <span class="nav-text">数组(array):</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%88%87%E7%89%87-slices"><span class="nav-number">1.</span> <span class="nav-text">引用类型与切片(slices)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#String%E4%B8%8EString-slices"><span class="nav-number"></span> <span class="nav-text">String与String slices</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-mut-String%EF%BC%9A%E5%8F%AF%E5%8F%98%E4%B8%94%E6%8B%A5%E6%9C%89%E6%95%B0%E6%8D%AE%E7%9A%84%E5%BC%95%E7%94%A8"><span class="nav-number"></span> <span class="nav-text">1. &amp;mut String：可变且拥有数据的引用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%88%87%E7%89%87-str-%EF%BC%9A%E4%B8%8D%E5%8F%AF%E5%8F%98%E4%B8%94%E4%B8%8D%E6%8B%A5%E6%9C%89%E6%95%B0%E6%8D%AE%E7%9A%84%E5%BC%95%E7%94%A8"><span class="nav-number"></span> <span class="nav-text">2. 字符串切片 (&amp;str)：不可变且不拥有数据的引用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%83%E4%BB%AC%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB%E5%92%8C%E5%8C%BA%E5%88%AB%E6%80%BB%E7%BB%93"><span class="nav-number"></span> <span class="nav-text">它们之间的关系和区别总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%EF%BC%9A%E6%B2%A1%E6%9C%89%E5%8F%91%E7%94%9F-Deref-Coercion"><span class="nav-number"></span> <span class="nav-text">关键点：没有发生 Deref Coercion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90%EF%BC%9A%E5%BD%93%E4%BD%A0%E7%A1%AE%E5%AE%9E%E6%83%B3%E8%A6%81-str-%E6%97%B6"><span class="nav-number"></span> <span class="nav-text">例子：当你确实想要 &amp;[&amp;str] 时</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#String%E4%B8%8E-str"><span class="nav-number">1.</span> <span class="nav-text">&amp;String与&amp;str</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB%E6%A6%82%E8%A7%88"><span class="nav-number"></span> <span class="nav-text">核心区别概览</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-String-%EF%BC%9A%E6%8C%87%E5%90%91-String-%E5%BC%95%E7%94%A8%E7%9A%84%E5%88%87%E7%89%87"><span class="nav-number">1.</span> <span class="nav-text">1. &amp;[&amp;String]：指向 String 引用的切片</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-str-%EF%BC%9A%E6%8C%87%E5%90%91%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%88%87%E7%89%87%E7%9A%84%E5%88%87%E7%89%87"><span class="nav-number">2.</span> <span class="nav-text">2. &amp;[&amp;str]：指向字符串切片的切片</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E7%A7%8D%E5%8C%BA%E5%88%AB%E5%BE%88%E9%87%8D%E8%A6%81%EF%BC%9F"><span class="nav-number"></span> <span class="nav-text">为什么这种区别很重要？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number"></span> <span class="nav-text">总结</span></a></div>
       </div>
       <!--/noindex-->
 
