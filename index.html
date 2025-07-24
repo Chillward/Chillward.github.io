@@ -191,6 +191,226 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/24/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%A8%A1%E5%9D%9703/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.png">
+      <meta itemprop="name" content="Chillward">
+      <meta itemprop="description" content="谁躺在漆黑的舞台上，用身体迎接着光芒">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chillward的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/07/24/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%A8%A1%E5%9D%9703/" class="post-title-link" itemprop="url">RUST学习日记之模块03</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-07-24 18:11:52 / 修改时间：19:07:46" itemprop="dateCreated datePublished" datetime="2025-07-24T18:11:52+08:00">2025-07-24</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>9.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>18 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>我们依旧先来欣赏一下官方的高速神言,这一节官方主要就是讲了一下 use as还有pub use这三个东西</p>
+</blockquote>
+<h2 id="使用-use-关键字将名称引入作用域"><a href="#使用-use-关键字将名称引入作用域" class="headerlink" title="使用 use 关键字将名称引入作用域"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch07-04-bringing-paths-into-scope-with-the-use-keyword.html#%E4%BD%BF%E7%94%A8-use-%E5%85%B3%E9%94%AE%E5%AD%97%E5%B0%86%E5%90%8D%E7%A7%B0%E5%BC%95%E5%85%A5%E4%BD%9C%E7%94%A8%E5%9F%9F">使用 <code>use</code> 关键字将名称引入作用域</a></h2><p>到目前为止，似乎我们编写的用于调用函数的路径都很冗长且重复，并不方便。例如，示例 7-7 中，无论我们选择 <code>add_to_waitlist</code> 函数的绝对路径还是相对路径，每次我们想要调用 <code>add_to_waitlist</code> 时，都必须指定 <code>front_of_house</code> 和 <code>hosting</code>。幸运的是，有一种方法可以简化这个过程。我们可以使用 <code>use</code> 关键字将路径一次性引入作用域，然后调用该路径中的项，就如同它们是本地项一样。</p>
+<p>在示例 7-11 中，我们将 <code>crate::front_of_house::hosting</code> 模块引入了 <code>eat_at_restaurant</code> 函数的作用域，而我们只需要指定 <code>hosting::add_to_waitlist</code> 即可在 <code>eat_at_restaurant</code> 中调用 <code>add_to_waitlist</code> 函数。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">mod</span> front_of_house &#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">mod</span> hosting &#123;</span><br><span class="line">        <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">add_to_waitlist</span>() &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> crate::front_of_house::hosting;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">eat_at_restaurant</span>() &#123;</span><br><span class="line">    hosting::<span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-11: 使用 <code>use</code> 将模块引入作用域</p>
+<p>在作用域中增加 <code>use</code> 和路径类似于在文件系统中创建软连接（符号连接，symbolic link）。通过在 crate 根增加 <code>use crate::front_of_house::hosting</code>，现在 <code>hosting</code> 在作用域中就是有效的名称了，如同 <code>hosting</code> 模块被定义于 crate 根一样。通过 <code>use</code> 引入作用域的路径也会检查私有性，同其它路径一样。</p>
+<p>你还可以使用 <code>use</code> 和相对路径来将一个项引入作用域。示例 7-12 展示了如何指定相对路径来取得与示例 7-11 中一样的行为。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">mod</span> front_of_house &#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">mod</span> hosting &#123;</span><br><span class="line">        <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">add_to_waitlist</span>() &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> front_of_house::hosting;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">eat_at_restaurant</span>() &#123;</span><br><span class="line">    hosting::<span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-12: 使用 <code>use</code> 和相对路径将模块引入作用域</p>
+<h3 id="创建惯用的-use-路径"><a href="#创建惯用的-use-路径" class="headerlink" title="创建惯用的 use 路径"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch07-04-bringing-paths-into-scope-with-the-use-keyword.html#%E5%88%9B%E5%BB%BA%E6%83%AF%E7%94%A8%E7%9A%84-use-%E8%B7%AF%E5%BE%84">创建惯用的 <code>use</code> 路径</a></h3><p>在示例 7-11 中，你可能会比较疑惑，为什么我们是指定 <code>use crate::front_of_house::hosting</code>，然后在 <code>eat_at_restaurant</code> 中调用 <code>hosting::add_to_waitlist</code>，而不是通过指定一直到 <code>add_to_waitlist</code> 函数的 <code>use</code> 路径来得到相同的结果，如示例 7-13 所示。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">mod</span> front_of_house &#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">mod</span> hosting &#123;</span><br><span class="line">        <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">add_to_waitlist</span>() &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> crate::front_of_house::hosting::add_to_waitlist;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">eat_at_restaurant</span>() &#123;</span><br><span class="line">    <span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-13: 使用 <code>use</code> 将 <code>add_to_waitlist</code> 函数引入作用域，这并不符合习惯</p>
+<p>虽然示例 7-11 和 7-13 都完成了相同的任务，但示例 7-11 是使用 <code>use</code> 将函数引入作用域的习惯用法。使用 <code>use</code> 将函数的父模块引入作用域意味着我们必须在调用函数时指定父模块，这样可以清晰地表明函数不是在本地定义的，同时使完整路径的重复度最小化。示例 7-13 中的代码则未表明 <code>add_to_waitlist</code> 是在哪里被定义的。</p>
+<p>另一方面，使用 <code>use</code> 引入结构体、枚举和其他项时，习惯是指定它们的完整路径。示例 7-14 展示了将 <code>HashMap</code> 结构体引入二进制 crate 作用域的习惯用法。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">use</span> std::collections::HashMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">map</span> = HashMap::<span class="title function_ invoke__">new</span>();</span><br><span class="line">    map.<span class="title function_ invoke__">insert</span>(<span class="number">1</span>, <span class="number">2</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-14: 将 <code>HashMap</code> 引入作用域的习惯用法</p>
+<p>这种习惯用法背后没有什么硬性要求：它只是一种惯例，人们已经习惯了以这种方式阅读和编写 Rust 代码。</p>
+<blockquote>
+<p>其实也就说了这么些内容</p>
+</blockquote>
+<p><strong>使用 <code>use</code> 引入函数时，习惯上是将函数的父模块引入作用域。</strong> 这样，在调用函数时，你需要写 <code>父模块::函数名()</code>，比如 <code>hosting::add_to_waitlist()</code>。这样做的好处是，可以清晰地表明这个函数不是当前模块定义的，同时避免了每次都写完整的冗长路径。</p>
+<p><strong>使用 <code>use</code> 引入结构体、枚举或其他项时，习惯上是直接引入到该项本身。</strong> 这样，你可以直接使用该项的名称，比如 <code>HashMap::new()</code>。</p>
+<p>这个习惯用法有一个例外，那就是我们想使用 <code>use</code> 语句将两个具有相同名称的项带入作用域，因为 Rust 不允许这样做。示例 7-15 展示了如何将两个具有相同名称但不同父模块的 <code>Result</code> 类型引入作用域，以及如何引用它们。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">use</span> std::fmt;</span><br><span class="line"><span class="keyword">use</span> std::io;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">function1</span>() <span class="punctuation">-&gt;</span> fmt::<span class="type">Result</span> &#123;</span><br><span class="line">    <span class="comment">// --snip--</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">function2</span>() <span class="punctuation">-&gt;</span> io::<span class="type">Result</span>&lt;()&gt; &#123;</span><br><span class="line">    <span class="comment">// --snip--</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-15: 使用父模块将两个具有相同名称的类型引入同一作用域</p>
+<p>如你所见，使用父模块可以区分这两个 <code>Result</code> 类型。如果我们是指定 <code>use std::fmt::Result</code> 和 <code>use std::io::Result</code>，我们将在同一作用域拥有了两个 <code>Result</code> 类型，当我们使用 <code>Result</code> 时，Rust 则不知道我们要用的是哪个。</p>
+<blockquote>
+<p>接下来就是引入 as</p>
+</blockquote>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">use</span> std::fmt::<span class="type">Result</span>;</span><br><span class="line"><span class="keyword">use</span> std::io::<span class="type">Result</span> <span class="keyword">as</span> IoResult;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">function1</span>() <span class="punctuation">-&gt;</span> <span class="type">Result</span> &#123;</span><br><span class="line">    <span class="comment">// --snip--</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">function2</span>() <span class="punctuation">-&gt;</span> IoResult&lt;()&gt; &#123;</span><br><span class="line">    <span class="comment">// --snip--</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>　这个其实看两眼也就明白了,不用什么复杂的解释</p>
+<p>然后还有pub use,我的理解就是你自己编写的模块中通过use引用了别的模块的内容,想要使这些内容可以被引用你模块的人使用的话,就需要pub use语句</p>
+<blockquote>
+<p>以下是ai给出的解释</p>
+</blockquote>
+<p><code>pub use</code> 的核心作用，正是你描述的这个场景：当你编写一个模块（或者库）时，你可能会<strong>在内部 <code>use</code> 其他模块或类型</strong>来方便自己使用。但是，如果你希望<strong>使用你这个模块的外部代码</strong>也能通过你的模块路径来访问这些被你 <code>use</code> 进来的内容，那么你就需要使用 <code>pub use</code>。</p>
+<p>简单来说：</p>
+<ul>
+<li><strong><code>use</code>：</strong> 仅仅是你自己模块内部的“快捷方式”，方便你在本模块中使用。外部模块无法通过你的模块来访问这些被 <code>use</code> 进来的东西。</li>
+<li><strong><code>pub use</code>：</strong> 不仅创建了内部的“快捷方式”，还<strong>公开了</strong>这个快捷方式。这样，外部模块就可以通过你的模块路径来访问这个被重导出的内容，就好像这些内容就是你模块自己定义的一样。</li>
+</ul>
+<p>这就像是你开了一家商店（你的模块），你从批发商那里进了些商品（其他模块的内容）。</p>
+<ul>
+<li>如果你只是自己用（<code>use</code>），这些商品就在你的库房里，只有你能看到。</li>
+<li>但如果你想把这些商品摆在你的店里卖（<code>pub use</code>），那么顾客（外部代码）就可以通过你的商店来购买这些商品了，他们甚至不需要知道你最初是从哪个批发商那里进的货。</li>
+</ul>
+<p><code>pub use</code> 允许你提供一个更清晰、更简洁的 API 给你的用户，同时隐藏了你内部的组织结构,语法如下:</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">mod</span> front_of_house &#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">mod</span> hosting &#123;</span><br><span class="line">        <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">add_to_waitlist</span>() &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">use</span> crate::front_of_house::hosting;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">eat_at_restaurant</span>() &#123;</span><br><span class="line">    hosting::<span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>还剩下一些杂七杂八的东西</p>
+<p>下面是这段内容讲的三个主要“玩意儿”：</p>
+<ul>
+<li><p>你问得很好！这段内容主要围绕着如何在 Rust 项目中使用外部包（crate）以及如何优化 <code>use</code> 语句来管理这些引入的依赖。</p>
+<p>下面是这段内容讲的三个主要“玩意儿”：</p>
+<h3 id="1-如何使用外部包（Crate）"><a href="#1-如何使用外部包（Crate）" class="headerlink" title="1. 如何使用外部包（Crate）"></a>1. 如何使用外部包（Crate）</h3><p>Rust 项目使用 <strong>Cargo</strong> 这个构建系统和包管理器来管理依赖。</p>
+<ul>
+<li><p><strong>声明依赖：</strong> 当你需要使用一个外部包时（比如 <code>rand</code>），你需要在项目的 <code>Cargo.toml</code> 文件中的 <code>[dependencies]</code> 部分添加这个包的名称和版本号。Cargo 会自动从 <strong>crates.io</strong>（Rust 社区的包注册表）下载这个包及其所有必要的依赖。</p>
+<p>Ini, TOML</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[dependencies]</span><br><span class="line">rand = &quot;0.8.3&quot; # 示例：声明对rand包的依赖</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>引入作用域：</strong> 仅仅声明依赖还不够。你还需要使用 <code>use</code> 关键字，以 <strong>绝对路径</strong> 的方式将外部包中你想要使用的特定项（函数、结构体、trait 等）引入到你的代码的作用域中，这样你才能直接使用它们。</p>
+<p>Rust</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">use rand::Rng; // 将rand包中的Rng trait引入作用域</span><br></pre></td></tr></table></figure>
+
+<p>值得注意的是，<strong>标准库 (<code>std</code>)</strong> 也是一个特殊的外部 crate。虽然你不需要在 <code>Cargo.toml</code> 中声明它，但你仍然需要使用 <code>use</code> 语句来引入 <code>std</code> 中你想要使用的项，例如 <code>use std::collections::HashMap;</code>。</p>
+</li>
+</ul>
+<h3 id="2-优化-use-语句：嵌套路径"><a href="#2-优化-use-语句：嵌套路径" class="headerlink" title="2. 优化 use 语句：嵌套路径"></a>2. 优化 <code>use</code> 语句：嵌套路径</h3><p>当你的代码需要从同一个模块或同一个包中引入多个项时，逐行 <code>use</code> 会让代码变得冗长。Rust 提供了 <strong>嵌套路径</strong> 的语法来简化这个过程。</p>
+<ul>
+<li><p><strong>基本嵌套：</strong> 如果多个项共享同一个路径前缀，你可以将它们用大括号 <code>&#123;&#125;</code> 包裹起来。</p>
+<p>Rust</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// 之前：</span><br><span class="line">// use std::cmp::Ordering;</span><br><span class="line">// use std::io;</span><br><span class="line"></span><br><span class="line">// 之后：一行搞定</span><br><span class="line">use std::&#123;cmp::Ordering, io&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong><code>self</code> 关键字：</strong> 当你想引入一个模块本身，同时又想引入这个模块下的某个子项时，可以在嵌套路径中使用 <code>self</code> 关键字。</p>
+<p>Rust</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// 之前：</span><br><span class="line">// use std::io;</span><br><span class="line">// use std::io::Write;</span><br><span class="line"></span><br><span class="line">// 之后：一行搞定，同时引入了io模块和io::Write</span><br><span class="line">use std::io::&#123;self, Write&#125;;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="3-引入所有公有定义：Glob-运算符"><a href="#3-引入所有公有定义：Glob-运算符" class="headerlink" title="3. 引入所有公有定义：Glob 运算符 *"></a>3. 引入所有公有定义：Glob 运算符 <code>*</code></h3><p>如果你想将一个模块下所有 <strong>公有</strong> 的项都引入到当前作用域，可以使用 <strong>glob 运算符 <code>\*</code></strong>。</p>
+<ul>
+<li><p><strong>用法：</strong> 在路径的末尾加上 <code>*</code>。</p>
+<p>Rust</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">use std::collections::*; // 引入std::collections模块中所有的公有项</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>注意事项：</strong> 尽管方便，但使用 glob 运算符时需要<strong>谨慎</strong>。它会使代码的可读性降低，因为你很难一眼看出某个名称是来自哪里，可能会导致名称冲突。它通常在测试模块（为了方便测试所有功能）或特定模式（如 <code>prelude</code> 模式）中使用。</p>
+</li>
+</ul>
+<p>这里还有，并提供了两种技巧 (<code>&#123;&#125;</code> 嵌套路径和 <code>*</code> glob 运算符) 来更简洁地管理 <code>use</code> 语句，从而提高代码的可读性和维护性。</p>
+<p>这段代码展示了 Rust 中更细粒度的可见性控制，也就是如何使用 <code>pub(in path)</code>、<code>pub(self)</code> 和 <code>pub(super)</code> 来限制一个项（比如函数）的可见范围。</p>
+<h3 id="深入理解-Rust-的可见性控制"><a href="#深入理解-Rust-的可见性控制" class="headerlink" title="深入理解 Rust 的可见性控制"></a>深入理解 Rust 的可见性控制</h3><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 一个名为 `my_mod` 的模块</span></span><br><span class="line"><span class="keyword">mod</span> my_mod &#123;</span><br><span class="line">    <span class="comment">// 模块中的项默认具有私有的可见性</span></span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">private_function</span>() &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;called `my_mod::private_function()`&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用 `pub` 修饰语来改变默认可见性。</span></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">function</span>() &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;called `my_mod::function()`&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 在同一模块中，项可以访问其它项，即使它是私有的。</span></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">indirect_access</span>() &#123;</span><br><span class="line">        <span class="built_in">print!</span>(<span class="string">&quot;called `my_mod::indirect_access()`, that\n&gt; &quot;</span>);</span><br><span class="line">        <span class="title function_ invoke__">private_function</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 模块也可以嵌套</span></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">mod</span> nested &#123;</span><br><span class="line">        <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">function</span>() &#123;</span><br><span class="line">            <span class="built_in">println!</span>(<span class="string">&quot;called `my_mod::nested::function()`&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">#[allow(dead_code)]</span></span><br><span class="line">        <span class="keyword">fn</span> <span class="title function_">private_function</span>() &#123;</span><br><span class="line">            <span class="built_in">println!</span>(<span class="string">&quot;called `my_mod::nested::private_function()`&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 使用 `pub(in path)` 语法定义的函数只在给定的路径中可见。</span></span><br><span class="line">        <span class="comment">// `path` 必须是父模块（parent module）或祖先模块（ancestor module）</span></span><br><span class="line">        <span class="title function_ invoke__">pub</span>(<span class="keyword">in</span> crate::my_mod) <span class="keyword">fn</span> <span class="title function_">public_function_in_my_mod</span>() &#123;</span><br><span class="line">            <span class="built_in">print!</span>(<span class="string">&quot;called `my_mod::nested::public_function_in_my_mod()`, that\n &gt; &quot;</span>);</span><br><span class="line">            <span class="title function_ invoke__">public_function_in_nested</span>()</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 使用 `pub(self)` 语法定义的函数则只在当前模块中可见。</span></span><br><span class="line">        <span class="title function_ invoke__">pub</span>(<span class="keyword">self</span>) <span class="keyword">fn</span> <span class="title function_">public_function_in_nested</span>() &#123;</span><br><span class="line">            <span class="built_in">println!</span>(<span class="string">&quot;called `my_mod::nested::public_function_in_nested&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 使用 `pub(super)` 语法定义的函数只在父模块中可见。</span></span><br><span class="line">        <span class="title function_ invoke__">pub</span>(<span class="keyword">super</span>) <span class="keyword">fn</span> <span class="title function_">public_function_in_super_mod</span>() &#123;</span><br><span class="line">            <span class="built_in">println!</span>(<span class="string">&quot;called my_mod::nested::public_function_in_super_mod&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">call_public_function_in_my_mod</span>() &#123;</span><br><span class="line">        <span class="built_in">print!</span>(<span class="string">&quot;called `my_mod::call_public_funcion_in_my_mod()`, that\n&gt; &quot;</span>);</span><br><span class="line">        nested::<span class="title function_ invoke__">public_function_in_my_mod</span>();</span><br><span class="line">        <span class="built_in">print!</span>(<span class="string">&quot;&gt; &quot;</span>);</span><br><span class="line">        nested::<span class="title function_ invoke__">public_function_in_super_mod</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// `pub(crate)` 使得函数只在当前 crate 中可见</span></span><br><span class="line">    <span class="title function_ invoke__">pub</span>(<span class="keyword">crate</span>) <span class="keyword">fn</span> <span class="title function_">public_function_in_crate</span>() &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;called `my_mod::public_function_in_crate()&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 嵌套模块的可见性遵循相同的规则</span></span><br><span class="line">    <span class="keyword">mod</span> private_nested &#123;</span><br><span class="line">        <span class="meta">#[allow(dead_code)]</span></span><br><span class="line">        <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">function</span>() &#123;</span><br><span class="line">            <span class="built_in">println!</span>(<span class="string">&quot;called `my_mod::private_nested::function()`&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">function</span>() &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;called `function()`&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="comment">// 模块机制消除了相同名字的项之间的歧义。</span></span><br><span class="line">    <span class="title function_ invoke__">function</span>();</span><br><span class="line">    my_mod::<span class="title function_ invoke__">function</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 公有项，包括嵌套模块内的，都可以在父模块外部访问。</span></span><br><span class="line">    my_mod::<span class="title function_ invoke__">indirect_access</span>();</span><br><span class="line">    my_mod::nested::<span class="title function_ invoke__">function</span>();</span><br><span class="line">    my_mod::<span class="title function_ invoke__">call_public_function_in_my_mod</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// pub(crate) 项可以在同一个 crate 中的任何地方访问</span></span><br><span class="line">    my_mod::<span class="title function_ invoke__">public_function_in_crate</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// pub(in path) 项只能在指定的模块中访问</span></span><br><span class="line">    <span class="comment">// 报错！函数 `public_function_in_my_mod` 是私有的</span></span><br><span class="line">    <span class="comment">//my_mod::nested::public_function_in_my_mod();</span></span><br><span class="line">    <span class="comment">// 试一试 ^ 取消该行的注释</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 模块的私有项不能直接访问，即便它是嵌套在公有模块内部的</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 报错！`private_function` 是私有的</span></span><br><span class="line">    <span class="comment">//my_mod::private_function();</span></span><br><span class="line">    <span class="comment">// 试一试 ^ 取消此行注释</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 报错！`private_function` 是私有的</span></span><br><span class="line">    <span class="comment">//my_mod::nested::private_function();</span></span><br><span class="line">    <span class="comment">// 试一试 ^ 取消此行的注释</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Error! `private_nested` is a private module</span></span><br><span class="line">    <span class="comment">//my_mod::private_nested::function();</span></span><br><span class="line">    <span class="comment">// 试一试 ^ 取消此行的注释</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>默认情况下，Rust 中的所有项（函数、结构体、枚举、模块等）都是私有的。要让它们在当前作用域之外可见，你需要使用 <code>pub</code> 关键字。然而，简单的 <code>pub</code> 意味着对<strong>所有</strong>外部代码都可见，这在某些情况下可能过于宽松。</p>
+<p><code>pub(in path)</code>、<code>pub(self)</code> 和 <code>pub(super)</code> 提供了一种方式，让你能够更精确地控制项的可见性，而不是简单地“完全公开”或“完全私有”。</p>
+<h4 id="1-pub-in-crate-my-mod-：指定路径可见性"><a href="#1-pub-in-crate-my-mod-：指定路径可见性" class="headerlink" title="1. pub(in crate::my_mod)：指定路径可见性"></a>1. <code>pub(in crate::my_mod)</code>：指定路径可见性</h4><p>这个语法允许你将一个项的可见性限制在指定的路径（模块）内部。</p>
+<ul>
+<li><p><strong><code>pub(in crate::my_mod) fn public_function_in_my_mod()</code></strong></p>
+<ul>
+<li>这意味着 <code>public_function_in_my_mod</code> 这个函数只在 <strong><code>crate::my_mod</code> 模块及其子模块内部可见和可调用</strong>。</li>
+<li>在 <code>my_mod</code> 外部的代码，即使 <code>my_mod</code> 本身是公开的，也无法直接调用 <code>public_mod::nested::public_function_in_my_mod</code>。</li>
+<li><code>path</code> 必须是该项的父模块或祖先模块。你不能指定一个与当前项没有继承关系的模块。</li>
+</ul>
+<p><strong>想象一下：</strong> 你有一个家族企业，<code>my_mod</code> 是总公司。这个函数就像是只有总公司内部的员工（包括子公司员工）才能使用的特定工具。外部客户即使知道总公司存在，也无法直接使用这个工具。</p>
+</li>
+</ul>
+<h4 id="2-pub-self-：当前模块可见性"><a href="#2-pub-self-：当前模块可见性" class="headerlink" title="2. pub(self)：当前模块可见性"></a>2. <code>pub(self)</code>：当前模块可见性</h4><p><code>pub(self)</code> 将可见性限制在定义该项的<strong>当前模块</strong>内部。</p>
+<ul>
+<li><p><strong><code>pub(self) fn public_function_in_nested()</code></strong></p>
+<ul>
+<li>这意味着 <code>public_function_in_nested</code> 这个函数只在 <code>my_mod::nested</code> <strong>模块内部可见</strong>。</li>
+<li>即使在 <code>my_mod</code> 模块内部（<code>nested</code> 的父模块），也无法直接调用 <code>public_function_in_nested</code>。只有在 <code>nested</code> 模块内部的代码才能调用它。</li>
+</ul>
+<p><strong>想象一下：</strong> <code>nested</code> 是公司里的一个特定部门。<code>public_function_in_nested</code> 就像是这个部门内部的专用流程，只有这个部门的员工才能使用。总公司或其他部门的员工都不能直接调用这个流程。</p>
+</li>
+</ul>
+<h4 id="3-pub-super-：父模块可见性"><a href="#3-pub-super-：父模块可见性" class="headerlink" title="3. pub(super)：父模块可见性"></a>3. <code>pub(super)</code>：父模块可见性</h4><p><code>pub(super)</code> 将可见性限制在定义该项的<strong>父模块</strong>内部。</p>
+<ul>
+<li><p><strong><code>pub(super) fn public_function_in_super_mod()</code></strong></p>
+<ul>
+<li>这意味着 <code>public_function_in_super_mod</code> 这个函数只在 <code>my_mod</code> <strong>模块内部可见</strong>。</li>
+<li>尽管它定义在 <code>nested</code> 模块中，但它只对 <code>nested</code> 的父模块（即 <code>my_mod</code>）可见。<code>nested</code> 模块内部也能调用它，因为父模块的可见性范围包含了子模块。</li>
+</ul>
+<p><strong>想象一下：</strong> 仍然是公司里的一个部门 <code>nested</code>。<code>public_function_in_super_mod</code> 就像是这个部门为总公司（<code>my_mod</code>）提供的内部服务，总公司可以直接调用，但其他部门或外部客户不能直接调用。</p>
+</li>
+</ul>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">function</span>() &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;called `function()`&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">mod</span> cool &#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">function</span>() &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;called `cool::function()`&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">mod</span> my &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">function</span>() &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;called `my::function()`&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">mod</span> cool &#123;</span><br><span class="line">        <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">function</span>() &#123;</span><br><span class="line">            <span class="built_in">println!</span>(<span class="string">&quot;called `my::cool::function()`&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">indirect_call</span>() &#123;</span><br><span class="line">        <span class="comment">// 让我们从这个作用域中访问所有名为 `function` 的函数！</span></span><br><span class="line">        <span class="built_in">print!</span>(<span class="string">&quot;called `my::indirect_call()`, that\n&gt; &quot;</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// `self` 关键字表示当前的模块作用域——在这个例子是 `my`。</span></span><br><span class="line">        <span class="comment">// 调用 `self::function()` 和直接调用 `function()` 都得到相同的结果，</span></span><br><span class="line">        <span class="comment">// 因为他们表示相同的函数。</span></span><br><span class="line">        self::<span class="title function_ invoke__">function</span>();</span><br><span class="line">        <span class="title function_ invoke__">function</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 我们也可以使用 `self` 来访问 `my` 内部的另一个模块：</span></span><br><span class="line">        self::cool::<span class="title function_ invoke__">function</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// `super` 关键字表示父作用域（在 `my` 模块外面）。</span></span><br><span class="line">        super::<span class="title function_ invoke__">function</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 这将在 *crate* 作用域内绑定 `cool::function` 。</span></span><br><span class="line">        <span class="comment">// 在这个例子中，crate 作用域是最外面的作用域。</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">use</span> crate::cool::function <span class="keyword">as</span> root_function;</span><br><span class="line">            <span class="title function_ invoke__">root_function</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    my::<span class="title function_ invoke__">indirect_call</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>这些细粒度的可见性控制非常有用，它们允许你：</p>
+<ul>
+<li><strong>封装内部实现细节：</strong> 将一些只应该在特定范围内部使用的函数或数据隐藏起来，避免外部滥用或不当修改。</li>
+<li><strong>构建清晰的 API：</strong> 明确哪些部分是库的公共接口，哪些是内部辅助功能。</li>
+<li><strong>增强代码安全性：</strong> 限制了对某些敏感操作的访问。</li>
+</ul>
+<p>RUST的这个模块管理系统真的挺复杂的,估计得在实战中用它两回才能真正学得会.</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/24/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%A8%A1%E5%9D%9702/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -214,8 +434,9 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2025-07-24 10:23:54" itemprop="dateCreated datePublished" datetime="2025-07-24T10:23:54+08:00">2025-07-24</time>
+              <time title="创建时间：2025-07-24 10:23:54 / 修改时间：18:10:05" itemprop="dateCreated datePublished" datetime="2025-07-24T10:23:54+08:00">2025-07-24</time>
             </span>
 
           <br>
@@ -224,14 +445,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>0</span>
+              <span>11k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>21 分钟</span>
             </span>
 
         </div>
@@ -243,7 +464,156 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          
+          <h2 id="路径用于引用模块树中的项"><a href="#路径用于引用模块树中的项" class="headerlink" title="路径用于引用模块树中的项"></a>路径用于引用模块树中的项</h2><p>来看一下 Rust 如何在模块树中找到一个项的位置，我们使用路径的方式，就像在文件系统使用路径一样。如果我们想要调用一个函数，我们需要知道它的路径。</p>
+<p>路径有两种形式：</p>
+<ul>
+<li><strong>绝对路径</strong>（<em>absolute path</em>）从 crate 根部开始，以 crate 名或者字面量 <code>crate</code> 开头。</li>
+<li><strong>相对路径</strong>（<em>relative path</em>）从当前模块开始，以 <code>self</code>、<code>super</code> 或当前模块的标识符开头。</li>
+</ul>
+<p>绝对路径和相对路径都后跟一个或多个由双冒号（<code>::</code>）分割的标识符。</p>
+<p>让我们回到示例 7-1。我们如何调用 <code>add_to_waitlist</code> 函数？还是同样的问题，<code>add_to_waitlist</code> 函数的路径是什么？在示例 7-3 中，我们通过删除一些模块和函数，稍微简化了一下我们的代码。我们在 crate 根部定义了一个新函数 <code>eat_at_restaurant</code>，并在其中展示调用 <code>add_to_waitlist</code> 函数的两种方法。<code>eat_at_restaurant</code> 函数是我们 crate 库的一个公共 API，所以我们使用 <code>pub</code> 关键字来标记它。在<a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html#%E4%BD%BF%E7%94%A8-pub-%E5%85%B3%E9%94%AE%E5%AD%97%E6%9A%B4%E9%9C%B2%E8%B7%AF%E5%BE%84">“使用 <code>pub</code> 关键字暴露路径”</a>一节，我们将详细介绍 <code>pub</code>。注意，这个例子无法编译通过，我们稍后会解释原因。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">mod</span> front_of_house &#123;</span><br><span class="line">    <span class="keyword">mod</span> hosting &#123;</span><br><span class="line">        <span class="keyword">fn</span> <span class="title function_">add_to_waitlist</span>() &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">eat_at_restaurant</span>() &#123;</span><br><span class="line">    <span class="comment">// 绝对路径</span></span><br><span class="line">    crate::front_of_house::hosting::<span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 相对路径</span></span><br><span class="line">    front_of_house::hosting::<span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-3: 使用绝对路径和相对路径来调用 <code>add_to_waitlist</code> 函数</p>
+<p>第一种方式，我们在 <code>eat_at_restaurant</code> 中调用 <code>add_to_waitlist</code> 函数，使用的是绝对路径。<code>add_to_waitlist</code> 函数与 <code>eat_at_restaurant</code> 被定义在同一 crate 中，这意味着我们可以使用 <code>crate</code> 关键字为起始的绝对路径。</p>
+<p>在 <code>crate</code> 后面，我们持续地嵌入模块，直到我们找到 <code>add_to_waitlist</code>。你可以想象出一个相同结构的文件系统，我们通过指定路径 <code>/front_of_house/hosting/add_to_waitlist</code> 来执行 <code>add_to_waitlist</code> 程序。我们使用 <code>crate</code> 从 crate 根部开始就类似于在 shell 中使用 <code>/</code> 从文件系统根开始。</p>
+<p>第二种方式，我们在 <code>eat_at_restaurant</code> 中调用 <code>add_to_waitlist</code>，使用的是相对路径。这个路径以 <code>front_of_house</code> 为起始，这个模块在模块树中，与 <code>eat_at_restaurant</code> 定义在同一层级。与之等价的文件系统路径就是 <code>front_of_house/hosting/add_to_waitlist</code>。以名称为起始，意味着该路径是相对路径。</p>
+<p>选择使用相对路径还是绝对路径，还是要取决于你的项目。取决于你是更倾向于将项的定义代码与使用该项的代码分开来移动，还是一起移动。举一个例子，如果我们要将 <code>front_of_house</code> 模块和 <code>eat_at_restaurant</code> 函数一起移动到一个名为 <code>customer_experience</code> 的模块中，我们需要更新 <code>add_to_waitlist</code> 的绝对路径，但是相对路径还是可用的。然而，如果我们要将 <code>eat_at_restaurant</code> 函数单独移到一个名为 <code>dining</code> 的模块中，还是可以使用原本的绝对路径来调用 <code>add_to_waitlist</code>，但是相对路径必须要更新。我们更倾向于使用绝对路径，因为把代码定义和项调用各自独立地移动是更常见的。</p>
+<blockquote>
+<p>官方依旧高速神言不说人话</p>
+</blockquote>
+<p>我们用 C 语言的例子来类比一下 Rust 中“把代码定义和项调用各自独立地移动是更常见的”这句话。</p>
+<p>在 C 语言中，我们没有像 Rust 这样的模块系统，但我们可以用<strong>头文件（.h）</strong> 和 <strong>源文件（.c）</strong> 来类比“定义”和“调用”以及“路径”。</p>
+<h3 id="C-语言中的类比"><a href="#C-语言中的类比" class="headerlink" title="C 语言中的类比"></a>C 语言中的类比</h3><p>想象你有两个 C 文件：</p>
+<ol>
+<li><p><strong><code>math_operations.h</code> 和 <code>math_operations.c</code></strong>：</p>
+<ul>
+<li><p><code>math_operations.h</code> (头文件)：声明了 <code>add</code> 函数。这就像 Rust 中一个模块的公开接口，告诉别人有这么一个函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// math_operations.h</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>; <span class="comment">// 这是函数的“定义”或“声明”</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>math_operations.c</code> (源文件)：实现了 <code>add</code> 函数。这是函数的具体“定义”所在。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// math_operations.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;math_operations.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p><strong><code>main.c</code></strong>：</p>
+<ul>
+<li>这个文件会<strong>调用</strong> <code>add</code> 函数。</li>
+</ul>
+</li>
+</ol>
+<h4 id="场景一：类似-Rust-中的绝对路径（使用完整路径-包含完整头文件）"><a href="#场景一：类似-Rust-中的绝对路径（使用完整路径-包含完整头文件）" class="headerlink" title="场景一：类似 Rust 中的绝对路径（使用完整路径&#x2F;包含完整头文件）"></a>场景一：类似 Rust 中的<strong>绝对路径</strong>（使用完整路径&#x2F;包含完整头文件）</h4><p>在 <code>main.c</code> 中，如果你想要使用 <code>add</code> 函数，你会这么做：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// main.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;math_operations.h&quot;</span> <span class="comment">// 告诉编译器去哪里找 add 函数的声明</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">int</span> result = add(<span class="number">5</span>, <span class="number">3</span>); <span class="comment">// 调用 add 函数</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里，<code>#include &quot;math_operations.h&quot;</code> 就像 Rust 中的<strong>绝对路径</strong>。它明确地指明了 <code>add</code> 函数的声明在哪里可以找到。</p>
+<ul>
+<li><strong>如果我移动 <code>main.c</code> 文件（调用者）</strong>：假设你把 <code>main.c</code> 从项目的一个子目录移动到另一个子目录，只要 <code>math_operations.h</code> 的相对位置没有改变，或者你通过编译器的 <code>-I</code> 选项（include path）告诉了编译器 <code>math_operations.h</code> 的新位置，那么 <code>main.c</code> 中 <code>add(5, 3)</code> 的调用<strong>不需要修改</strong>。因为 <code>add</code> 函数的定义（和声明）本身没有移动。这和 Rust 中绝对路径的稳定性类似。</li>
+</ul>
+<h4 id="场景二：类似-Rust-中的相对路径（如果-C-语言有这种直接模块引用）"><a href="#场景二：类似-Rust-中的相对路径（如果-C-语言有这种直接模块引用）" class="headerlink" title="场景二：类似 Rust 中的相对路径（如果 C 语言有这种直接模块引用）"></a>场景二：类似 Rust 中的<strong>相对路径</strong>（如果 C 语言有这种直接模块引用）</h4><p>C 语言没有像 Rust 这样内建的相对模块路径引用机制。但我们可以想象一种情况，如果你需要在 <code>main.c</code> 中<strong>直接引用</strong> <code>add</code> 函数的定义，而不是通过头文件。这在 C 语言中是做不到的，但为了类比，我们可以假设：</p>
+<p>如果 <code>main.c</code> 直接依赖于 <code>math_operations.c</code> 文件的<strong>相对位置</strong>来找到 <code>add</code> 函数的定义（这是个假设，C 实际编译不是这样做的）。那么：</p>
+<ul>
+<li><strong>如果我移动 <code>main.c</code> 文件（调用者）</strong>：<code>main.c</code> 的位置变了，它与 <code>math_operations.c</code> 的相对位置就可能变了。那么，原先的“相对路径”就失效了，你<strong>需要修改</strong> <code>main.c</code> 中引用 <code>add</code> 函数的方式。</li>
+</ul>
+<h3 id="“各自独立移动”的含义"><a href="#“各自独立移动”的含义" class="headerlink" title="“各自独立移动”的含义"></a>“各自独立移动”的含义</h3><p>回到 Rust 的语境：</p>
+<p>“把代码定义和项调用各自独立地移动是更常见的”这句话意味着：</p>
+<ol>
+<li><strong>你更常会移动和重构使用某个功能（<code>add</code> 函数）的代码文件（<code>main.c</code>），而不是改变那个功能本身（<code>math_operations.c</code> 和 <code>math_operations.h</code>）的存放位置。</strong></li>
+<li>当你移动 <code>main.c</code> 时，你希望它里面的 <code>add(5, 3)</code> 调用能够<strong>保持不变</strong>，而不需要每次移动都去修改它。</li>
+</ol>
+<p>因此，使用 <strong>绝对路径</strong>（类似 C 语言中 <code>#include &lt;library_header.h&gt;</code> 或者通过 <code>-I</code> 选项找到的头文件）会更稳定。因为它从一个固定的起点（Rust 的 crate 根部）开始寻找，<strong>不依赖于你当前调用代码（<code>main.c</code>）的位置</strong>。即使你把 <code>main.c</code> 移动到项目的其他地方，只要 <code>add</code> 函数的定义没有从它原来的“绝对位置”移动，那么对它的引用就依然有效。</p>
+<p>而 <strong>相对路径</strong>，由于它的起点是“当前模块”，一旦你移动了当前模块，相对位置就变了，路径就可能失效，需要你手动更新。</p>
+<p>所以，Rust 建议我们倾向于使用绝对路径，因为它在代码重构时，特别是当调用方代码移动时，能够减少你需要修改的引用路径的数量，从而提高代码的维护性和稳定性。</p>
+<blockquote>
+<p>简而言之就是绝对路径更好用,OK,接下来我们继续欣赏官方文档的高速神言</p>
+</blockquote>
+<p>让我们试着编译一下示例 7-3，并查明为何不能编译！示例 7-4 展示了这个错误。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">$ cargo build</span><br><span class="line">   Compiling restaurant v0.1.0 (file:///projects/restaurant)</span><br><span class="line">error[E0603]: module `hosting` is private</span><br><span class="line"> --&gt; src/lib.rs:9:28</span><br><span class="line">  |</span><br><span class="line">9 |     crate::front_of_house::hosting::add_to_waitlist();</span><br><span class="line">  |                            ^^^^^^^ private module</span><br><span class="line">  |</span><br><span class="line">note: the module `hosting` is defined here</span><br><span class="line"> --&gt; src/lib.rs:2:5</span><br><span class="line">  |</span><br><span class="line">2 |     mod hosting &#123;</span><br><span class="line">  |     ^^^^^^^^^^^</span><br><span class="line"></span><br><span class="line">error[E0603]: module `hosting` is private</span><br><span class="line">  --&gt; src/lib.rs:12:21</span><br><span class="line">   |</span><br><span class="line">12 |     front_of_house::hosting::add_to_waitlist();</span><br><span class="line">   |                     ^^^^^^^ private module</span><br><span class="line">   |</span><br><span class="line">note: the module `hosting` is defined here</span><br><span class="line">  --&gt; src/lib.rs:2:5</span><br><span class="line">   |</span><br><span class="line">2  |     mod hosting &#123;</span><br><span class="line">   |     ^^^^^^^^^^^</span><br><span class="line"></span><br><span class="line">For more information about this error, try `rustc --explain E0603`.</span><br><span class="line">error: could not compile `restaurant` due to 2 previous errors</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-4: 构建示例 7-3 出现的编译器错误</p>
+<p>错误信息说 <code>hosting</code> 模块是私有的。换句话说，我们拥有 <code>hosting</code> 模块和 <code>add_to_waitlist</code> 函数的的正确路径，但是 Rust 不让我们使用，因为它不能访问私有片段。</p>
+<p>模块不仅对于你组织代码很有用。他们还定义了 Rust 的 <em>私有性边界</em>（<em>privacy boundary</em>）：这条界线不允许外部代码了解、调用和依赖被封装的实现细节。所以，如果你希望创建一个私有函数或结构体，你可以将其放入模块。</p>
+<p>Rust  中默认所有项（函数、方法、结构体、枚举、模块和常量）都是私有的。父模块中的项不能使用子模块中的私有项，但是子模块中的项可以使用他们父模块中的项。这是因为子模块封装并隐藏了他们的实现详情，但是子模块可以看到他们定义的上下文。继续拿餐馆作比喻，把私有性规则想象成餐馆的后台办公室：餐馆内的事务对餐厅顾客来说是不可知的，但办公室经理可以洞悉其经营的餐厅并在其中做任何事情。</p>
+<p>Rust 选择以这种方式来实现模块系统功能，因此默认隐藏内部实现细节。这样一来，你就知道可以更改内部代码的哪些部分而不会破坏外部代码。你还可以通过使用 <code>pub</code> 关键字来创建公共项，使子模块的内部部分暴露给上级模块。</p>
+<blockquote>
+<p>接下来主要就是引出PUB关键字,需要注意PUB关键字对于结构体,枚举,函数的作用是不太一样的,需要分辨一下</p>
+</blockquote>
+<h3 id="使用-pub-关键字暴露路径"><a href="#使用-pub-关键字暴露路径" class="headerlink" title="使用 pub 关键字暴露路径"></a>使用 <code>pub</code> 关键字暴露路径</h3><p>让我们回头看一下示例 7-4 的错误，它告诉我们 <code>hosting</code> 模块是私有的。我们想让父模块中的 <code>eat_at_restaurant</code> 函数可以访问子模块中的 <code>add_to_waitlist</code> 函数，因此我们使用 <code>pub</code> 关键字来标记 <code>hosting</code> 模块，如示例 7-5 所示。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">mod</span> front_of_house &#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">mod</span> hosting &#123;</span><br><span class="line">        <span class="keyword">fn</span> <span class="title function_">add_to_waitlist</span>() &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">eat_at_restaurant</span>() &#123;</span><br><span class="line">    <span class="comment">// 绝对路径</span></span><br><span class="line">    crate::front_of_house::hosting::<span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 相对路径</span></span><br><span class="line">    front_of_house::hosting::<span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-5: 使用 <code>pub</code> 关键字声明 <code>hosting</code> 模块使其可在 <code>eat_at_restaurant</code> 使用</p>
+<p>不幸的是，示例 7-5 的代码编译仍然有错误，如示例 7-6 所示。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">$ cargo build</span><br><span class="line">   Compiling restaurant v0.1.0 (file:///projects/restaurant)</span><br><span class="line">error[E0603]: function `add_to_waitlist` is private</span><br><span class="line"> --&gt; src/lib.rs:9:37</span><br><span class="line">  |</span><br><span class="line">9 |     crate::front_of_house::hosting::add_to_waitlist();</span><br><span class="line">  |                                     ^^^^^^^^^^^^^^^ private function</span><br><span class="line">  |</span><br><span class="line">note: the function `add_to_waitlist` is defined here</span><br><span class="line"> --&gt; src/lib.rs:3:9</span><br><span class="line">  |</span><br><span class="line">3 |         fn add_to_waitlist() &#123;&#125;</span><br><span class="line">  |         ^^^^^^^^^^^^^^^^^^^^</span><br><span class="line"></span><br><span class="line">error[E0603]: function `add_to_waitlist` is private</span><br><span class="line">  --&gt; src/lib.rs:12:30</span><br><span class="line">   |</span><br><span class="line">12 |     front_of_house::hosting::add_to_waitlist();</span><br><span class="line">   |                              ^^^^^^^^^^^^^^^ private function</span><br><span class="line">   |</span><br><span class="line">note: the function `add_to_waitlist` is defined here</span><br><span class="line">  --&gt; src/lib.rs:3:9</span><br><span class="line">   |</span><br><span class="line">3  |         fn add_to_waitlist() &#123;&#125;</span><br><span class="line">   |         ^^^^^^^^^^^^^^^^^^^^</span><br><span class="line"></span><br><span class="line">For more information about this error, try `rustc --explain E0603`.</span><br><span class="line">error: could not compile `restaurant` due to 2 previous errors</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-6: 构建示例 7-5 出现的编译器错误</p>
+<p>发生了什么？在 <code>mod hosting</code> 前添加了 <code>pub</code> 关键字，使其变成公有的。伴随着这种变化，如果我们可以访问 <code>front_of_house</code>，那我们也可以访问 <code>hosting</code>。但是 <code>hosting</code> 的 <strong>内容</strong>（<em>contents</em>） 仍然是私有的；这表明<strong>使模块公有并不使其内容也是公有的。模块上的 <code>pub</code> 关键字只允许其父模块引用它。</strong></p>
+<p>示例 7-6 中的错误说，<code>add_to_waitlist</code> 函数是私有的。私有性规则不但应用于模块，还应用于结构体、枚举、函数和方法。</p>
+<p>让我们继续将 <code>pub</code> 关键字放置在 <code>add_to_waitlist</code> 函数的定义之前，使其变成公有。如示例 7-7 所示。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">mod</span> front_of_house &#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">mod</span> hosting &#123;</span><br><span class="line">        <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">add_to_waitlist</span>() &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">eat_at_restaurant</span>() &#123;</span><br><span class="line">    <span class="comment">// 绝对路径</span></span><br><span class="line">    crate::front_of_house::hosting::<span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 相对路径</span></span><br><span class="line">    front_of_house::hosting::<span class="title function_ invoke__">add_to_waitlist</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-7: 为 <code>mod hosting</code> 和 <code>fn add_to_waitlist</code> 添加 <code>pub</code> 关键字使他们可以在 <code>eat_at_restaurant</code> 函数中被调用</p>
+<p>现在代码可以编译通过了！让我们看看绝对路径和相对路径，并根据私有性规则，再检查一下为什么增加 <code>pub</code> 关键字使得我们可以在 <code>add_to_waitlist</code> 中调用这些路径。</p>
+<p>在绝对路径，我们从 <code>crate</code>，也就是 crate 根部开始。然后 crate 根部中定义了 <code>front_of_house</code> 模块。<code>front_of_house</code> 模块不是公有的，不过因为 <code>eat_at_restaurant</code> 函数与 <code>front_of_house</code> 定义于同一模块中（即，<code>eat_at_restaurant</code> 和 <code>front_of_house</code> 是兄弟），我们可以从 <code>eat_at_restaurant</code> 中引用 <code>front_of_house</code>。接下来是使用 <code>pub</code> 标记的 <code>hosting</code> 模块。我们可以访问 <code>hosting</code> 的父模块，所以可以访问 <code>hosting</code>。最后，<code>add_to_waitlist</code> 函数被标记为 <code>pub</code> ，我们可以访问其父模块，所以这个函数调用是有效的！</p>
+<p>在相对路径，其逻辑与绝对路径相同，除了第一步：不同于从 crate 根部开始，路径从 <code>front_of_house</code> 开始。<code>front_of_house</code> 模块与 <code>eat_at_restaurant</code> 定义于同一模块，所以从 <code>eat_at_restaurant</code> 中开始定义的该模块相对路径是有效的。接下来因为 <code>hosting</code> 和 <code>add_to_waitlist</code> 被标记为 <code>pub</code>，路径其余的部分也是有效的，因此函数调用也是有效的！</p>
+<blockquote>
+<p>我们来仔细讨论一下上面这段话</p>
+</blockquote>
+<p><strong><code>front_of_house</code> 在你提供的代码中不是私有的，它是默认公开的，因为它是直接在 <code>crate</code> 根部定义的。</strong></p>
+<p>Rust 的访问规则有点绕，我们来具体解释一下：</p>
+<h3 id="crate-根部定义的模块默认是公开的"><a href="#crate-根部定义的模块默认是公开的" class="headerlink" title="crate 根部定义的模块默认是公开的"></a><code>crate</code> 根部定义的模块默认是公开的</h3><p>当你直接在 <code>src/lib.rs</code> (或者 <code>src/main.rs</code>) 文件中定义一个模块时，比如 <code>mod front_of_house &#123;&#125;</code>，这个模块就是定义在 <code>crate</code> 的<strong>根部</strong>。</p>
+<p><strong>在 <code>crate</code> 根部定义的项（包括模块），默认情况下是可以在整个 <code>crate</code> 内部被直接访问到的。</strong> 它们不需要 <code>pub</code> 关键字就可以被同一 <code>crate</code> 中的其他代码访问。<code>pub</code> 关键字的作用是让该项可以被<strong>外部 <code>crate</code></strong> (比如你的库被其他项目引用时) 访问，或者让该项可以被<strong>子模块之外的模块</strong>通过完整路径访问。</p>
+<p>所以，<code>front_of_house</code> 模块虽然没有显式地写 <code>pub mod front_of_house &#123;&#125;</code>，但因为它直接位于 <code>crate</code> 根部，所以：</p>
+<ol>
+<li><strong><code>eat_at_restaurant</code> 函数</strong>（也在 <code>crate</code> 根部）可以直接看到并访问 <code>front_of_house</code>，因为它们是“兄弟”关系，都在最外层。</li>
+<li><strong><code>crate::</code></strong> 作为绝对路径的起点，它自然也能直接“看到”它根部定义的所有内容，包括 <code>front_of_house</code>。</li>
+</ol>
+<h3 id="为什么会产生误解？"><a href="#为什么会产生误解？" class="headerlink" title="为什么会产生误解？"></a>为什么会产生误解？</h3><p>你可能误解了“私有”的含义。在 Rust 中，一个模块（或任何项）如果没有 <code>pub</code> 关键字，它通常表示该项只在其<strong>直接父模块内部</strong>可见和可访问。但是，这个规则对于 <strong><code>crate</code> 根部</strong>有点特殊。<code>crate</code> 根部本身就是最高层级，它里面定义的所有东西对于整个 <code>crate</code> 内部的代码来说，都是默认可访问的，除非它们被嵌套在某个私有模块内部。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><strong><code>front_of_house</code> 模块</strong>：因为它直接定义在 <code>crate</code> 根部（<code>src/lib.rs</code> 的顶层），所以默认情况下，这个 <code>crate</code> 内部的所有代码都可以直接看到并引用它。它不是“私有的”，而是对 <code>crate</code> 内部可见的。</li>
+<li><strong><code>pub mod hosting</code></strong>：这里 <code>pub</code> 的作用是让 <code>hosting</code> 模块可以被 <code>front_of_house</code> 之外的代码（比如 <code>eat_at_restaurant</code>，它位于 <code>front_of_house</code> 的父级 <code>crate</code> 根部）访问。如果没有 <code>pub</code>，那么 <code>hosting</code> 默认就是私有的，只有 <code>front_of_house</code> 内部的代码才能访问它。</li>
+<li><strong><code>pub fn add_to_waitlist()</code></strong>：函数默认是私有的。如果你想从它所在的模块外面调用它，就必须给它加上 <code>pub</code>。</li>
+</ul>
+<p>所以，<code>crate</code> 可以访问到 <code>front_of_house</code> 是因为 <code>front_of_house</code> 就在 <code>crate</code> 根部，并且对于 <code>crate</code> 内部是默认可见的。</p>
+<blockquote>
+<p>依旧AI大法</p>
+</blockquote>
+<hr>
+<p>是的，<strong>默认情况下，模块外部无法直接访问 <code>front_of_house</code> 模块的内容。</strong></p>
+<p>让我们用刚才的餐厅例子再来说明一下：</p>
+<p>你的 Rust 项目是个大餐厅，<code>front_of_house</code> 是餐厅里“前厅”这个区域。</p>
+<ul>
+<li><strong>默认情况下（没有 <code>pub</code>）</strong>：这个“前厅”是餐厅内部的一个区域，它里面的具体设施（比如某个柜台、某个角落）默认都是“不对外开放”的。只有当你身处“前厅”内部，或者你被“前厅”的主管（父模块）特许，才能使用里面的东西。外部的顾客（其他 <code>crate</code>）或者甚至餐厅内部其他区域的员工（其他模块）都不能直接走进“前厅”去拿里面的东西，除非前厅的某个门是打开的（<code>pub</code>）。</li>
+<li><strong>为什么 <code>crate::front_of_house</code> 可以访问到？</strong><ul>
+<li>因为 <code>front_of_house</code> 是直接定义在你的 <code>crate</code>（也就是整个餐厅）的“大厅”（根部）里的。</li>
+<li>所以，当你从“大厅”出发（<code>crate::</code>）时，你自然能看到“大厅”里所有的区域划分，包括 <code>front_of_house</code>。这就像你站在餐厅大堂中央，能看到哪里是“前厅”，哪里是“厨房”。</li>
+<li>但是，能看到这个区域，不代表你就能直接使用这个区域里的所有东西。要使用里面的东西，里面的东西本身也必须是公开的。</li>
+</ul>
+</li>
+</ul>
+<p>所以，结论是：</p>
+<p>如果你想让 <strong><code>front_of_house</code> 模块内部的</strong> 某个函数或结构体被**<code>front_of_house</code> 模块外部**的代码访问（比如被 <code>eat_at_restaurant</code> 访问，或者被另一个 <code>crate</code> 访问），那么：</p>
+<ol>
+<li><strong><code>front_of_house</code> 模块</strong>本身需要是可访问的（因为它直接在 <code>crate</code> 根部，所以它对 <code>crate</code> 内部是默认可见的）。</li>
+<li><strong><code>front_of_house</code> 内部的子模块或函数&#x2F;结构体</strong>也必须使用 <strong><code>pub</code> 关键字</strong> 来声明，才能让外部通过完整路径访问到它们。</li>
+</ol>
+<p>这就是为什么在示例中，你不仅要给 <code>hosting</code> 加上 <code>pub</code>，还要给 <code>add_to_waitlist</code> 加上 <code>pub</code>，才能让 <code>eat_at_restaurant</code> 最终调用到它。</p>
+<h3 id="使用-super-起始的相对路径"><a href="#使用-super-起始的相对路径" class="headerlink" title="使用 super 起始的相对路径"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html#%E4%BD%BF%E7%94%A8-super-%E8%B5%B7%E5%A7%8B%E7%9A%84%E7%9B%B8%E5%AF%B9%E8%B7%AF%E5%BE%84">使用 <code>super</code> 起始的相对路径</a></h3><p>我们还可以使用 <code>super</code> 开头来构建从父模块开始的相对路径。这么做类似于文件系统中以 <code>..</code> 开头的语法。我们为什么要这样做呢？</p>
+<p>考虑一下示例 7-8 中的代码，它模拟了厨师更正了一个错误订单，并亲自将其提供给客户的情况。<code>fix_incorrect_order</code> 函数通过指定的 <code>super</code> 起始的 <code>serve_order</code> 路径，来调用 <code>serve_order</code> 函数：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">serve_order</span>() &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">mod</span> back_of_house &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">fix_incorrect_order</span>() &#123;</span><br><span class="line">        <span class="title function_ invoke__">cook_order</span>();</span><br><span class="line">        super::<span class="title function_ invoke__">serve_order</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">cook_order</span>() &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-8: 使用以 <code>super</code> 开头的相对路径从父目录开始调用函数</p>
+<p><code>fix_incorrect_order</code> 函数在 <code>back_of_house</code> 模块中，所以我们可以使用 <code>super</code> 进入 <code>back_of_house</code> 父模块，也就是本例中的 <code>crate</code> 根。在这里，我们可以找到 <code>serve_order</code>。成功！我们认为 <code>back_of_house</code> 模块和 <code>serve_order</code> 函数之间可能具有某种关联关系，并且，如果我们要重新组织这个 crate 的模块树，需要一起移动它们。因此，我们使用 <code>super</code>，这样一来，如果这些代码被移动到了其他模块，我们只需要更新很少的代码。</p>
+<h3 id="创建公有的结构体和枚举"><a href="#创建公有的结构体和枚举" class="headerlink" title="创建公有的结构体和枚举"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html#%E5%88%9B%E5%BB%BA%E5%85%AC%E6%9C%89%E7%9A%84%E7%BB%93%E6%9E%84%E4%BD%93%E5%92%8C%E6%9E%9A%E4%B8%BE">创建公有的结构体和枚举</a></h3><p>我们还可以使用 <code>pub</code> 来设计公有的结构体和枚举，不过有一些额外的细节需要注意。如果我们在一个结构体定义的前面使用了 <code>pub</code> ，这个结构体会变成公有的，但是这个结构体的字段仍然是私有的。我们可以根据情况决定每个字段是否公有。在示例 7-9 中，我们定义了一个公有结构体 <code>back_of_house::Breakfast</code>，其中有一个公有字段 <code>toast</code> 和私有字段 <code>seasonal_fruit</code>。这个例子模拟的情况是，在一家餐馆中，顾客可以选择随餐附赠的面包类型，但是厨师会根据季节和库存情况来决定随餐搭配的水果。餐馆可用的水果变化是很快的，所以顾客不能选择水果，甚至无法看到他们将会得到什么水果。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">mod</span> back_of_house &#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">Breakfast</span> &#123;</span><br><span class="line">        <span class="keyword">pub</span> toast: <span class="type">String</span>,</span><br><span class="line">        seasonal_fruit: <span class="type">String</span>,</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">impl</span> <span class="title class_">Breakfast</span> &#123;</span><br><span class="line">        <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">summer</span>(toast: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> Breakfast &#123;</span><br><span class="line">            Breakfast &#123;</span><br><span class="line">                toast: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(toast),</span><br><span class="line">                seasonal_fruit: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;peaches&quot;</span>),</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">eat_at_restaurant</span>() &#123;</span><br><span class="line">    <span class="comment">// 在夏天点一份黑麦面包作为早餐</span></span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">meal</span> = back_of_house::Breakfast::<span class="title function_ invoke__">summer</span>(<span class="string">&quot;Rye&quot;</span>);</span><br><span class="line">    <span class="comment">// 更改我们想要的面包</span></span><br><span class="line">    meal.toast = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Wheat&quot;</span>);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;I&#x27;d like &#123;&#125; toast please&quot;</span>, meal.toast);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果取消下一行的注释，将会导致编译失败；我们不被允许</span></span><br><span class="line">    <span class="comment">// 看到或更改随餐搭配的季节水果</span></span><br><span class="line">    <span class="comment">// meal.seasonal_fruit = String::from(&quot;blueberries&quot;);</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-9: 带有公有和私有字段的结构体</p>
+<p>因为 <code>back_of_house::Breakfast</code> 结构体的 <code>toast</code> 字段是公有的，所以我们可以在 <code>eat_at_restaurant</code> 中使用点号来随意的读写 <code>toast</code> 字段。注意，我们不能在 <code>eat_at_restaurant</code> 中使用 <code>seasonal_fruit</code> 字段，因为 <code>seasonal_fruit</code> 是私有的。尝试去除那一行修改 <code>seasonal_fruit</code> 字段值的代码的注释，看看你会得到什么错误！</p>
+<p>还请注意一点，因为 <code>back_of_house::Breakfast</code> 具有私有字段，所以这个结构体需要提供一个公共的关联函数来构造 <code>Breakfast</code> 的实例（这里我们命名为 <code>summer</code>）。如果 <code>Breakfast</code> 没有这样的函数，我们将无法在 <code>eat_at_restaurant</code> 中创建 <code>Breakfast</code> 实例，因为我们不能在 <code>eat_at_restaurant</code> 中设置私有字段 <code>seasonal_fruit</code> 的值。</p>
+<p>与之相反，如果我们将枚举设为公有，则它的所有成员都将变为公有。我们只需要在 <code>enum</code> 关键字前面加上 <code>pub</code>，就像示例 7-10 展示的那样。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">mod</span> back_of_house &#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">enum</span> <span class="title class_">Appetizer</span> &#123;</span><br><span class="line">        Soup,</span><br><span class="line">        Salad,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">eat_at_restaurant</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">order1</span> = back_of_house::Appetizer::Soup;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">order2</span> = back_of_house::Appetizer::Salad;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-10: 设计公有枚举，使其所有成员公有</p>
+<p>因为我们创建了名为 <code>Appetizer</code> 的公有枚举，所以我们可以在 <code>eat_at_restaurant</code> 中使用 <code>Soup</code> 和 <code>Salad</code> 成员。如果枚举成员不是公有的，那么枚举会显得用处不大；给枚举的所有成员挨个添加 <code>pub</code> 是很令人恼火的，因此枚举成员默认就是公有的。结构体通常使用时，不必将它们的字段公有化，因此结构体遵循常规，内容全部是私有的，除非使用 <code>pub</code> 关键字。</p>
+<p>还有一种使用 <code>pub</code> 的场景我们还没有涉及到，那就是我们最后要讲的模块功能：<code>use</code> 关键字。我们将先单独介绍 <code>use</code>，然后展示如何结合使用 <code>pub</code> 和 <code>use</code>。</p>
+
       
     </div>
 
@@ -2442,7 +2812,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">博客</span>
         </a>
       </div>
