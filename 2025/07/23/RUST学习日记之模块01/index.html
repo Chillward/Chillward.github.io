@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="在C语言编程时，我们会包含多个头文件，然后就可以使用头文件中定义的函数和数据类型。但是C语言这一套容易出现一些问题:  隐式依赖 全局命名空间污染 重复包含问题  RUST的模块系统很好的避免了这些问题  依旧是熟悉的复制粘贴    到目前为止，我们编写的程序都在一个文件的一个模块中。伴随着项目的增长，你应该通过将代码分解为多个模块和多个文件来组织代码。一个包（package）可以包含多个二进制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RUST学习日记之模块01">
+<meta property="og:url" content="http://example.com/2025/07/23/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%A8%A1%E5%9D%9701/index.html">
+<meta property="og:site_name" content="Chillward的博客">
+<meta property="og:description" content="在C语言编程时，我们会包含多个头文件，然后就可以使用头文件中定义的函数和数据类型。但是C语言这一套容易出现一些问题:  隐式依赖 全局命名空间污染 重复包含问题  RUST的模块系统很好的避免了这些问题  依旧是熟悉的复制粘贴    到目前为止，我们编写的程序都在一个文件的一个模块中。伴随着项目的增长，你应该通过将代码分解为多个模块和多个文件来组织代码。一个包（package）可以包含多个二进制">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-07-23T13:25:01.000Z">
+<meta property="article:modified_time" content="2025-07-24T02:23:11.816Z">
+<meta property="article:author" content="Chillward">
+<meta property="article:tag" content="RUST">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2025/07/23/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%A8%A1%E5%9D%9701/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>RUST学习日记之模块01 | Chillward的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Chillward的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/23/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%A8%A1%E5%9D%9701/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.png">
+      <meta itemprop="name" content="Chillward">
+      <meta itemprop="description" content="谁躺在漆黑的舞台上，用身体迎接着光芒">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chillward的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RUST学习日记之模块01
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-07-23 21:25:01" itemprop="dateCreated datePublished" datetime="2025-07-23T21:25:01+08:00">2025-07-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-07-24 10:23:11" itemprop="dateModified" datetime="2025-07-24T10:23:11+08:00">2025-07-24</time>
+              </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>14k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>26 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p> 在C语言编程时，我们会包含多个头文件，然后就可以使用头文件中定义的函数和数据类型。但是C语言这一套容易出现一些问题:</p>
+<ol>
+<li>隐式依赖</li>
+<li>全局命名空间污染</li>
+<li>重复包含问题</li>
+</ol>
+<p>RUST的模块系统很好的避免了这些问题</p>
+<blockquote>
+<p>依旧是熟悉的复制粘贴</p>
+</blockquote>
+<p>  到目前为止，我们编写的程序都在一个文件的一个模块中。伴随着项目的增长，你应该通过将代码分解为多个模块和多个文件来组织代码。一个包（package）可以包含多个二进制 crate 项和一个可选的库 crate。伴随着包的增长，你可以将包中的部分代码提取出来，做成独立的 crate，这些 crate 则作为外部依赖项。本章将会涵盖所有这些概念。对于一个由一系列相互关联的包组成的超大型项目，Cargo 提供了<strong>工作空间</strong>（<em>workspaces</em>）这一功能，我们将在第十四章的 <a target="_blank" rel="noopener" href="https://kaisery.github.io/trpl-zh-cn/ch14-03-cargo-workspaces.html">“Cargo Workspaces”</a> 对此进行讲解。</p>
+<p>  我们也会讨论封装来实现细节，这可以让你在更高层面重用代码：你实现了一个操作后，其他的代码可以通过该代码的公共接口来进行调用，而不需要知道它是如何实现的。你在编写代码时可以定义哪些部分是其他代码可以使用的公共部分，以及哪些部分是你有权更改实现细节的私有部分。这是另一种减少你在脑海中记住项目内容数量的方法。</p>
+<p>  这里有一个需要说明的概念 “作用域（scope）”：代码所在的嵌套上下文有一组定义为 “in scope” 的名称。当阅读、编写和编译代码时，程序员和编译器需要知道特定位置的特定名称是否引用了变量、函数、结构体、枚举、模块、常量或者其他有意义的项。你可以创建作用域，以及改变哪些名称在作用域内还是作用域外。同一个作用域内不能拥有两个相同名称的项；可以使用一些工具来解决名称冲突。</p>
+<p>  Rust 有许多功能可以让你管理代码的组织，包括哪些细节可以被公开，哪些细节作为私有部分，以及程序中各个作用域中有哪些名称。这些特性，有时被统称为 “模块系统（the module system）”，包括：</p>
+<ul>
+<li><strong>包</strong>（<em>Packages</em>）：Cargo 的一个功能，它允许你构建、测试和分享 crate。</li>
+<li><strong>Crates</strong> ：一个模块的树形结构，它形成了库或可执行文件项目。</li>
+<li><strong>模块</strong>（<em>Modules</em>）和 <strong>use</strong>：允许你控制作用域和路径的私有性。</li>
+<li><strong>路径</strong>（<em>path</em>）：一个为例如结构体、函数或模块等项命名的方式。</li>
+</ul>
+<h2 id="包和Create"><a href="#包和Create" class="headerlink" title="包和Create"></a>包和Create</h2><p>crate 是 Rust 在编译时最小的代码单位。即使你用 <code>rustc</code> 而不是 <code>cargo</code> 来编译一个单独的源代码文件（正如我们在第 1 章“编写并运行 Rust 程序”中所做的那样），编译器还是会将那个文件视为一个 crate。crate 可以包含模块，模块可以定义在其他文件，然后和 crate 一起编译，我们会在接下来的章节中遇到。</p>
+<p>crate 有两种形式：二进制 crate 和库 crate。<strong>二进制 crate</strong>（<em>Binary crates</em>）可以被编译为可执行程序，比如命令行程序或者服务端。它们必须有一个名为 <code>main</code> 函数来定义当程序被执行的时候所需要做的事情。目前我们所创建的 crate 都是二进制 crate。</p>
+<p><strong>库 crate</strong>（<em>Library crates</em>）并没有 <code>main</code> 函数，它们也不会编译为可执行程序。相反它们定义了可供多个项目复用的功能模块。比如 <a target="_blank" rel="noopener" href="https://kaisery.github.io/trpl-zh-cn/ch02-00-guessing-game-tutorial.html#%E7%94%9F%E6%88%90%E4%B8%80%E4%B8%AA%E9%9A%8F%E6%9C%BA%E6%95%B0">第二章</a> 的 <code>rand</code> crate 就提供了生成随机数的功能。大多数时间 <code>Rustaceans</code> 说的 “crate” 指的都是库 crate，这与其他编程语言中 “library” 概念一致。</p>
+<h6 id="crate-root-是一个源文件，Rust-编译器以它为起始点，并构成你的-crate-的根模块。"><a href="#crate-root-是一个源文件，Rust-编译器以它为起始点，并构成你的-crate-的根模块。" class="headerlink" title="crate root 是一个源文件，Rust 编译器以它为起始点，并构成你的 crate 的根模块。"></a><em>crate root</em> 是一个源文件，Rust 编译器以它为起始点，并构成你的 crate 的根模块。</h6><p>**包（package）是提供一系列功能的一个或者多个 crate 的捆绑。**一个包会包含一个 <em>Cargo.toml</em> 文件，阐述如何去构建这些 crate。Cargo 实际上就是一个包，它包含了用于构建你代码的命令行工具的二进制 crate。其他项目也依赖 Cargo 库来实现与 Cargo 命令行程序一样的逻辑。</p>
+<p>包中可以包含至多一个库 crate(library crate)。包中可以包含任意多个二进制 crate(binary crate)，但是必须至少包含一个 crate（无论是库的还是二进制的）。</p>
+<p>让我们来看看创建包的时候会发生什么。首先，我们输入命令 <code>cargo new my-project</code>：</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">cargo new my-project</span></span><br><span class="line">     Created binary (application) `my-project` package</span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">ls</span> my-project</span></span><br><span class="line">Cargo.toml</span><br><span class="line">src</span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">ls</span> my-project/src</span></span><br><span class="line">main.rs</span><br></pre></td></tr></table></figure>
+
+<p>运行了这条命令后，我们先用 <code>ls</code> （译者注：此命令为 Linux 平台的指令，Windows 下可用 dir）来看看 Cargo 给我们创建了什么，Cargo 会给我们的包创建一个 <em>Cargo.toml</em> 文件。查看 <em>Cargo.toml</em> 的内容，会发现并没有提到 <em>src&#x2F;main.rs</em>，**因为 Cargo 遵循的一个约定：<em>src&#x2F;main.rs</em> 就是一个与包同名的二进制 crate 的 crate 根。**同样的，Cargo 知道如果包目录中包含 <em>src&#x2F;lib.rs</em>，则包带有与其同名的库 crate，且 <em>src&#x2F;lib.rs</em> 是 crate 根。crate 根文件将由 Cargo 传递给 <code>rustc</code> 来实际构建库或者二进制项目。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[package]</span><br><span class="line">name = &quot;Functions&quot;</span><br><span class="line">version = &quot;0.1.0&quot;</span><br><span class="line">edition = &quot;2024&quot;</span><br><span class="line"></span><br><span class="line">[dependencies]</span><br><span class="line">//假如我们要添加main跟lib之外的其他依赖</span><br><span class="line">[[bin]]</span><br><span class="line">name = &quot;another-app&quot; # 这是你希望这个额外二进制 crate 的名称</span><br><span class="line">path = &quot;src/bin/another_app.rs&quot; # 这是它的源文件路径</span><br></pre></td></tr></table></figure>
+
+<p>在此，我们有了一个只包含 <em>src&#x2F;main.rs</em> 的包，意味着它只含有一个名为 <code>my-project</code> 的二进制 crate。如果一个包同时含有 <em>src&#x2F;main.rs</em> 和 <em>src&#x2F;lib.rs</em>，则它有两个 crate：一个二进制的和一个库的，且名字都与包相同。通过将文件放在 <em>src&#x2F;bin</em> 目录下，一个包可以拥有多个二进制 crate：每个 <em>src&#x2F;bin</em> 下的文件都会被编译成一个独立的二进制 crate。</p>
+<blockquote>
+<p>来点人话</p>
+</blockquote>
+<h3 id="单一二进制-Crate"><a href="#单一二进制-Crate" class="headerlink" title="单一二进制 Crate"></a>单一二进制 Crate</h3><p>最简单的 Rust 包结构是一个只包含 <code>src/main.rs</code> 文件的包。在这种情况下，你的包将编译成一个名为 <code>my-project</code> 的<strong>二进制 crate</strong>（其中 <code>my-project</code> 是你的包名）。所有代码都将包含在 <code>main.rs</code> 文件中。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">my-project/</span><br><span class="line">├── src/</span><br><span class="line">│   └── main.rs</span><br><span class="line">└── Cargo.toml</span><br></pre></td></tr></table></figure>
+
+<h3 id="二进制-Crate-和库-Crate-共存"><a href="#二进制-Crate-和库-Crate-共存" class="headerlink" title="二进制 Crate 和库 Crate 共存"></a>二进制 Crate 和库 Crate 共存</h3><p>如果一个包同时包含 <code>src/main.rs</code> 和 <code>src/lib.rs</code>，那么它将拥有两个 crate：一个<strong>二进制 crate</strong> 和一个<strong>库 crate</strong>。这两个 crate 的名字都默认与包名相同。</p>
+<ul>
+<li><code>src/main.rs</code> 中的代码会编译成可执行程序。</li>
+<li><code>src/lib.rs</code> 中的代码会编译成库，可以被其他项目（包括当前包的二进制 crate）引用。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">my-project/</span><br><span class="line">├── src/</span><br><span class="line">│   ├── main.rs</span><br><span class="line">│   └── lib.rs</span><br><span class="line">└── Cargo.toml</span><br></pre></td></tr></table></figure>
+
+<p>在这种结构中，<code>main.rs</code> 通常会使用 <code>use my_project;</code> 或 <code>use crate;</code>（在 Rust 2018 版及更高版本中）来引用 <code>lib.rs</code> 中定义的模块和函数。</p>
+<h3 id="多个二进制-Crate"><a href="#多个二进制-Crate" class="headerlink" title="多个二进制 Crate"></a>多个二进制 Crate</h3><p>Rust 包可以通过将文件放置在 <code>src/bin</code> 目录下拥有多个<strong>二进制 crate</strong>。<code>src/bin</code> 目录下的每个文件都会被编译成一个独立的二进制 crate。每个文件的名称（不包括 <code>.rs</code> 后缀）将成为对应二进制 crate 的名称。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">my-project/</span><br><span class="line">├── src/</span><br><span class="line">│   ├── main.rs         // 默认的二进制 crate</span><br><span class="line">│   ├── lib.rs          // 库 crate</span><br><span class="line">│   └── bin/</span><br><span class="line">│       ├── my_tool.rs  // 额外的二进制 crate: `my_tool`</span><br><span class="line">│       └── another_app.rs // 额外的二进制 crate: `another_app`</span><br><span class="line">└── Cargo.toml</span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中：</p>
+<ul>
+<li><p><code>cargo run</code> 默认会编译并运行 <code>src/main.rs</code> 对应的二进制 crate。</p>
+</li>
+<li><p>你可以使用 <code>cargo run --bin my_tool</code> 来运行 <code>src/bin/my_tool.rs</code> 对应的二进制 crate。</p>
+</li>
+<li><p>同样，<code>cargo run --bin another_app</code> 会运行 <code>src/bin/another_app.rs</code>。</p>
+<p>当 Rust 包包含多个二进制 crate 时，<strong><code>src/main.rs</code> 中的内容仍然是默认运行的二进制 crate</strong>。</p>
+<p>即使你在 <code>src/bin</code> 目录下添加了其他的 <code>.rs</code> 文件来创建额外的二进制 crate，<code>cargo run</code> 命令在没有额外指定的情况下，依然会查找并运行 <code>src/main.rs</code> 编译而成的可执行文件。</p>
+<p>如果你想运行 <code>src/bin</code> 目录下特定的二进制 crate，你需要使用 <code>cargo run --bin &lt;crate-name&gt;</code> 命令，其中 <code>&lt;crate-name&gt;</code> 是你想要运行的二进制 crate 的文件名（不包括 <code>.rs</code> 后缀）。</p>
+<p><strong>举个例子：</strong></p>
+<p>假设你有这样的项目结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">my-project/</span><br><span class="line">├── src/</span><br><span class="line">│   ├── main.rs         // 默认的二进制 crate</span><br><span class="line">│   └── bin/</span><br><span class="line">│       └── my_tool.rs  // 另一个二进制 crate: `my_tool`</span><br><span class="line">└── Cargo.toml</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>运行 <code>cargo run</code> 会编译并执行 <code>src/main.rs</code> 中的代码。</li>
+<li>运行 <code>cargo run --bin my_tool</code> 则会编译并执行 <code>src/bin/my_tool.rs</code> 中的代码。</li>
+</ul>
+<p>所以，<code>src/main.rs</code> 就像是你的项目主要的或默认的入口点，而 <code>src/bin</code> 中的文件则提供了额外的、可独立运行的工具或应用程序。</p>
+<blockquote>
+<p>暂时不知道有什么用</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="模块的组织"><a href="#模块的组织" class="headerlink" title="模块的组织"></a>模块的组织</h3><p>在上述基本结构的基础上，你可以在 <code>src</code> 目录下创建子目录来进一步组织你的模块。每个 <code>mod.rs</code> 文件或与目录同名的 <code>.rs</code> 文件（例如 <code>my_module/mod.rs</code> 或 <code>my_module.rs</code>）都代表一个模块。</p>
+<p>例如，如果你在 <code>src/lib.rs</code> 中有一个复杂的库，你可以将其拆分为多个文件和目录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">my-project/</span><br><span class="line">├── src/</span><br><span class="line">│   ├── main.rs</span><br><span class="line">│   └── lib.rs</span><br><span class="line">│   │   // lib.rs 的内容可能包含 `mod data;` 和 `mod utils;`</span><br><span class="line">│   ├── data/          // 对应 `data` 模块</span><br><span class="line">│   │   ├── mod.rs     // data 模块的根文件</span><br><span class="line">│   │   └── processing.rs // data 模块下的子模块 `processing`</span><br><span class="line">│   └── utils/         // 对应 `utils` 模块</span><br><span class="line">│       └── mod.rs     // utils 模块的根文件</span><br><span class="line">└── Cargo.toml</span><br></pre></td></tr></table></figure>
+
+<p>在这种结构中：</p>
+<ul>
+<li><code>src/lib.rs</code> 可以通过 <code>mod data;</code> 和 <code>mod utils;</code> 声明并引入 <code>data</code> 和 <code>utils</code> 模块。</li>
+<li><code>src/data/mod.rs</code> 是 <code>data</code> 模块的入口点，它可以通过 <code>mod processing;</code> 声明 <code>processing</code> 子模块。</li>
+</ul>
+<hr>
+<p><strong>总结来说，Rust 的文件目录结构和模块系统紧密配合，主要遵循以下原则：</strong></p>
+<ul>
+<li><strong><code>src/main.rs</code></strong>: 默认的二进制 crate 入口。</li>
+<li><strong><code>src/lib.rs</code></strong>: 默认的库 crate 入口。</li>
+<li><strong><code>src/bin/</code> 目录</strong>: 用于存放额外的二进制 crate。</li>
+<li><strong>子目录和 <code>mod.rs</code> (或与目录同名的 <code>.rs</code> 文件)</strong>: 用于组织更复杂的模块结构。</li>
+</ul>
+<p>理解这些约定将帮助你有效地组织和管理你的 Rust 项目，无论它们是简单的工具还是大型的应用程序。</p>
+<h2 id="Crate-根是什么东西？"><a href="#Crate-根是什么东西？" class="headerlink" title="Crate 根是什么东西？"></a>Crate 根是什么东西？</h2><p>在 Rust 里，<strong>Crate 根 (Crate Root)</strong> 可以理解为你整个 Rust 项目（或者说一个 <strong>Crate</strong>）的“总入口文件”。当 Rust 编译器开始编译你的代码时，它就是从这个文件开始读起，然后根据里面的声明，一步步地找到并包含你项目里所有其他的模块和代码。</p>
+<p>可以把它想象成一本书的“扉页”或者一个网站的“首页”。</p>
+<h3 id="Crate-根在哪里？"><a href="#Crate-根在哪里？" class="headerlink" title="Crate 根在哪里？"></a>Crate 根在哪里？</h3><p>Crate 根文件的位置是约定俗成的：</p>
+<ol>
+<li><strong>对于一个库 Crate (Library Crate)</strong>：<ul>
+<li>它的 Crate 根文件是 <strong><code>src/lib.rs</code></strong>。</li>
+<li>这样的 Crate 编译出来的是一个库（就像一个工具箱，提供很多功能给其他代码使用），而不是一个独立运行的程序。</li>
+</ul>
+</li>
+<li><strong>对于一个二进制 Crate (Binary Crate)</strong>：<ul>
+<li>它的 Crate 根文件是 <strong><code>src/main.rs</code></strong>。</li>
+<li>这样的 Crate 编译出来的是一个可执行程序（就像一个应用程序，可以直接运行）。</li>
+</ul>
+</li>
+</ol>
+<h3 id="Crate-根的作用是什么？"><a href="#Crate-根的作用是什么？" class="headerlink" title="Crate 根的作用是什么？"></a>Crate 根的作用是什么？</h3><p>Crate 根文件主要有以下几个作用：</p>
+<ul>
+<li><strong>编译起点</strong>：编译器总是从这里开始扫描和解析你的代码。</li>
+<li><strong>模块声明</strong>：你会在 Crate 根文件中使用 <code>mod</code> 关键字来声明你 Crate 中所有顶级的模块。比如，在 <code>src/main.rs</code> 中写 <code>mod garden;</code>，就是告诉编译器：“我有一个叫做 <code>garden</code> 的模块，请去 <code>src/garden.rs</code> 或 <code>src/garden/mod.rs</code> 找到它的代码。”</li>
+<li><strong>公共接口（对于库 Crate）</strong>：如果你的 Crate 是一个库，<code>src/lib.rs</code> 就定义了这个库向外部暴露的公共 API。其他项目在使用你的库时，会通过这个文件来访问你的功能。</li>
+<li><strong>程序入口（对于二进制 Crate）</strong>：如果你的 Crate 是一个二进制程序，<code>src/main.rs</code> 中的 <code>fn main()</code> 函数就是程序执行的起点。</li>
+</ul>
+<hr>
+<p><strong>简单来说：</strong></p>
+<p><strong>Crate 根</strong>就是你的 Rust 项目（一个 Crate）的“大脑”或者“指挥中心”，它告诉编译器如何找到并组织你所有的代码。没有它，编译器就不知道从何开始构建你的程序或库。</p>
+<blockquote>
+<p>官方文档依旧不说人话</p>
+</blockquote>
+<h2 id="定义模块来控制作用域与私有性"><a href="#定义模块来控制作用域与私有性" class="headerlink" title="定义模块来控制作用域与私有性"></a>定义模块来控制作用域与私有性</h2><p>在本节，我们将讨论模块和其它一些关于模块系统的部分，如允许你命名项的 <em>路径</em>（<em>paths</em>）；用来将路径引入作用域的 <code>use</code> 关键字；以及使项变为公有的 <code>pub</code> 关键字。我们还将讨论 <code>as</code> 关键字、外部包（external packages）和 glob 运算符（glob operator）。</p>
+<p>首先，我们将从一系列的规则开始，在你未来组织代码的时候，这些规则可被用作简单的参考。接下来我们将会详细的解释每条规则。</p>
+<h2 id="模块小抄（Cheat-Sheet）"><a href="#模块小抄（Cheat-Sheet）" class="headerlink" title="模块小抄（Cheat Sheet）"></a><a target="_blank" rel="noopener" href="https://kaisery.github.io/trpl-zh-cn/ch07-02-defining-modules-to-control-scope-and-privacy.html#%E6%A8%A1%E5%9D%97%E5%B0%8F%E6%8A%84cheat-sheet">模块小抄（Cheat Sheet）</a></h2><p>在深入了解模块和路径的细节之前，这里提供一个简单的参考，用来解释模块、路径、<code>use</code>关键词和<code>pub</code>关键词如何在编译器中工作，以及大部分开发者如何组织他们的代码。我们将在本章中举例说明每条规则，但这是回顾模块工作原理的绝佳参考。</p>
+<ul>
+<li><p><strong>从 crate 根节点开始</strong>: 当编译一个 crate, 编译器首先在 crate 根文件（通常，对于一个库 crate 而言是 <em>src&#x2F;lib.rs</em>，对于一个二进制 crate 而言是 <em>src&#x2F;main.rs</em>）中寻找需要被编译的代码。</p>
+</li>
+<li><p>声明模块</p>
+<p>: 在 crate 根文件中，你可以声明一个新模块；比如，用</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">mod</span> garden;</span><br></pre></td></tr></table></figure>
+
+<p>声明了一个叫做</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">garden</span><br></pre></td></tr></table></figure>
+
+<p>的模块。编译器会在下列路径中寻找模块代码：</p>
+<ul>
+<li>内联，用大括号替换 <code>mod garden</code> 后跟的分号</li>
+</ul>
+</li>
+<li><p>在文件 <em>src&#x2F;garden.rs</em></p>
+<ul>
+<li>在文件 <em>src&#x2F;garden&#x2F;mod.rs</em></li>
+</ul>
+</li>
+<li><p>声明子模块</p>
+<p>: 在除了 crate 根节点以外的任何文件中，你可以定义子模块。比如，你可能在src&#x2F;garden.rs 中声明</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mod vegetables;</span><br></pre></td></tr></table></figure>
+
+<p>。编译器会在以父模块命名的目录中寻找子模块代码：</p>
+<ul>
+<li>内联，直接在 <code>mod vegetables</code> 后方不是一个分号而是一个大括号</li>
+</ul>
+</li>
+<li><p>在文件 <em>src&#x2F;garden&#x2F;vegetables.rs</em></p>
+<ul>
+<li>在文件 <em>src&#x2F;garden&#x2F;vegetables&#x2F;mod.rs</em></li>
+</ul>
+</li>
+<li><p><strong>模块中的代码路径</strong>: 一旦一个模块是你 crate 的一部分，你可以在隐私规则允许的前提下，从同一个 crate 内的任意地方，通过代码路径引用该模块的代码。举例而言，一个 garden vegetables 模块下的 <code>Asparagus</code> 类型可以通过 <code>crate::garden::vegetables::Asparagus</code> 访问。</p>
+</li>
+<li><p><strong>私有 vs 公用</strong>: 一个模块里的代码默认对其父模块私有。为了使一个模块公用，应当在声明时使用 <code>pub mod</code> 替代 <code>mod</code>。为了使一个公用模块内部的成员公用，应当在声明前使用<code>pub</code>。</p>
+</li>
+<li><p><strong><code>use</code> 关键字</strong>: 在一个作用域内，<code>use</code>关键字创建了一个项的快捷方式，用来减少长路径的重复。在任何可以引用 <code>crate::garden::vegetables::Asparagus</code> 的作用域，你可以通过 <code>use crate::garden::vegetables::Asparagus;</code> 创建一个快捷方式，然后你就可以在作用域中只写 <code>Asparagus</code> 来使用该类型。</p>
+</li>
+</ul>
+<p>这里我们创建一个名为<code>backyard</code>的二进制 crate 来说明这些规则。该 crate 的路径同样命名为<code>backyard</code>，该路径包含了这些文件和目录：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">backyard</span><br><span class="line">├── Cargo.lock</span><br><span class="line">├── Cargo.toml</span><br><span class="line">└── src</span><br><span class="line">    ├── garden</span><br><span class="line">    │   └── vegetables.rs</span><br><span class="line">    ├── garden.rs</span><br><span class="line">    └── main.rs</span><br></pre></td></tr></table></figure>
+
+<p>这个例子中的 crate 根文件是 <em>src&#x2F;main.rs</em>，该文件包含了：</p>
+<p>文件名：src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">use</span> crate::garden::vegetables::Asparagus;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">mod</span> garden;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">plant</span> = Asparagus &#123;&#125;;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;I&#x27;m growing &#123;plant:?&#125;!&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>pub mod garden;</code> 行告诉编译器将 <em>src&#x2F;garden.rs</em> 中发现的代码包含进来：</p>
+<p>文件名：src&#x2F;garden.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">mod</span> vegetables;</span><br></pre></td></tr></table></figure>
+
+<p>在此处，<code>pub mod vegetables;</code> 意味着在 <em>src&#x2F;garden&#x2F;vegetables.rs</em> 中的代码也应该被包含。这些代码是：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#[derive(Debug)]</span></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">Asparagus</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在让我们深入了解这些规则的细节并在实践中演示它们！</p>
+<h3 id="在模块中对相关代码进行分组"><a href="#在模块中对相关代码进行分组" class="headerlink" title="在模块中对相关代码进行分组"></a><a target="_blank" rel="noopener" href="https://kaisery.github.io/trpl-zh-cn/ch07-02-defining-modules-to-control-scope-and-privacy.html#%E5%9C%A8%E6%A8%A1%E5%9D%97%E4%B8%AD%E5%AF%B9%E7%9B%B8%E5%85%B3%E4%BB%A3%E7%A0%81%E8%BF%9B%E8%A1%8C%E5%88%86%E7%BB%84">在模块中对相关代码进行分组</a></h3><p><strong>模块</strong>让我们可以将一个 crate 中的代码进行分组，以提高可读性与重用性。因为一个模块中的代码默认是私有的，所以还可以利用模块控制项的<strong>私有性</strong>（<em>privacy</em>）。私有项是不可为外部使用的内在详细实现。我们也可以将模块和它其中的项标记为公开的，这样，外部代码就可以使用并依赖于它们。</p>
+<p>作为示例，让我们编写一个提供餐厅功能的库 <code>crate</code>。我们将定义函数的签名，但将其函数体留空以便将注意力集中在代码的组织结构上而不是餐厅实现的细节。</p>
+<p>在餐饮业，餐馆中会有一些地方被称之为<strong>前台</strong>（<em>front of house</em>），还有另外一些地方被称之为<strong>后台</strong>（<em>back of house</em>）。前台是招待顾客的地方；这包括接待员为顾客安排座位、服务员接受点单和付款、调酒师制作饮品的地方。后台则是厨师和烹饪人员在厨房工作、洗碗工清理餐具，以及经理处理行政事务的区域。</p>
+<p>为了以这种方式构建我们的 <code>crate</code>，我们可以将其功能组织到嵌套模块中。通过执行 <code>cargo new restaurant --lib</code> 来创建一个新的名为 <code>restaurant</code> 的库。然后将示例 7-1 中所罗列出来的代码放入 <em>src&#x2F;lib.rs</em> 中，来定义一些模块和函数签名；这段代码即为前台部分。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">mod</span> front_of_house &#123;</span><br><span class="line">    <span class="keyword">mod</span> hosting &#123;</span><br><span class="line">        <span class="keyword">fn</span> <span class="title function_">add_to_waitlist</span>() &#123;&#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">fn</span> <span class="title function_">seat_at_table</span>() &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">mod</span> serving &#123;</span><br><span class="line">        <span class="keyword">fn</span> <span class="title function_">take_order</span>() &#123;&#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">fn</span> <span class="title function_">serve_order</span>() &#123;&#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">fn</span> <span class="title function_">take_payment</span>() &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-1：一个包含了其他内置了函数的模块的 <code>front_of_house</code> 模块</p>
+<p>我们使用 <code>mod</code> 关键字来定义模块，后跟模块名（本例中叫做 <code>front_of_house</code>），并且用花括号包围模块的主体。在模块内，我们还可以定义其它的模块，就像本例中的 <code>hosting</code> 和 <code>serving</code> 模块。模块还可以保存一些定义的其它项，比如结构体、枚举、常量、trait、或者如示例 7-1 所示的函数。</p>
+<p>通过使用模块，我们可以将相关的定义分组到一起，并指出它们为什么相关。程序员可以通过使用这段代码，更加容易地找到他们想要的定义，因为他们可以基于分组来对代码进行导航，而不需要阅读所有的定义。程序员向这段代码中添加一个新的功能时，他们也会知道代码应该放置在何处，可以保持程序的组织性。</p>
+<p>在前面我们提到了，<code>src/main.rs</code> 和 <code>src/lib.rs</code> 叫做 crate 根。之所以这样叫它们是因为这两个文件的内容都分别在 crate 模块结构的根组成了一个名为 <code>crate</code> 的模块，该结构被称为<strong>模块树</strong>（<em>module tree</em>）。</p>
+<p>示例 7-2 展示了示例 7-1 中模块树的结构。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">crate</span><br><span class="line"> └── front_of_house</span><br><span class="line">     ├── hosting</span><br><span class="line">     │   ├── add_to_waitlist</span><br><span class="line">     │   └── seat_at_table</span><br><span class="line">     └── serving</span><br><span class="line">         ├── take_order</span><br><span class="line">         ├── serve_order</span><br><span class="line">         └── take_payment</span><br></pre></td></tr></table></figure>
+
+<p>示例 7-2: 示例 7-1 中代码的模块树</p>
+<p>这个树展示了一些模块是如何被嵌入到另一个模块的（例如，<code>hosting</code> 嵌套在 <code>front_of_house</code> 中）。这个树还展示了一些模块是互为<strong>兄弟</strong>（<em>siblings</em>）的，这意味着它们定义在同一模块中；<code>hosting</code> 和 <code>serving</code> 被一起定义在 <code>front_of_house</code> 中。继续沿用家庭关系的比喻，如果一个模块 A 被包含在模块 B 中，我们将模块 A 称为模块 B 的 <strong>子</strong>（<em>child</em>）模块，模块 B 则是模块 A 的 <strong>父</strong>（<em>parent</em>）模块。注意，整个模块树都植根于名为 <code>crate</code> 的隐式模块下。</p>
+<p>这个模块树可能会令你想起电脑上文件系统的目录树；这是一个非常恰当的类比！就像文件系统的目录，你可以使用模块来组织你的代码。并且，就像目录中的文件，我们需要一种方法来找到模块。</p>
+<blockquote>
+<p>上面这段话多少看的人有点懵逼,我们现在让AI来说点人话</p>
+</blockquote>
+<h3 id="1-Rust-代码的起点：从“大门”开始找"><a href="#1-Rust-代码的起点：从“大门”开始找" class="headerlink" title="1. Rust 代码的起点：从“大门”开始找"></a><strong>1. Rust 代码的起点：从“大门”开始找</strong></h3><p>你的整个 Rust 项目，无论多大，都有一个固定的“大门”。</p>
+<ul>
+<li>如果你写的是一个可执行程序（像一个 <code>.exe</code> 文件），大门通常是 <strong><code>src/main.rs</code></strong>。</li>
+<li>如果你写的是一个库（给别人用的代码包），大门就是 <strong><code>src/lib.rs</code></strong>。</li>
+</ul>
+<p>编译器盖房子时，第一步就是从这个“大门”开始，一步步往里找代码。</p>
+<h3 id="2-声明模块：给你的代码分房间"><a href="#2-声明模块：给你的代码分房间" class="headerlink" title="2. 声明模块：给你的代码分房间"></a><strong>2. 声明模块：给你的代码分房间</strong></h3><p>就像家里有客厅、卧室、厨房一样，你的代码也需要分门别类。在“大门”文件里（比如 <code>src/main.rs</code>），你可以用 <code>mod 房间名;</code> 来声明一个新的“房间”。</p>
+<p>比如：<code>mod garden;</code></p>
+<p>这告诉编译器：“嘿，我有一个叫 <code>garden</code> 的房间！” 编译器就会去以下几个地方找这个房间的具体图纸：</p>
+<ul>
+<li><strong>直接在大括号里：</strong> 你可以直接在 <code>mod garden</code> 后面跟一对 <code>&#123;&#125;</code>，把所有代码写在里面，就像一个“开放式厨房”。</li>
+<li><strong>在同级文件里：</strong> 编译器会去 <code>src/garden.rs</code> 这个文件里找。</li>
+<li><strong>在同级文件夹里：</strong> 编译器会去 <code>src/garden/mod.rs</code> 这个文件里找（<code>mod.rs</code> 文件就像这个文件夹的“总说明书”）。</li>
+</ul>
+<h3 id="3-声明子模块：房间里再隔小间"><a href="#3-声明子模块：房间里再隔小间" class="headerlink" title="3. 声明子模块：房间里再隔小间"></a><strong>3. 声明子模块：房间里再隔小间</strong></h3><p>如果你的“房间”里内容太多，还可以再隔出“小间”。比如，你已经在 <code>src/garden.rs</code>（也就是 <code>garden</code> 房间的图纸）里，想再分一个 <code>vegetables</code> 的“小间”。</p>
+<p>你可以写：<code>mod vegetables;</code></p>
+<p>这时，编译器就知道要去 <code>garden</code> 这个“房间”里找 <code>vegetables</code> 这个“小间”的图纸了。它会去：</p>
+<ul>
+<li><strong>直接在大括号里：</strong> 和上面一样，可以直接写在大括号里。</li>
+<li><strong>在父房间的子文件夹里：</strong> 编译器会去 <code>src/garden/vegetables.rs</code> 这个文件里找。</li>
+<li><strong>在父房间的子文件夹里的 <code>mod.rs</code> 文件：</strong> 编译器会去 <code>src/garden/vegetables/mod.rs</code> 这个文件里找。</li>
+</ul>
+<h3 id="4-模块中的代码路径：怎么找到某个东西？"><a href="#4-模块中的代码路径：怎么找到某个东西？" class="headerlink" title="4. 模块中的代码路径：怎么找到某个东西？"></a><strong>4. 模块中的代码路径：怎么找到某个东西？</strong></h3><p>想象你在一个大房子里，要描述某个东西在哪儿。你会说“在客厅里沙发的旁边”。在 Rust 里，你要引用一个模块里的东西，也需要指明它的“路径”。</p>
+<p>比如，如果你有个叫 <code>Asparagus</code> 的类型，它在 <code>garden</code> 房间的 <code>vegetables</code> 小间里，那么它的完整路径就是： <strong><code>crate::garden::vegetables::Asparagus</code></strong></p>
+<ul>
+<li><code>crate::</code> 就代表你这个项目的根目录（也就是那个“大门”）。</li>
+<li>后面跟着的就是模块一层层嵌套的名字。</li>
+</ul>
+<h3 id="5-私有-vs-公用：谁能看到我的东西？"><a href="#5-私有-vs-公用：谁能看到我的东西？" class="headerlink" title="5. 私有 vs 公用：谁能看到我的东西？"></a><strong>5. 私有 vs 公用：谁能看到我的东西？</strong></h3><p>这是关于隐私的规则：</p>
+<ul>
+<li><strong>默认是私有的：</strong> 你在一个模块里写的东西，默认只有这个模块自己能用，外面是看不到的。就像你卧室里的东西，客厅里的人看不到。</li>
+<li><strong><code>pub mod</code> 公开模块：</strong> 如果你想让整个 <code>garden</code> 房间都能被外面的人看到，你需要在声明它的时候加上 <code>pub</code>，写成 <code>pub mod garden;</code>。</li>
+<li><strong><code>pub</code> 公开模块内部成员：</strong> 即使一个房间是公开的，里面的家具（比如结构体、函数）默认还是私有的。如果你想让 <code>Asparagus</code> 这个“家具”也能被外面看到，你也要在它前面加上 <code>pub</code>。</li>
+</ul>
+<h3 id="6-use-关键字：走捷径，少写路名！"><a href="#6-use-关键字：走捷径，少写路名！" class="headerlink" title="6. use 关键字：走捷径，少写路名！"></a><strong>6. <code>use</code> 关键字：走捷径，少写路名！</strong></h3><p>想象你每次去厨房都要说“去客厅，然后穿过餐厅，再到厨房”。这太麻烦了！</p>
+<p><code>use</code> 关键字就是用来走捷径的。比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">use crate::garden::vegetables::Asparagus;</span><br></pre></td></tr></table></figure>
+
+<p>这行代码就是告诉 Rust：“以后在这个地方，我提到 <code>Asparagus</code>，就直接指代 <code>crate::garden::vegetables::Asparagus</code> 这个东西，不用每次都写那么长一串路径了！”</p>
+<p>这样，你以后在这个文件里直接写 <code>Asparagus</code> 就可以了，方便很多。</p>
+<h3 id="用-backyard-例子来说明："><a href="#用-backyard-例子来说明：" class="headerlink" title="用 backyard 例子来说明："></a><strong>用 <code>backyard</code> 例子来说明：</strong></h3><p>现在，我们把上面的规则套到那个 <code>backyard</code> 项目里，就像搭建一个真实的小花园：</p>
+<ol>
+<li><strong><code>src/main.rs</code> (主屋，程序的入口)：</strong><ul>
+<li><code>pub mod garden;</code>：主屋里声明了一个<strong>公开</strong>的 <code>garden</code> 房间（所以编译器去 <code>src/garden.rs</code> 里找这个房间的图纸）。</li>
+<li><code>use crate::garden::vegetables::Asparagus;</code>：这里设置了一个捷径！以后我直接写 <code>Asparagus</code>，就知道指的是 <code>garden</code> 房间里 <code>vegetables</code> 小间里的 <code>Asparagus</code> 这个植物。</li>
+<li><code>fn main() &#123; ... &#125;</code>：这是程序真正运行的地方，就像主屋里的客厅。它创建了一个 <code>Asparagus</code> 植物，并打印出来。</li>
+</ul>
+</li>
+<li><strong><code>src/garden.rs</code> (花园的图纸)：</strong><ul>
+<li><code>pub mod vegetables;</code>：花园里声明了一个<strong>公开</strong>的 <code>vegetables</code> 小间（所以编译器去 <code>src/garden/vegetables.rs</code> 里找这个小间的图纸）。</li>
+</ul>
+</li>
+<li><strong><code>src/garden/vegetables.rs</code> (蔬菜小间的图纸)：</strong><ul>
+<li><code>pub struct Asparagus &#123;&#125;</code>：这里定义了一个<strong>公开</strong>的 <code>Asparagus</code> 植物结构体。</li>
+</ul>
+</li>
+</ol>
+<p>通过这些规则，整个项目就被组织得井井有条，各个部分各司其职，又可以通过明确的路径相互引用。</p>
+<p><code>src/garden.rs</code> <strong>不是</strong>一个独立的库 crate。它只是一个<strong>模块文件</strong>，是 <code>backyard</code> 这个二进制 crate 的一部分。</p>
+<h3 id="src-garden-rs-为什么不在-lib-目录下？"><a href="#src-garden-rs-为什么不在-lib-目录下？" class="headerlink" title="src/garden.rs 为什么不在 lib 目录下？"></a><code>src/garden.rs</code> 为什么不在 <code>lib</code> 目录下？</h3><p><code>src/garden.rs</code> 之所以直接放在 <code>src</code> 目录下，是因为它被 <code>src/main.rs</code> 中的 <code>pub mod garden;</code> 这行代码<strong>声明并包含了进来</strong>。</p>
+<p>当你在 <code>src/main.rs</code>（或 <code>src/lib.rs</code>）中声明 <code>mod garden;</code> 时，Rust 编译器会按照你之前看到的规则去寻找 <code>garden</code> 模块的代码：</p>
+<ol>
+<li>在 <code>src/garden.rs</code> 文件中。</li>
+<li>在 <code>src/garden/mod.rs</code> 文件中。</li>
+</ol>
+<p>在这个例子中，它找到了 <code>src/garden.rs</code>，并将其中的代码（包括它声明的 <code>vegetables</code> 模块）<strong>作为 <code>main.rs</code> 所属的这个二进制 crate 的一部分</strong>编译进去。所以，<code>garden.rs</code> 仅仅是 <code>backyard</code> 这个二进制 crate 内部的一个模块，用来组织代码。</p>
+<h3 id="那-lib-目录是干啥用的？"><a href="#那-lib-目录是干啥用的？" class="headerlink" title="那 lib 目录是干啥用的？"></a>那 <code>lib</code> 目录是干啥用的？</h3><p><code>lib</code> 目录（具体来说是 <code>src/lib.rs</code> 文件）是用来创建<strong>库 crate</strong> 的。</p>
+<ul>
+<li><strong>库 crate</strong> 是一种可以被其他项目（甚至是你自己项目的二进制 crate）<strong>引用和复用</strong>的代码包。它不直接生成可执行文件，而是生成一个库文件（例如 <code>.rlib</code> 文件）。</li>
+<li>当你的项目包含 <code>src/lib.rs</code> 时，<code>Cargo</code> 会自动将其视为一个库 crate 的根文件。</li>
+</ul>
+<p><strong>区别在于：</strong></p>
+<ul>
+<li><strong><code>src/lib.rs</code></strong>：定义的是整个<strong>库 crate</strong> 的入口和结构，它是一个独立的编译单元，旨在被其他代码导入使用。</li>
+<li><strong><code>src/garden.rs</code></strong>：定义的是当前<strong>二进制 crate</strong>（或库 crate）内部的一个<strong>模块</strong>，它只是用来组织该 crate 内部的代码，而不是一个独立的、可被其他外部项目直接引用的 crate。</li>
+</ul>
+<p><strong>简而言之：</strong></p>
+<p><code>src/lib.rs</code> 相当于你的项目要对外提供的“工具箱”的“总说明书”。而 <code>src/garden.rs</code> 只是你这个工具箱（或你的主程序）内部的一个“抽屉”，用来存放相关工具。</p>
+<p>为了更好地理解，我们再回顾一下 Rust 包中不同类型的 Crate 和模块文件的角色：</p>
+<ol>
+<li><strong>默认二进制 Crate (<code>src/main.rs</code>)</strong>:<ul>
+<li>这是你运行 <code>cargo run</code> 时默认会编译和执行的程序。</li>
+<li>必须包含一个 <code>fn main()</code> 函数。</li>
+<li>它可以声明和使用内部的模块文件（比如本例中的 <code>src/garden.rs</code>），这些模块文件最终都成为了这个二进制 Crate 的一部分。</li>
+</ul>
+</li>
+<li><strong>库 Crate (<code>src/lib.rs</code>)</strong>:<ul>
+<li>这是为了提供可复用的代码库而存在的。它不包含 <code>main</code> 函数。</li>
+<li>编译后生成的是一个库文件（例如 <code>.rlib</code> 或 <code>.so</code>&#x2F;<code>.dll</code>），而不是可执行文件。</li>
+<li>这个库 Crate 可以被其他项目（包括当前包的默认二进制 Crate <code>src/main.rs</code> 或其他位于 <code>src/bin</code> 目录下的二进制 Crate）引用和使用。</li>
+</ul>
+</li>
+<li><strong>额外二进制 Crate (<code>src/bin/\*.rs</code>)</strong>:<ul>
+<li>如果你的项目需要除了 <code>src/main.rs</code> 之外的<strong>其他独立可执行程序</strong>，你就会把它们放在 <code>src/bin/</code> 目录下。</li>
+<li><code>src/bin</code> 目录下的每个 <code>.rs</code> 文件都会被编译成一个独立的二进制 Crate，并且每个文件都需要包含一个 <code>fn main()</code> 函数。</li>
+<li>例如，如果你有 <code>src/bin/my_tool.rs</code>，那么你可以用 <code>cargo run --bin my_tool</code> 来运行它。</li>
+</ul>
+</li>
+</ol>
+<p>在我们写C语言项目时,经常会有src,inc目录,我们自己编写或者下载好的.h.c文件塞进去,将它们添加进编译列表,然后就可以在项目中使用它们了,RUST中的模块系统是与之类似的,以下是AI给出的两者之间的联系以及区别</p>
+<h2 id="Rust-模块系统与-C-语言文件组织对比"><a href="#Rust-模块系统与-C-语言文件组织对比" class="headerlink" title="Rust 模块系统与 C 语言文件组织对比"></a>Rust 模块系统与 C 语言文件组织对比</h2><p>在 C 语言项目中，我们通常将源代码 (<code>.c</code> 文件) 放在 <code>src</code> 目录，头文件 (<code>.h</code> 文件) 放在 <code>inc</code> (或 <code>include</code>) 目录。Rust 的模块系统与 C 语言这种文件组织方式在<strong>逻辑上有一些相似之处，但在实现和理念上存在显著不同</strong>。</p>
+<h3 id="相似之处"><a href="#相似之处" class="headerlink" title="相似之处"></a>相似之处</h3><ol>
+<li><strong>代码组织与复用：</strong> 无论是 C 语言的头文件&#x2F;源文件分离，还是 Rust 的模块，核心目的都是为了更好地组织代码、提高可读性，并实现代码的复用。通过将相关功能封装在一起，可以避免命名冲突，并使得项目结构更加清晰。</li>
+<li><strong>隐藏实现细节：</strong> C 语言中，头文件声明了函数和变量的接口，而 <code>.c</code> 文件包含具体实现。外部用户只需要包含头文件，不需要关心 <code>.c</code> 文件内部的实现细节。Rust 的模块系统也提供了类似的能力，通过 <code>pub</code> 关键字控制可见性，可以隐藏内部实现，只暴露公共 API。</li>
+<li><strong>编译单元的概念：</strong> C 语言的 <code>.c</code> 文件是独立的编译单元，通过 <code>#include</code> 预处理器指令将头文件内容插入到编译单元中。Rust 的模块在编译时也会被编译器处理，形成逻辑上的编译单元。</li>
+</ol>
+<h3 id="不同之处"><a href="#不同之处" class="headerlink" title="不同之处"></a>不同之处</h3><ol>
+<li><strong>声明与定义的绑定方式：</strong><ul>
+<li><strong>C 语言：</strong> C 语言通过预处理器宏 <code>#include</code> 将头文件的内容（声明）复制到源文件中。编译时，编译器需要同时看到声明和定义，或者通过链接器在链接阶段解析符号。这种方式相对松散，容易出现头文件循环引用、重复定义等问题。</li>
+<li><strong>Rust：</strong> Rust 的模块系统是语言级别内置的。它通过 <code>mod</code> 关键字定义模块，并通过 <code>use</code> 关键字引入路径。Rust 编译器在编译时会理解模块的层级结构和可见性规则，不需要像 C 语言那样手动管理头文件依赖。这使得 Rust 的模块管理更加健壮和安全。</li>
+</ul>
+</li>
+<li><strong>可见性控制：</strong><ul>
+<li><strong>C 语言：</strong> C 语言主要通过头文件来控制可见性。头文件中声明的符号默认是外部可见的，<code>.c</code> 文件中定义的 <code>static</code> 变量或函数才是文件私有的。</li>
+<li><strong>Rust：</strong> Rust 提供了更细粒度的可见性控制。默认情况下，模块中的项（函数、结构体、枚举等）是私有的 (<code>private</code>)，只有通过 <code>pub</code> 关键字明确声明的项才是公共的。此外，Rust 还支持 <code>pub(crate)</code>（当前 crate 可见）、<code>pub(super)</code>（父模块可见）等更灵活的可见性修饰符，极大地增强了封装性。</li>
+</ul>
+</li>
+<li><strong>命名空间与路径：</strong><ul>
+<li><strong>C 语言：</strong> C 语言没有内置的命名空间机制，通常通过前缀（例如 <code>my_library_function</code>）来避免不同库之间的命名冲突。头文件的路径管理也相对简单，就是文件系统的路径。</li>
+<li><strong>Rust：</strong> Rust 的模块系统本身就提供了强大的命名空间管理。每个模块都有自己的路径，例如 <code>crate::module_name::sub_module::item</code>。通过 <code>use</code> 关键字，我们可以引入特定的项到当前作用域，或者使用 <code>as</code> 关键字为引入的项创建别名，从而解决潜在的命名冲突。这种基于路径的命名空间机制使得代码组织更加清晰和安全。</li>
+</ul>
+</li>
+<li><strong>文件与模块的对应关系：</strong><ul>
+<li><strong>C 语言：</strong> 通常一个 <code>.c</code> 文件对应一个独立的编译单元，并可能有一个对应的 <code>.h</code> 文件用于声明接口。</li>
+<li><strong>Rust：</strong> 在 Rust 中，一个文件可以包含多个模块，或者一个模块可以分散在多个文件中（通过 <code>mod name;</code> 语法）。Rust 的文件系统布局约定是模块系统的一部分，例如，一个 <code>mod foo;</code> 声明会查找 <code>foo.rs</code> 文件或 <code>foo/mod.rs</code> 目录来加载模块内容。这种灵活的对应关系使得代码组织可以更好地反映逻辑结构。</li>
+</ul>
+</li>
+<li><strong>宏与预处理器：</strong><ul>
+<li><strong>C 语言：</strong> 严重依赖预处理器宏（<code>#define</code>, <code>#ifdef</code> 等）进行条件编译、代码生成等操作。</li>
+<li><strong>Rust：</strong> Rust 拥有功能更强大的宏系统（过程宏、声明宏），它们在编译时执行，并且具有更好的类型安全性。Rust 强调零成本抽象，通过类型系统和编译器在编译阶段捕获错误，而不是依赖运行时检查或预处理器。</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Chillward
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/07/23/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%A8%A1%E5%9D%9701/" title="RUST学习日记之模块01">http://example.com/2025/07/23/RUST学习日记之模块01/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RUST/" rel="tag"># RUST</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/07/21/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%9E%9A%E4%B8%BE%E5%92%8C%E7%BB%93%E6%9E%84%E5%8C%B9%E9%85%8D/" rel="prev" title="RUST学习日记之枚举和结构匹配">
+      <i class="fa fa-chevron-left"></i> RUST学习日记之枚举和结构匹配
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%85%E5%92%8CCreate"><span class="nav-number">1.</span> <span class="nav-text">包和Create</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#crate-root-%E6%98%AF%E4%B8%80%E4%B8%AA%E6%BA%90%E6%96%87%E4%BB%B6%EF%BC%8CRust-%E7%BC%96%E8%AF%91%E5%99%A8%E4%BB%A5%E5%AE%83%E4%B8%BA%E8%B5%B7%E5%A7%8B%E7%82%B9%EF%BC%8C%E5%B9%B6%E6%9E%84%E6%88%90%E4%BD%A0%E7%9A%84-crate-%E7%9A%84%E6%A0%B9%E6%A8%A1%E5%9D%97%E3%80%82"><span class="nav-number">1.0.0.0.1.</span> <span class="nav-text">crate root 是一个源文件，Rust 编译器以它为起始点，并构成你的 crate 的根模块。</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E4%B8%80%E4%BA%8C%E8%BF%9B%E5%88%B6-Crate"><span class="nav-number">1.1.</span> <span class="nav-text">单一二进制 Crate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E8%BF%9B%E5%88%B6-Crate-%E5%92%8C%E5%BA%93-Crate-%E5%85%B1%E5%AD%98"><span class="nav-number">1.2.</span> <span class="nav-text">二进制 Crate 和库 Crate 共存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E4%B8%AA%E4%BA%8C%E8%BF%9B%E5%88%B6-Crate"><span class="nav-number">1.3.</span> <span class="nav-text">多个二进制 Crate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97%E7%9A%84%E7%BB%84%E7%BB%87"><span class="nav-number">1.4.</span> <span class="nav-text">模块的组织</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Crate-%E6%A0%B9%E6%98%AF%E4%BB%80%E4%B9%88%E4%B8%9C%E8%A5%BF%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">Crate 根是什么东西？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Crate-%E6%A0%B9%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F"><span class="nav-number">2.1.</span> <span class="nav-text">Crate 根在哪里？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Crate-%E6%A0%B9%E7%9A%84%E4%BD%9C%E7%94%A8%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">2.2.</span> <span class="nav-text">Crate 根的作用是什么？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E6%A8%A1%E5%9D%97%E6%9D%A5%E6%8E%A7%E5%88%B6%E4%BD%9C%E7%94%A8%E5%9F%9F%E4%B8%8E%E7%A7%81%E6%9C%89%E6%80%A7"><span class="nav-number">3.</span> <span class="nav-text">定义模块来控制作用域与私有性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97%E5%B0%8F%E6%8A%84%EF%BC%88Cheat-Sheet%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">模块小抄（Cheat Sheet）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8%E6%A8%A1%E5%9D%97%E4%B8%AD%E5%AF%B9%E7%9B%B8%E5%85%B3%E4%BB%A3%E7%A0%81%E8%BF%9B%E8%A1%8C%E5%88%86%E7%BB%84"><span class="nav-number">4.1.</span> <span class="nav-text">在模块中对相关代码进行分组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Rust-%E4%BB%A3%E7%A0%81%E7%9A%84%E8%B5%B7%E7%82%B9%EF%BC%9A%E4%BB%8E%E2%80%9C%E5%A4%A7%E9%97%A8%E2%80%9D%E5%BC%80%E5%A7%8B%E6%89%BE"><span class="nav-number">4.2.</span> <span class="nav-text">1. Rust 代码的起点：从“大门”开始找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%A3%B0%E6%98%8E%E6%A8%A1%E5%9D%97%EF%BC%9A%E7%BB%99%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%A0%81%E5%88%86%E6%88%BF%E9%97%B4"><span class="nav-number">4.3.</span> <span class="nav-text">2. 声明模块：给你的代码分房间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%A3%B0%E6%98%8E%E5%AD%90%E6%A8%A1%E5%9D%97%EF%BC%9A%E6%88%BF%E9%97%B4%E9%87%8C%E5%86%8D%E9%9A%94%E5%B0%8F%E9%97%B4"><span class="nav-number">4.4.</span> <span class="nav-text">3. 声明子模块：房间里再隔小间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%A8%A1%E5%9D%97%E4%B8%AD%E7%9A%84%E4%BB%A3%E7%A0%81%E8%B7%AF%E5%BE%84%EF%BC%9A%E6%80%8E%E4%B9%88%E6%89%BE%E5%88%B0%E6%9F%90%E4%B8%AA%E4%B8%9C%E8%A5%BF%EF%BC%9F"><span class="nav-number">4.5.</span> <span class="nav-text">4. 模块中的代码路径：怎么找到某个东西？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E7%A7%81%E6%9C%89-vs-%E5%85%AC%E7%94%A8%EF%BC%9A%E8%B0%81%E8%83%BD%E7%9C%8B%E5%88%B0%E6%88%91%E7%9A%84%E4%B8%9C%E8%A5%BF%EF%BC%9F"><span class="nav-number">4.6.</span> <span class="nav-text">5. 私有 vs 公用：谁能看到我的东西？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-use-%E5%85%B3%E9%94%AE%E5%AD%97%EF%BC%9A%E8%B5%B0%E6%8D%B7%E5%BE%84%EF%BC%8C%E5%B0%91%E5%86%99%E8%B7%AF%E5%90%8D%EF%BC%81"><span class="nav-number">4.7.</span> <span class="nav-text">6. use 关键字：走捷径，少写路名！</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8-backyard-%E4%BE%8B%E5%AD%90%E6%9D%A5%E8%AF%B4%E6%98%8E%EF%BC%9A"><span class="nav-number">4.8.</span> <span class="nav-text">用 backyard 例子来说明：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#src-garden-rs-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E5%9C%A8-lib-%E7%9B%AE%E5%BD%95%E4%B8%8B%EF%BC%9F"><span class="nav-number">4.9.</span> <span class="nav-text">src&#x2F;garden.rs 为什么不在 lib 目录下？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%82%A3-lib-%E7%9B%AE%E5%BD%95%E6%98%AF%E5%B9%B2%E5%95%A5%E7%94%A8%E7%9A%84%EF%BC%9F"><span class="nav-number">4.10.</span> <span class="nav-text">那 lib 目录是干啥用的？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rust-%E6%A8%A1%E5%9D%97%E7%B3%BB%E7%BB%9F%E4%B8%8E-C-%E8%AF%AD%E8%A8%80%E6%96%87%E4%BB%B6%E7%BB%84%E7%BB%87%E5%AF%B9%E6%AF%94"><span class="nav-number">5.</span> <span class="nav-text">Rust 模块系统与 C 语言文件组织对比</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E4%BC%BC%E4%B9%8B%E5%A4%84"><span class="nav-number">5.1.</span> <span class="nav-text">相似之处</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E5%90%8C%E4%B9%8B%E5%A4%84"><span class="nav-number">5.2.</span> <span class="nav-text">不同之处</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Chillward"
+      src="/uploads/avatar.png">
+  <p class="site-author-name" itemprop="name">Chillward</p>
+  <div class="site-description" itemprop="description">谁躺在漆黑的舞台上，用身体迎接着光芒</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">博客</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chillward</span>
+</div>
+  <div class="powered-by">
+    <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动 -->
+  </div>
+
+<!-- 网站运行时间的设置 -->
+<span id="timeDate">载入天数...</span>
+<span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("07/16/2025 10:00:00"); //此处修改你的建站时间或者网站上线时间
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒.";
+    }
+setInterval("createtime()",250);
+</script>
+        
+
+
+
+
+
+
+
+
+	 </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script data-pjax>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'dark',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+    <div id="pjax">
+  
+
+  
+
+    </div>
+</body>
+</html>
