@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="之前拿C语言写泛型，可以说是格外吃力并且不好用，因为C语言是相对更低级的语言，语言特性上就没有泛型这么个东西，但是RUST是原生支持了泛型的，现在我们就来看一下。  泛型是什么我这边就不介绍了，依旧是先来看一下官方文档的高速神言。  在函数定义中使用泛型当使用泛型定义函数时，本来在函数签名中指定参数和返回值的类型的地方，会改用泛型来表示。采用这种技术，使得代码适应性更强，从而为函数的调用者提供更多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RUST学习日记之泛型">
+<meta property="og:url" content="http://example.com/2025/07/28/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%B3%9B%E5%9E%8B/index.html">
+<meta property="og:site_name" content="Chillward的博客">
+<meta property="og:description" content="之前拿C语言写泛型，可以说是格外吃力并且不好用，因为C语言是相对更低级的语言，语言特性上就没有泛型这么个东西，但是RUST是原生支持了泛型的，现在我们就来看一下。  泛型是什么我这边就不介绍了，依旧是先来看一下官方文档的高速神言。  在函数定义中使用泛型当使用泛型定义函数时，本来在函数签名中指定参数和返回值的类型的地方，会改用泛型来表示。采用这种技术，使得代码适应性更强，从而为函数的调用者提供更多">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-07-28T03:02:52.000Z">
+<meta property="article:modified_time" content="2025-07-28T08:45:44.224Z">
+<meta property="article:author" content="Chillward">
+<meta property="article:tag" content="RUST">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2025/07/28/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%B3%9B%E5%9E%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>RUST学习日记之泛型 | Chillward的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Chillward的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/28/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%B3%9B%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.png">
+      <meta itemprop="name" content="Chillward">
+      <meta itemprop="description" content="谁躺在漆黑的舞台上，用身体迎接着光芒">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chillward的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RUST学习日记之泛型
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-07-28 11:02:52 / 修改时间：16:45:44" itemprop="dateCreated datePublished" datetime="2025-07-28T11:02:52+08:00">2025-07-28</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>13 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>之前拿C语言写泛型，可以说是格外吃力并且不好用，因为C语言是相对更低级的语言，语言特性上就没有泛型这么个东西，但是RUST是原生支持了泛型的，现在我们就来看一下。</p>
+<blockquote>
+<p>泛型是什么我这边就不介绍了，依旧是先来看一下官方文档的高速神言。</p>
+</blockquote>
+<h3 id="在函数定义中使用泛型"><a href="#在函数定义中使用泛型" class="headerlink" title="在函数定义中使用泛型"></a>在函数定义中使用泛型</h3><p>当使用泛型定义函数时，本来在函数签名中指定参数和返回值的类型的地方，会改用泛型来表示。采用这种技术，使得代码适应性更强，从而为函数的调用者提供更多的功能，同时也避免了代码的重复。</p>
+<p>回到 <code>largest</code> 函数，示例 10-4 中展示了两个函数，它们的功能都是寻找 slice 中最大值。</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">largest_i32</span>(list: &amp;[<span class="type">i32</span>]) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">largest</span> = list[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> &amp;item <span class="keyword">in</span> list.<span class="title function_ invoke__">iter</span>() &#123;</span><br><span class="line">        <span class="keyword">if</span> item &gt; largest &#123;</span><br><span class="line">            largest = item;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    largest</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">largest_char</span>(list: &amp;[<span class="type">char</span>]) <span class="punctuation">-&gt;</span> <span class="type">char</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">largest</span> = list[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> &amp;item <span class="keyword">in</span> list.<span class="title function_ invoke__">iter</span>() &#123;</span><br><span class="line">        <span class="keyword">if</span> item &gt; largest &#123;</span><br><span class="line">            largest = item;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    largest</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">number_list</span> = <span class="built_in">vec!</span>[<span class="number">34</span>, <span class="number">50</span>, <span class="number">25</span>, <span class="number">100</span>, <span class="number">65</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">result</span> = <span class="title function_ invoke__">largest_i32</span>(&amp;number_list);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The largest number is &#123;&#125;&quot;</span>, result);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">char_list</span> = <span class="built_in">vec!</span>[<span class="string">&#x27;y&#x27;</span>, <span class="string">&#x27;m&#x27;</span>, <span class="string">&#x27;a&#x27;</span>, <span class="string">&#x27;q&#x27;</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">result</span> = <span class="title function_ invoke__">largest_char</span>(&amp;char_list);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The largest char is &#123;&#125;&quot;</span>, result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-4：两个函数，不同点只是名称和签名类型</p>
+<p><code>largest_i32</code> 函数是从示例 10-3 中摘出来的，它用来寻找 slice 中最大的 <code>i32</code>。<code>largest_char</code> 函数寻找 slice 中最大的 <code>char</code>。因为两者函数体的代码一致，我们可以定义一个函数，再引进泛型参数来消除这种重复。</p>
+<p>为了参数化新函数中的这些类型，我们也需要为类型参数取个名字，道理和给函数的形参起名一样。任何标识符都可以作为类型参数的名字。这里选用 <code>T</code>，因为传统上来说，Rust 的参数名字都比较短，通常就只有一个字母，同时，Rust 类型名的命名规范是骆驼命名法（CamelCase）。<code>T</code> 作为 “type” 的缩写是大部分 Rust 开发者的首选。</p>
+<p>如果要在函数体中使用参数，就必须在函数签名中声明它的名字，好让编译器知道这个名字指代的是什么。同理，当在函数签名中使用一个类型参数时，必须在使用它之前就声明它。为了定义泛型版本的 <code>largest</code> 函数，类型参数声明位于函数名称与参数列表中间的尖括号 <code>&lt;&gt;</code> 中，像这样：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">largest</span>&lt;T&gt;(list: &amp;[T]) <span class="punctuation">-&gt;</span> T &#123;</span><br></pre></td></tr></table></figure>
+
+<p>可以这样理解这个定义：函数 <code>largest</code> 有泛型类型 <code>T</code>。它有个参数 <code>list</code>，其类型是元素为 <code>T</code> 的 slice。<code>largest</code> 函数的返回值类型也是 <code>T</code>。</p>
+<p>示例 10-5 中的 <code>largest</code> 函数在它的签名中使用了泛型，统一了两个实现。该示例也展示了如何调用 <code>largest</code> 函数，把 <code>i32</code> 值的 slice 或 <code>char</code> 值的 slice 传给它。请注意这些代码还不能编译，不过稍后在本章会解决这个问题。</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">largest</span>&lt;T&gt;(list: &amp;[T]) <span class="punctuation">-&gt;</span> T &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">largest</span> = list[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> &amp;item <span class="keyword">in</span> list.<span class="title function_ invoke__">iter</span>() &#123;</span><br><span class="line">        <span class="keyword">if</span> item &gt; largest &#123;</span><br><span class="line">            largest = item;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    largest</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">number_list</span> = <span class="built_in">vec!</span>[<span class="number">34</span>, <span class="number">50</span>, <span class="number">25</span>, <span class="number">100</span>, <span class="number">65</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">result</span> = <span class="title function_ invoke__">largest</span>(&amp;number_list);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The largest number is &#123;&#125;&quot;</span>, result);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">char_list</span> = <span class="built_in">vec!</span>[<span class="string">&#x27;y&#x27;</span>, <span class="string">&#x27;m&#x27;</span>, <span class="string">&#x27;a&#x27;</span>, <span class="string">&#x27;q&#x27;</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">result</span> = <span class="title function_ invoke__">largest</span>(&amp;char_list);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The largest char is &#123;&#125;&quot;</span>, result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-5：一个使用泛型参数的 <code>largest</code> 函数定义，尚不能编译</p>
+<p>如果现在就编译这个代码，会出现如下错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">error[E0369]: binary operation `&gt;` cannot be applied to type `T`</span><br><span class="line"> --&gt; src/main.rs:5:12</span><br><span class="line">  |</span><br><span class="line">5 |         if item &gt; largest &#123;</span><br><span class="line">  |            ^^^^^^^^^^^^^^</span><br><span class="line">  |</span><br><span class="line">  = note: an implementation of `std::cmp::PartialOrd` might be missing for `T`</span><br></pre></td></tr></table></figure>
+
+<p>注释中提到了 <code>std::cmp::PartialOrd</code>，这是一个 <em>trait</em>。下一部分会讲到 trait。不过简单来说，这个错误表明 <code>largest</code> 的函数体不能适用于 <code>T</code> 的所有可能的类型。因为在函数体需要比较 <code>T</code> 类型的值，不过它只能用于我们知道如何排序的类型。为了开启比较功能，标准库中定义的 <code>std::cmp::PartialOrd</code> trait 可以实现类型的比较功能（查看附录 C 获取该 trait 的更多信息）。</p>
+<p>标准库中定义的 <code>std::cmp::PartialOrd</code> trait 可以实现类型的比较功能。在 <a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-02-traits.html#traits-as-parameters">“trait 作为参数”</a> 部分会讲解如何指定泛型实现特定的 trait，不过让我们先探索其他使用泛型参数的方法。</p>
+<blockquote>
+<p>别的地方都还挺好理解的，最后这个的意思大概是说可能有的数据类型没法使用 &gt;&#x3D; 之类的符号进行运算，然后因为Rust很严格，所以我们没法直接编译，需要告知编译器只有实现了对应特性的数据类型才能使用这个泛型函数</p>
+</blockquote>
+<h3 id="结构体定义中的泛型"><a href="#结构体定义中的泛型" class="headerlink" title="结构体定义中的泛型"></a>结构体定义中的泛型</h3><p>同样也可以用 <code>&lt;&gt;</code> 语法来定义结构体，它包含一个或多个泛型参数类型字段。示例 10-6 展示了如何定义和使用一个可以存放任何类型的 <code>x</code> 和 <code>y</code> 坐标值的结构体 <code>Point</code>：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Point</span>&lt;T&gt; &#123;</span><br><span class="line">    x: T,</span><br><span class="line">    y: T,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">integer</span> = Point &#123; x: <span class="number">5</span>, y: <span class="number">10</span> &#125;;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">float</span> = Point &#123; x: <span class="number">1.0</span>, y: <span class="number">4.0</span> &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-6：<code>Point</code> 结构体存放了两个 <code>T</code> 类型的值 <code>x</code> 和 <code>y</code></p>
+<p>其语法类似于函数定义中使用泛型。首先，必须在结构体名称后面的尖括号中声明泛型参数的名称。接着在结构体定义中可以指定具体数据类型的位置使用泛型类型。</p>
+<p>注意 <code>Point&lt;T&gt;</code> 的定义中只使用了一个泛型类型，这个定义表明结构体 <code>Point&lt;T&gt;</code> 对于一些类型 <code>T</code> 是泛型的，而且字段 <code>x</code> 和 <code>y</code> <strong>都是</strong> 相同类型的，无论它具体是何类型。如果尝试创建一个有不同类型值的 <code>Point&lt;T&gt;</code> 的实例，像示例 10-7 中的代码就不能编译：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Point</span>&lt;T&gt; &#123;</span><br><span class="line">    x: T,</span><br><span class="line">    y: T,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">wont_work</span> = Point &#123; x: <span class="number">5</span>, y: <span class="number">4.0</span> &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-7：字段 <code>x</code> 和 <code>y</code> 的类型必须相同，因为他们都有相同的泛型类型 <code>T</code></p>
+<p>在这个例子中，当把整型值 5 赋值给 <code>x</code> 时，就告诉了编译器这个 <code>Point&lt;T&gt;</code> 实例中的泛型 <code>T</code> 是整型的。接着指定 <code>y</code> 为 4.0，它被定义为与 <code>x</code> 相同类型，就会得到一个像这样的类型不匹配错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">error[E0308]: mismatched types</span><br><span class="line"> --&gt; src/main.rs:7:38</span><br><span class="line">  |</span><br><span class="line">7 |     let wont_work = Point &#123; x: 5, y: 4.0 &#125;;</span><br><span class="line">  |                                      ^^^ expected integer, found</span><br><span class="line">floating-point number</span><br><span class="line">  |</span><br><span class="line">  = note: expected type `&#123;integer&#125;`</span><br><span class="line">             found type `&#123;float&#125;`</span><br></pre></td></tr></table></figure>
+
+<p>如果想要定义一个 <code>x</code> 和 <code>y</code> 可以有不同类型且仍然是泛型的 <code>Point</code> 结构体，我们可以使用多个泛型类型参数。在示例 10-8 中，我们修改 <code>Point</code> 的定义为拥有两个泛型类型 <code>T</code> 和 <code>U</code>。其中字段 <code>x</code> 是 <code>T</code> 类型的，而字段 <code>y</code> 是 <code>U</code> 类型的：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Point</span>&lt;T, U&gt; &#123;</span><br><span class="line">    x: T,</span><br><span class="line">    y: U,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">both_integer</span> = Point &#123; x: <span class="number">5</span>, y: <span class="number">10</span> &#125;;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">both_float</span> = Point &#123; x: <span class="number">1.0</span>, y: <span class="number">4.0</span> &#125;;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">integer_and_float</span> = Point &#123; x: <span class="number">5</span>, y: <span class="number">4.0</span> &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-8：使用两个泛型的 <code>Point</code>，这样 <code>x</code> 和 <code>y</code> 可能是不同类型</p>
+<p>现在所有的 <code>Point</code> 实例都合法了！你可以在定义中使用任意多的泛型类型参数，不过太多的话，代码将难以阅读和理解。当你的代码中需要许多泛型类型时，它可能表明你的代码需要重构，分解成更小的结构。</p>
+<blockquote>
+<p>这一段还是挺好理解的，就不再展开阐述了</p>
+</blockquote>
+<h3 id="枚举定义中的泛型"><a href="#枚举定义中的泛型" class="headerlink" title="枚举定义中的泛型"></a>枚举定义中的泛型</h3><p>和结构体类似，枚举也可以在成员中存放泛型数据类型。第 6 章我们曾用过标准库提供的 <code>Option&lt;T&gt;</code> 枚举，这里再回顾一下：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="title class_">Option</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="title function_ invoke__">Some</span>(T),</span><br><span class="line">    <span class="literal">None</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在这个定义应该更容易理解了。如你所见 <code>Option&lt;T&gt;</code> 是一个拥有泛型 <code>T</code> 的枚举，它有两个成员：<code>Some</code>，它存放了一个类型 <code>T</code> 的值，和不存在任何值的 <code>None</code>。通过 <code>Option&lt;T&gt;</code> 枚举可以表达有一个可能的值的抽象概念，同时因为 <code>Option&lt;T&gt;</code> 是泛型的，无论这个可能的值是什么类型都可以使用这个抽象。</p>
+<p>枚举也可以拥有多个泛型类型。第 9 章使用过的 <code>Result</code> 枚举定义就是一个这样的例子：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="title class_">Result</span>&lt;T, E&gt; &#123;</span><br><span class="line">    <span class="title function_ invoke__">Ok</span>(T),</span><br><span class="line">    <span class="title function_ invoke__">Err</span>(E),</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Result</code> 枚举有两个泛型类型，<code>T</code> 和 <code>E</code>。<code>Result</code> 有两个成员：<code>Ok</code>，它存放一个类型 <code>T</code> 的值，而 <code>Err</code> 则存放一个类型 <code>E</code> 的值。这个定义使得 <code>Result</code> 枚举能很方便的表达任何可能成功（返回 <code>T</code> 类型的值）也可能失败（返回 <code>E</code> 类型的值）的操作。实际上，这就是我们在示例 9-3 用来打开文件的方式：当成功打开文件的时候，<code>T</code> 对应的是 <code>std::fs::File</code> 类型；而当打开文件出现问题时，<code>E</code> 的值则是 <code>std::io::Error</code> 类型。</p>
+<p>当你意识到代码中定义了多个结构体或枚举，它们不一样的地方只是其中的值的类型的时候，不妨通过泛型类型来避免重复。</p>
+<blockquote>
+<p>这个其实也还好</p>
+</blockquote>
+<h3 id="方法定义中的泛型"><a href="#方法定义中的泛型" class="headerlink" title="方法定义中的泛型"></a>方法定义中的泛型</h3><p>在为结构体和枚举实现方法时（像第 5 章那样），一样也可以用泛型。示例 10-9 中展示了示例 10-6 中定义的结构体 <code>Point&lt;T&gt;</code>，和在其上实现的名为 <code>x</code> 的方法。</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Point</span>&lt;T&gt; &#123;</span><br><span class="line">    x: T,</span><br><span class="line">    y: T,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">impl</span>&lt;T&gt; Point&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">x</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> &amp;T &#123;</span><br><span class="line">        &amp;<span class="keyword">self</span>.x</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">p</span> = Point &#123; x: <span class="number">5</span>, y: <span class="number">10</span> &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;p.x = &#123;&#125;&quot;</span>, p.<span class="title function_ invoke__">x</span>());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-9：在 <code>Point&lt;T&gt;</code> 结构体上实现方法 <code>x</code>，它返回 <code>T</code> 类型的字段 <code>x</code> 的引用</p>
+<p>这里在 <code>Point&lt;T&gt;</code> 上定义了一个叫做 <code>x</code> 的方法来返回字段 <code>x</code> 中数据的引用：</p>
+<p>注意必须在 <code>impl</code> 后面声明 <code>T</code>，这样就可以在 <code>Point&lt;T&gt;</code> 上实现的方法中使用它了。在 <code>impl</code> 之后声明泛型 <code>T</code> ，这样 Rust 就知道 <code>Point</code> 的尖括号中的类型是泛型而不是具体类型。</p>
+<p>例如，可以选择为 <code>Point&lt;f32&gt;</code> 实例实现方法，而不是为泛型 <code>Point</code> 实例。示例 10-10 展示了一个没有在 <code>impl</code> 之后（的尖括号）声明泛型的例子，这里使用了一个具体类型，<code>f32</code>：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">impl</span> <span class="title class_">Point</span>&lt;<span class="type">f32</span>&gt; &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">distance_from_origin</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">f32</span> &#123;</span><br><span class="line">        (<span class="keyword">self</span>.x.<span class="title function_ invoke__">powi</span>(<span class="number">2</span>) + <span class="keyword">self</span>.y.<span class="title function_ invoke__">powi</span>(<span class="number">2</span>)).<span class="title function_ invoke__">sqrt</span>()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-10：构建一个只用于拥有泛型参数 <code>T</code> 的结构体的具体类型的 <code>impl</code> 块</p>
+<p>这段代码意味着 <code>Point&lt;f32&gt;</code> 类型会有一个方法 <code>distance_from_origin</code>，而其他 <code>T</code> 不是 <code>f32</code> 类型的 <code>Point&lt;T&gt;</code> 实例则没有定义此方法。这个方法计算点实例与坐标 (0.0, 0.0) 之间的距离，并使用了只能用于浮点型的数学运算符。</p>
+<p>结构体定义中的泛型类型参数并不总是与结构体方法签名中使用的泛型是同一类型。示例 10-11 中在示例 10-8 中的结构体 <code>Point&lt;T, U&gt;</code> 上定义了一个方法 <code>mixup</code>。这个方法获取另一个 <code>Point</code> 作为参数，而它可能与调用 <code>mixup</code> 的 <code>self</code> 是不同的 <code>Point</code> 类型。这个方法用 <code>self</code> 的 <code>Point</code> 类型的 <code>x</code> 值（类型 <code>T</code>）和参数的 <code>Point</code> 类型的 <code>y</code> 值（类型 <code>W</code>）来创建一个新 <code>Point</code> 类型的实例：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Point</span>&lt;T, U&gt; &#123;</span><br><span class="line">    x: T,</span><br><span class="line">    y: U,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">impl</span>&lt;T, U&gt; Point&lt;T, U&gt; &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">mixup</span>&lt;V, W&gt;(<span class="keyword">self</span>, other: Point&lt;V, W&gt;) <span class="punctuation">-&gt;</span> Point&lt;T, W&gt; &#123;</span><br><span class="line">        Point &#123;</span><br><span class="line">            x: <span class="keyword">self</span>.x,</span><br><span class="line">            y: other.y,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">p1</span> = Point &#123; x: <span class="number">5</span>, y: <span class="number">10.4</span> &#125;;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">p2</span> = Point &#123; x: <span class="string">&quot;Hello&quot;</span>, y: <span class="string">&#x27;c&#x27;</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">p3</span> = p1.<span class="title function_ invoke__">mixup</span>(p2);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;p3.x = &#123;&#125;, p3.y = &#123;&#125;&quot;</span>, p3.x, p3.y);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-11：方法使用了与结构体定义中不同类型的泛型</p>
+<p>在 <code>main</code> 函数中，定义了一个有 <code>i32</code> 类型的 <code>x</code>（其值为 <code>5</code>）和 <code>f64</code> 的 <code>y</code>（其值为 <code>10.4</code>）的 <code>Point</code>。<code>p2</code> 则是一个有着字符串 slice 类型的 <code>x</code>（其值为 <code>&quot;Hello&quot;</code>）和 <code>char</code> 类型的 <code>y</code>（其值为 <code>c</code>）的 <code>Point</code>。在 <code>p1</code> 上以 <code>p2</code> 作为参数调用 <code>mixup</code> 会返回一个 <code>p3</code>，它会有一个 <code>i32</code> 类型的 <code>x</code>，因为 <code>x</code> 来自 <code>p1</code>，并拥有一个 <code>char</code> 类型的 <code>y</code>，因为 <code>y</code> 来自 <code>p2</code>。<code>println!</code> 会打印出 <code>p3.x = 5, p3.y = c</code>。</p>
+<p>这个例子的目的是展示一些泛型通过 <code>impl</code> 声明而另一些通过方法定义声明的情况。这里泛型参数 <code>T</code> 和 <code>U</code> 声明于 <code>impl</code> 之后，因为他们与结构体定义相对应。而泛型参数 <code>V</code> 和 <code>W</code> 声明于 <code>fn mixup</code> 之后，因为他们只是相对于方法本身的。</p>
+<blockquote>
+<p>这段稍微有点绕，但是等到自己写代码用到的时候倒腾倒腾应该也还好</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Chillward
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/07/28/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%B3%9B%E5%9E%8B/" title="RUST学习日记之泛型">http://example.com/2025/07/28/RUST学习日记之泛型/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RUST/" rel="tag"># RUST</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/07/25/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" rel="prev" title="RUST学习日记之错误处理">
+      <i class="fa fa-chevron-left"></i> RUST学习日记之错误处理
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8%E5%87%BD%E6%95%B0%E5%AE%9A%E4%B9%89%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%B3%9B%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">在函数定义中使用泛型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84%E4%BD%93%E5%AE%9A%E4%B9%89%E4%B8%AD%E7%9A%84%E6%B3%9B%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">结构体定义中的泛型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%9A%E4%B8%BE%E5%AE%9A%E4%B9%89%E4%B8%AD%E7%9A%84%E6%B3%9B%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">枚举定义中的泛型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E5%AE%9A%E4%B9%89%E4%B8%AD%E7%9A%84%E6%B3%9B%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">方法定义中的泛型</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Chillward"
+      src="/uploads/avatar.png">
+  <p class="site-author-name" itemprop="name">Chillward</p>
+  <div class="site-description" itemprop="description">谁躺在漆黑的舞台上，用身体迎接着光芒</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">博客</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chillward</span>
+</div>
+  <div class="powered-by">
+    <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动 -->
+  </div>
+
+<!-- 网站运行时间的设置 -->
+<span id="timeDate">载入天数...</span>
+<span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("07/16/2025 10:00:00"); //此处修改你的建站时间或者网站上线时间
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒.";
+    }
+setInterval("createtime()",250);
+</script>
+        
+
+
+
+
+
+
+
+
+	 </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script data-pjax>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'dark',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+    <div id="pjax">
+  
+
+  
+
+    </div>
+</body>
+</html>

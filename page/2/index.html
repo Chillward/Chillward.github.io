@@ -191,6 +191,402 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/17/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.png">
+      <meta itemprop="name" content="Chillward">
+      <meta itemprop="description" content="谁躺在漆黑的舞台上，用身体迎接着光芒">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chillward的博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/07/17/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" class="post-title-link" itemprop="url">RUST学习日记之数据类型</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-07-17 23:17:40" itemprop="dateCreated datePublished" datetime="2025-07-17T23:17:40+08:00">2025-07-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-07-20 15:56:32" itemprop="dateModified" datetime="2025-07-20T15:56:32+08:00">2025-07-20</time>
+              </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>12k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>23 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="变量的声明"><a href="#变量的声明" class="headerlink" title="变量的声明"></a>变量的声明</h3><p>rust的变量分为可变变量与不可变变量，声明变量使用<strong>let</strong>关键字，类型可以不显式声明，可变变量用<strong>mut</strong>关键字。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">x</span>:<span class="type">i32</span> = <span class="number">42</span>; <span class="comment">//显式告知编译器变量类型</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">guess</span> = <span class="number">42</span>; <span class="comment">// 编译器推断 guess 是 i32 类型</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">pi</span> = <span class="number">3.14</span>;   <span class="comment">// 编译器推断 pi 是 f64 类型</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">active</span> = <span class="literal">true</span>; <span class="comment">// 编译器推断 active 是 bool 类型</span></span><br><span class="line"><span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">y</span> = <span class="number">10</span>; <span class="comment">// 声明一个可变变量 y 并赋值为 10</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="变量的遮蔽"><a href="#变量的遮蔽" class="headerlink" title="变量的遮蔽"></a>变量的遮蔽</h3><p>在 Rust 中，<strong>变量遮蔽</strong>指的是你可以声明一个与之前变量同名的新变量。这个新变量会“遮盖”（或“隐藏”）之前声明的同名变量，使得在当前作用域内，对这个名字的引用会指向新的变量，而不是旧的。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>; <span class="comment">// 第一次声明 x</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The initial value of x is: &#123;&#125;&quot;</span>, x); <span class="comment">// 输出 5</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span> = x + <span class="number">1</span>; <span class="comment">// 第二次声明 x，它遮蔽了之前的 x</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The new value of x is: &#123;&#125;&quot;</span>, x);     <span class="comment">// 输出 6</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span> = x * <span class="number">2</span>; <span class="comment">// 第三次声明 x，再次遮蔽</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The final value of x is: &#123;&#125;&quot;</span>, x);   <span class="comment">// 输出 12</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>乍一看，变量遮蔽可能与使用 <code>mut</code> 关键字的可变变量（Mutable Variables）有些相似，但它们之间存在根本的区别：</p>
+<ol>
+<li><p><strong>内存位置</strong>：</p>
+<ul>
+<li><strong>可变变量 (<code>let mut</code>)</strong>：修改的是<strong>同一个内存位置</strong>的值。当你说 <code>let mut x = 5; x = 6;</code> 时，<code>x</code> 的值从 5 变成了 6，存储 <code>x</code> 的那块内存区域中的内容发生了变化。</li>
+<li><strong>变量遮蔽 (<code>let</code>)</strong>：是<strong>创建了一个全新的变量</strong>。每次你使用 <code>let</code> 关键字并带上一个已有的变量名时，Rust 实际上是在内存中分配了一个新的空间来存储新变量的值，而不是修改旧变量的值。旧变量可能仍然存在于内存中，只是你无法通过它的名字访问它了。</li>
+</ul>
+</li>
+<li><p><strong>类型改变</strong>：</p>
+<ul>
+<li><strong>可变变量 (<code>let mut</code>)</strong>：不能改变变量的类型。如果 <code>x</code> 最初是 <code>i32</code>，那么它永远是 <code>i32</code>。</li>
+<li><strong>变量遮蔽 (<code>let</code>)</strong>：可以改变变量的类型。这是遮蔽的一个强大之处，也是它与可变变量最明显的区别之一。</li>
+</ul>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">spaces</span> = <span class="string">&quot;   &quot;</span>; <span class="comment">// spaces 是一个 &amp;str 类型</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Type of spaces (string): &#123;:?&#125;&quot;</span>, spaces);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">spaces</span> = spaces.<span class="title function_ invoke__">len</span>(); <span class="comment">// 新的 spaces 是一个 usize 类型，旧的 &amp;str 被遮蔽了</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Type of spaces (number): &#123;:?&#125;&quot;</span>, spaces);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>变量遮蔽在 Rust 中被视为一个有用的特性，主要有以下几个原因：</p>
+<ol>
+<li><strong>类型转换或数据转换</strong>：当你需要对一个变量进行转换操作（例如从字符串解析数字，或者进行某种计算），并希望用同一个有意义的变量名来表示转换后的结果时，遮蔽非常方便。这样可以避免创建 <code>x_str</code>、<code>x_int</code> 这样一系列冗余的变量名。</li>
+<li><strong>避免意外修改</strong>：因为遮蔽是创建新变量，而不是修改旧变量，所以它强制你重新使用 <code>let</code> 关键字。这有助于避免无意中修改了某个远处的变量，因为你需要明确地重新声明它。</li>
+<li><strong>提高可读性</strong>：在某些情况下，使用相同的变量名可以使代码更具可读性，因为它清楚地表明你正在处理同一个逻辑概念的不同“阶段”或“表示”。</li>
+</ol>
+<p>变量遮蔽只在当前作用域内有效。当代码块结束时，被遮蔽的变量（如果它仍然在作用域内）可能会重新变得可见，或者新的遮蔽变量会消失。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>); <span class="comment">// s1</span></span><br><span class="line"></span><br><span class="line">    &#123; <span class="comment">// 这是一个新的内部作用域</span></span><br><span class="line">        <span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;world&quot;</span>); <span class="comment">// s2，遮蔽了外部的 s1</span></span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;Inside inner scope: &#123;&#125;&quot;</span>, s); <span class="comment">// 输出 &quot;world&quot;</span></span><br><span class="line">    &#125; <span class="comment">// 内部作用域结束，s2 被丢弃</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Outside inner scope: &#123;&#125;&quot;</span>, s); <span class="comment">// 输出 &quot;hello&quot; (s1 重新可见)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h1><p>rust中基本数据类型包括以下几种</p>
+<ol>
+<li>整形(u32、i32)</li>
+<li>浮点型(f32,f64)</li>
+<li>布尔型(bool)</li>
+<li>字符型(char)</li>
+</ol>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>:<span class="type">i32</span> = <span class="number">42</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">y</span>:<span class="type">u64</span> = <span class="number">200</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">pi</span>:<span class="type">f64</span> = <span class="number">3.14159</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">is_snowing</span>: <span class="type">bool</span> = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>跟C语言没什么大区别，就不详细说了</p>
+<hr>
+<h1 id="复合数据类型"><a href="#复合数据类型" class="headerlink" title="复合数据类型"></a>复合数据类型</h1><p><strong>复合类型</strong>（<em>Compound types</em>）可以将多个值组合成一个类型。Rust 有两个原生的复合类型：元组（tuple）和数组（array）。</p>
+<h4 id="元组-tuple"><a href="#元组-tuple" class="headerlink" title="元组(tuple):"></a>元组(tuple):</h4><p>元组是一个将多个不同类型的值组合进一个复合类型的主要方式。元组长度固定：一旦声明，其长度不会增大或缩小。</p>
+<p>我们使用包含在圆括号中的逗号分隔的值列表来创建一个元组。元组中的每一个位置都有一个类型，而且这些不同值的类型也不必是相同的。这个例子中使用了<strong>可选</strong>的类型注解：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">tup</span>: (<span class="type">i32</span>, <span class="type">f64</span>, <span class="type">u8</span>) = (<span class="number">500</span>, <span class="number">6.4</span>, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>tup</code> 变量绑定到整个元组上，因为元组是一个单独的复合元素。为了从元组中获取单个值，可以使用模式匹配（pattern matching）来解构（destructure）元组值，像这样：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">tup</span> = (<span class="number">500</span>, <span class="number">6.4</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> (x, y, z) = tup;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The value of y is: &#123;y&#125;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>程序首先创建了一个元组并绑定到 <code>tup</code> 变量上。接着使用了 <code>let</code> 和一个模式将 <code>tup</code> 分成了三个不同的变量，<code>x</code>、<code>y</code> 和 <code>z</code>。这叫做 <strong>解构</strong>（<em>destructuring</em>），因为它将一个元组拆成了三个部分。最后，程序打印出了 <code>y</code> 的值，也就是 <code>6.4</code>。</p>
+<p>我们也可以使用点号（<code>.</code>）后跟值的索引来直接访问所需的元组元素。例如：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span>: (<span class="type">i32</span>, <span class="type">f64</span>, <span class="type">u8</span>) = (<span class="number">500</span>, <span class="number">6.4</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">five_hundred</span> = x.<span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">six_point_four</span> = x.<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">one</span> = x.<span class="number">2</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个程序创建了一个元组，<code>x</code>，然后使用其各自的索引访问元组中的每个元素。跟大多数编程语言一样，元组的第一个索引值是 0。</p>
+<p>不带任何值的元组有个特殊的名称，叫做 <strong>单元（unit）</strong> 元组。这种值以及对应的类型都写作 <code>()</code>，表示空值或空的返回类型。如果表达式不返回任何其他值，则会隐式返回单元值。</p>
+<h4 id="数组-array"><a href="#数组-array" class="headerlink" title="数组(array):"></a>数组(array):</h4><p>另一个包含多个值的方式是 <strong>数组</strong>（<em>array</em>）。与元组不同，数组中的每个元素的类型必须相同。Rust 中的数组与一些其他语言中的数组不同，Rust 中的数组长度是固定的。</p>
+<p>我们将数组的值写成在方括号内，用逗号分隔的列表：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">numbers</span>:[<span class="type">i32</span>;<span class="number">5</span>] = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当你想要在栈（stack）而不是在堆（heap）上为数据分配空间，或者是想要确保总是有固定数量的元素时，数组非常有用。但是数组并不如 vector 类型灵活。vector 类型是标准库提供的一个 <strong>允许</strong> 增长和缩小长度的类似数组的集合类型。当不确定是应该使用数组还是 vector 的时候，那么很可能应该使用 vector。</p>
+<p>然而，当你确定元素个数不会改变时，数组会更有用。例如，当你在一个程序中使用月份名字时，你更应趋向于使用数组而不是 vector，因为你确定只会有 12 个元素。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">months</span> = [<span class="string">&quot;January&quot;</span>, <span class="string">&quot;February&quot;</span>, <span class="string">&quot;March&quot;</span>, <span class="string">&quot;April&quot;</span>, <span class="string">&quot;May&quot;</span>, <span class="string">&quot;June&quot;</span>, <span class="string">&quot;July&quot;</span>,</span><br><span class="line">              <span class="string">&quot;August&quot;</span>, <span class="string">&quot;September&quot;</span>, <span class="string">&quot;October&quot;</span>, <span class="string">&quot;November&quot;</span>, <span class="string">&quot;December&quot;</span>];</span><br></pre></td></tr></table></figure>
+
+<p>可以像这样编写数组的类型：在方括号中包含每个元素的类型，后跟分号，再后跟数组元素的数量。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">a</span>: [<span class="type">i32</span>; <span class="number">5</span>] = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<p>这里，<code>i32</code> 是每个元素的类型。分号之后，数字 <code>5</code> 表明该数组包含五个元素。</p>
+<p>你还可以通过在方括号中指定初始值加分号再加元素个数的方式来创建一个每个元素都为相同值的数组：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">a</span> = [<span class="number">3</span>; <span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<p>变量名为 <code>a</code> 的数组将包含 <code>5</code> 个元素，这些元素的值最初都将被设置为 <code>3</code>。这种写法与 <code>let a = [3, 3, 3, 3, 3];</code> 效果相同，但更简洁。</p>
+<p>数组是可以在栈 (stack) 上分配的已知固定大小的单个内存块。可以使用索引来访问数组的元素，像这样：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">a</span> = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">first</span> = a[<span class="number">0</span>];</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">second</span> = a[<span class="number">1</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中，叫做 <code>first</code> 的变量的值是 <code>1</code>，因为它是数组索引 <code>[0]</code> 的值。变量 <code>second</code> 将会是数组索引 <code>[1]</code> 的值 <code>2</code>。</p>
+<hr>
+<h3 id="引用类型与切片-slices"><a href="#引用类型与切片-slices" class="headerlink" title="引用类型与切片(slices)"></a>引用类型与切片(slices)</h3><p>引用类型分为可变引用以及不可变引用。</p>
+<p>可变引用可以理解为一种更加安全的指针。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello&quot;</span>); <span class="comment">// 原始变量必须是可变的</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// s 的可变引用被传递给 change 函数</span></span><br><span class="line">    <span class="title function_ invoke__">change</span>(&amp;<span class="keyword">mut</span> s);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, s); <span class="comment">// 输出 &quot;hello, world&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这个函数接收一个 String 的可变引用</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">change</span>(some_string: &amp;<span class="keyword">mut</span> <span class="type">String</span>) &#123;</span><br><span class="line">    some_string.<span class="title function_ invoke__">push_str</span>(<span class="string">&quot;, world&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>不可变引用可以理解为类似于C语言中<code>const int *</code> 的类型，可以通过指针访问引用的值，但是不能修改。注意引用的对象是可以发生改变的</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">a</span> = <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">b</span> = <span class="number">20</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">r</span> = &amp;a; <span class="comment">// r 引用 a</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;r points to a: &#123;&#125;&quot;</span>, r); <span class="comment">// 输出 10</span></span><br><span class="line"></span><br><span class="line">    r = &amp;b; <span class="comment">// 重新绑定 r，让它引用 b</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;r now points to b: &#123;&#125;&quot;</span>, r); <span class="comment">// 输出 20</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>Rust 的<strong>借用检查器（borrow checker）</strong> 是一个在编译时运行的工具，它会严格执行以下引用规则，确保内存安全：</p>
+<ol>
+<li><strong>没有空引用：</strong> Rust 的引用保证总是指向有效的数据。你无法创建空引用，这避免了其他语言中常见的空指针解引用错误。</li>
+<li><strong>没有悬垂引用：</strong> 引用指向的数据在其生命周期内必须始终有效。借用检查器会确保你不会引用一块已经被释放的内存。</li>
+<li><strong>读写互斥规则：</strong> 这是最关键的规则，它防止了数据竞争（data races）：<ul>
+<li>在任何给定时间，你只能拥有<strong>一个可变引用</strong> (<code>&amp;mut T</code>)。这意味着当数据被修改时，不能有其他任何引用（无论是可变还是不可变）指向它。</li>
+<li>你可以拥有<strong>任意数量的不可变引用</strong> (<code>&amp;T</code>)。这意味着数据可以被多次同时读取。</li>
+<li>但是，当存在不可变引用时，就不能有任何可变引用。</li>
+</ul>
+</li>
+</ol>
+<p><strong>切片</strong>是 Rust 中一种特殊的引用类型，它允许你引用集合（如数组、<code>Vec</code> 或 <code>String</code>）中<strong>连续、特定范围的元素序列</strong>。切片本身也是一种引用，不拥有数据。可以类比为指向数组的更安全的指针。</p>
+<ul>
+<li><p><strong>泛型切片</strong> (<code>&amp;[T]</code>)：用于引用数组或 <code>Vec</code> 的部分或全部。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">numbers</span> = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"><span class="keyword">let</span> <span class="variable">middle</span> = &amp;numbers[<span class="number">1</span>..<span class="number">4</span>]; <span class="comment">// middle 是 &amp;[i32]，引用 [2, 3, 4]</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>字符串切片</strong> (<code>&amp;str</code>)：用于引用 <code>String</code> 的部分或全部，或直接表示字符串字面量。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">word</span> = &amp;s[<span class="number">0</span>..<span class="number">5</span>]; <span class="comment">// word 是 &amp;str，引用 &quot;hello&quot;</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">literal</span> = <span class="string">&quot;Rust is great&quot;</span>; <span class="comment">// 字符串字面量本身就是 &amp;str</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<hr>
+<h1 id="String与String-slices"><a href="#String与String-slices" class="headerlink" title="String与String slices"></a>String与String slices</h1><p>在rust中 String是一个结构体，是封装好的可进行修改的字符串。</p>
+<p>String slices是字符串切片，无法修改，即不可变引用。</p>
+<p><code>&amp;mut String</code> 和字符串切片 (<code>&amp;str</code>) 之间存在一种非常重要的关系，但它们是两个截然不同且用途互补的概念。</p>
+<h2 id="1-mut-String：可变且拥有数据的引用"><a href="#1-mut-String：可变且拥有数据的引用" class="headerlink" title="1. &amp;mut String：可变且拥有数据的引用"></a>1. <code>&amp;mut String</code>：可变且拥有数据的引用</h2><p><code>&amp;mut String</code> 是对一个 <strong><code>String</code> 类型变量的可变引用</strong>。</p>
+<ul>
+<li><strong>所有权和可变性：</strong><ul>
+<li><code>String</code> 类型本身是<strong>拥有数据</strong>的，并且其内容是<strong>可变</strong>的（存储在堆上，可以增长、收缩和修改）。</li>
+<li><code>&amp;mut String</code> 允许你通过这个引用来<strong>修改原始的 <code>String</code> 数据</strong>。</li>
+</ul>
+</li>
+<li><strong>用途：</strong> 当你需要在函数内部改变一个 <code>String</code> 变量的内容，但又不希望函数获取这个 <code>String</code> 的所有权时，你会传递 <code>&amp;mut String</code>。</li>
+<li><strong>独占性：</strong> 遵循 Rust 的借用规则，当一个 <code>&amp;mut String</code> 存在时，不能有其他任何引用（无论是 <code>&amp;mut String</code> 还是 <code>&amp;String</code>）指向同一个 <code>String</code> 实例。这保证了数据在修改时的唯一访问，从而防止了数据竞争。</li>
+</ul>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">modify_my_string</span>(s: &amp;<span class="keyword">mut</span> <span class="type">String</span>) &#123;</span><br><span class="line">    s.<span class="title function_ invoke__">push_str</span>(<span class="string">&quot; world!&quot;</span>); <span class="comment">// 通过可变引用修改原始 String</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">my_string</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line"><span class="title function_ invoke__">modify_my_string</span>(&amp;<span class="keyword">mut</span> my_string); <span class="comment">// 传递可变引用</span></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, my_string); <span class="comment">// Output: Hello world!</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="2-字符串切片-str-：不可变且不拥有数据的引用"><a href="#2-字符串切片-str-：不可变且不拥有数据的引用" class="headerlink" title="2. 字符串切片 (&amp;str)：不可变且不拥有数据的引用"></a>2. 字符串切片 (<code>&amp;str</code>)：不可变且不拥有数据的引用</h2><p><code>&amp;str</code>（字符串切片）是对一个 <strong>UTF-8 编码的字符串数据段的不可变引用</strong>。</p>
+<ul>
+<li><strong>所有权和不可变性：</strong><ul>
+<li><code>&amp;str</code> <strong>不拥有数据</strong>；它只是“借用”了另一段内存中的字符串数据。</li>
+<li><code>&amp;str</code> 自身是<strong>不可变</strong>的。你不能通过 <code>&amp;str</code> 来修改它所引用的字符串内容。</li>
+</ul>
+</li>
+<li><strong>来源：</strong> <code>&amp;str</code> 可以来自多种地方：<ul>
+<li>字符串字面量（<code>&quot;hello&quot;</code>）本身就是 <code>&amp;&#39;static str</code> 类型。</li>
+<li><code>String</code> 类型可以通过 <code>&amp;my_string[..]</code> 或 <code>&amp;my_string</code> 自动强制转换（deref coercion）为 <code>&amp;str</code>。</li>
+</ul>
+</li>
+<li><strong>用途：</strong> 当你只需要读取字符串内容，或函数需要接受任何形式的字符串（无论是 <code>String</code> 还是字符串字面量）作为参数时，通常会使用 <code>&amp;str</code>。</li>
+<li><strong>共享性：</strong> 由于是不可变的，你可以创建多个 <code>&amp;str</code> 引用指向同一段数据。</li>
+</ul>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">print_my_string</span>(s: &amp;<span class="type">str</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;&#125;&quot;</span>, s); <span class="comment">// 只能读取，不能修改</span></span><br><span class="line">    <span class="comment">// s.push_str(&quot;!&quot;); // 错误！&amp;str 是不可变的</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> <span class="variable">my_string</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Rust&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">literal_string</span>: &amp;<span class="type">str</span> = <span class="string">&quot;Programming&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="title function_ invoke__">print_my_string</span>(&amp;my_string);       <span class="comment">// 将 String 借用为 &amp;str</span></span><br><span class="line"><span class="title function_ invoke__">print_my_string</span>(literal_string);   <span class="comment">// 直接使用字符串字面量</span></span><br><span class="line"><span class="title function_ invoke__">print_my_string</span>(&amp;my_string[<span class="number">0</span>..<span class="number">2</span>]); <span class="comment">// 借用 String 的一部分作为 &amp;str</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="它们之间的关系和区别总结"><a href="#它们之间的关系和区别总结" class="headerlink" title="它们之间的关系和区别总结"></a>它们之间的关系和区别总结</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>&amp;mut String</code></th>
+<th><code>&amp;str</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>所有权</strong></td>
+<td>不拥有数据，是对 <strong><code>String</code></strong> 的<strong>借用</strong></td>
+<td>不拥有数据，是对 <strong>UTF-8 字符串数据</strong> 的<strong>借用</strong></td>
+</tr>
+<tr>
+<td><strong>可变性</strong></td>
+<td><strong>可变</strong>：允许通过引用修改原始 <code>String</code> 的内容</td>
+<td><strong>不可变</strong>：不允许通过引用修改所引用的字符串内容</td>
+</tr>
+<tr>
+<td><strong>指向目标</strong></td>
+<td>总是指向一个完整的 <code>String</code> 实例</td>
+<td>可以指向 <code>String</code> 的一部分，也可以是整个 <code>String</code>，或者是字符串字面量</td>
+</tr>
+<tr>
+<td><strong>独占性</strong></td>
+<td><strong>独占</strong>：同一时间只能有一个 <code>&amp;mut String</code> 存在</td>
+<td><strong>共享</strong>：可以同时存在多个 <code>&amp;str</code> 引用</td>
+</tr>
+<tr>
+<td><strong>用途</strong></td>
+<td>需要在函数中修改 <code>String</code> 的场景</td>
+<td>需要读取字符串数据，或作为通用字符串参数的场景</td>
+</tr>
+</tbody></table>
+<hr>
+<p>简而言之：</p>
+<ul>
+<li><code>&amp;mut String</code> 是你想要<strong>修改</strong>一个<strong>堆上可变字符串</strong>时用的。它就像给函数一个“写权限”去操作原始的 <code>String</code>。</li>
+<li><code>&amp;str</code> 是你想要<strong>读取</strong>一个**字符串（无论来自哪里）**时用的。它就像给函数一个“只读视图”。</li>
+</ul>
+<p><code>&amp;str</code> 是更通用的字符串视图类型，因为它既可以引用 <code>String</code> 的内容，也可以引用字符串字面量。而 <code>&amp;mut String</code> 明确表示你正在操作一个底层的 <code>String</code> 对象，并且你有权修改它。</p>
+<hr>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">book_slices</span>:&amp;[&amp;<span class="type">String</span>] = &amp;[&amp;<span class="string">&quot;JVAV&quot;</span>.<span class="title function_ invoke__">to_string</span>(),&amp;<span class="string">&quot;IT&quot;</span>.<span class="title function_ invoke__">to_string</span>(),&amp;<span class="string">&quot;ZEN&quot;</span>.<span class="title function_ invoke__">to_string</span>()];</span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;Book_Slices:&#123;:?&#125;&quot;</span>,book_slices);</span><br><span class="line"></span><br><span class="line"><span class="comment">//String Vs String Slices(&amp;str)</span></span><br><span class="line"><span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">stone_cold</span>:<span class="type">String</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Hell,&quot;</span>);</span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;Stone Cold Says:&#123;&#125;&quot;</span>,stone_cold);</span><br><span class="line">stone_cold.<span class="title function_ invoke__">push_str</span>(<span class="string">&quot;Yeah!&quot;</span>);</span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;Stone Cold Says:&#123;&#125;&quot;</span>,stone_cold);</span><br><span class="line"></span><br><span class="line"><span class="comment">//B- &amp;str(String Slice)</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable">string</span>: <span class="type">String</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Hello,World&quot;</span>);</span><br><span class="line"><span class="keyword">let</span> <span class="variable">slice</span>: &amp;<span class="type">str</span> = &amp;string[<span class="number">0</span>..<span class="number">5</span>];</span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;Slice Value:&#123;&#125;&quot;</span>,slice);</span><br></pre></td></tr></table></figure>
+
+<p><code>let book_slices:&amp;[&amp;String] = &amp;[&amp;&quot;JVAV&quot;.to_string(),&amp;&quot;IT&quot;.to_string(),&amp;&quot;ZEN&quot;.to_string()];</code></p>
+<p>是一个是一个指向 <code>&amp;String</code> 类型数组的切片</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">book_slices</span>: &amp;[&amp;<span class="type">String</span>] = &amp;[&amp;<span class="string">&quot;JVAV&quot;</span>.<span class="title function_ invoke__">to_string</span>(),&amp;<span class="string">&quot;IT&quot;</span>.<span class="title function_ invoke__">to_string</span>(),&amp;<span class="string">&quot;ZEN&quot;</span>.<span class="title function_ invoke__">to_string</span>()];</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><strong><code>&quot;JVAV&quot;.to_string()</code></strong><ul>
+<li>这一步创建了一个<strong>拥有所有权</strong>的 <strong><code>String</code></strong> 类型实例，存储在堆上。</li>
+</ul>
+</li>
+<li><strong><code>&amp;&quot;JVAV&quot;.to_string()</code></strong><ul>
+<li>这一步从上面创建的 <code>String</code> 实例中，获取了一个<strong>不可变引用</strong>。这个引用的类型是 <strong><code>&amp;String</code></strong>。</li>
+</ul>
+</li>
+<li><strong><code>[&amp; ... , &amp; ... , &amp; ...]</code></strong><ul>
+<li>这是一个<strong>数组字面量</strong>，它在编译时被创建。这个数组的元素类型，就是它里面包含的那些引用的类型，即 <strong><code>&amp;String</code></strong>。所以，这是一个 <code>[&amp;String; 3]</code> 类型的数组。</li>
+</ul>
+</li>
+<li><strong><code>&amp;[&amp;String; 3]</code></strong><ul>
+<li>最外层的 <code>&amp;</code> 运算符，是获取这个<strong>数组的引用</strong>。</li>
+<li>这个引用（<code>&amp;</code> 后面的部分）的类型就是 <code>[&amp;String; 3]</code>。</li>
+</ul>
+</li>
+<li><strong><code>let book_slices: &amp;[&amp;String]</code></strong><ul>
+<li>最后，<code>book_slices</code> 被明确地类型标注为 <strong><code>&amp;[&amp;String]</code></strong>。这是一个<strong>切片</strong>，它指向的底层数组的元素类型是 <code>&amp;String</code>。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="关键点：没有发生-Deref-Coercion"><a href="#关键点：没有发生-Deref-Coercion" class="headerlink" title="关键点：没有发生 Deref Coercion"></a>关键点：没有发生 Deref Coercion</h2><p>虽然 Rust 有 <strong>Deref Coercion（解引用强制转换）</strong> 的机制，允许 <code>&amp;String</code> 在需要 <code>&amp;str</code> 的地方自动转换。但是，这种转换发生在<strong>单个引用层面</strong>，而不会改变<strong>数组或切片中元素的实际类型</strong>。</p>
+<p>在这个特定的例子中：</p>
+<ul>
+<li>你明确地构建了一个包含 <code>&amp;String</code> 引用的数组：<code>[&amp;some_string_ref_1, &amp;some_string_ref_2]</code>。</li>
+<li>这个数组的类型就是 <code>[&amp;String; N]</code>。</li>
+<li>你从这个数组创建的切片，其类型也必须与其元素的实际类型匹配，即 <code>&amp;[&amp;String]</code>。</li>
+</ul>
+<p>如果 Rust 允许 <code>&amp;[&amp;String]</code> 自动强制转换为 <code>&amp;[&amp;str]</code>，那将意味着它需要修改切片中<strong>每个元素的类型</strong>，这是 Deref Coercion 不会做的事情。Deref Coercion 是一个<strong>单个引用到单个引用</strong>的转换，而不是一个集合到另一个集合的转换。</p>
+<hr>
+<h2 id="例子：当你确实想要-str-时"><a href="#例子：当你确实想要-str-时" class="headerlink" title="例子：当你确实想要 &amp;[&amp;str] 时"></a>例子：当你确实想要 <code>&amp;[&amp;str]</code> 时</h2><p>如果你真的想拥有一个 <code>&amp;str</code> 切片（即 <code>&amp;[&amp;str]</code>），你需要这样构建它：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="comment">// 方式一：直接使用字符串字面量（它们本身就是 &amp;str）</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">book_str_slices_1</span>: &amp;[&amp;<span class="type">str</span>] = &amp;[<span class="string">&quot;JVAV&quot;</span>, <span class="string">&quot;IT&quot;</span>, <span class="string">&quot;ZEN&quot;</span>];</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Book Str Slices 1: &#123;:?&#125;&quot;</span>, book_str_slices_1);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 方式二：从 String 创建 &amp;str，然后将 &amp;str 放入数组</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s1</span> = <span class="string">&quot;JVAV&quot;</span>.<span class="title function_ invoke__">to_string</span>();</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s2</span> = <span class="string">&quot;IT&quot;</span>.<span class="title function_ invoke__">to_string</span>();</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">s3</span> = <span class="string">&quot;ZEN&quot;</span>.<span class="title function_ invoke__">to_string</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注意这里我们是将 &amp;String 显式地转换（通过 Deref Coercion）为 &amp;str 放入数组</span></span><br><span class="line">    <span class="comment">// 但更常见的是直接从 String 创建 &amp;str</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">book_str_slices_2</span>: &amp;[&amp;<span class="type">str</span>] = &amp;[&amp;s1, &amp;s2, &amp;s3]; <span class="comment">// &amp;s1 (type &amp;String) automatically derefs to &amp;str here</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Book Str Slices 2: &#123;:?&#125;&quot;</span>, book_str_slices_2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>book_str_slices_2</code> 的例子中，当你把 <code>&amp;s1</code>（类型是 <code>&amp;String</code>）放入一个期望 <code>&amp;str</code> 元素的数组时，Deref Coercion 就会发生，将每个 <code>&amp;String</code> 自动转换为 <code>&amp;str</code>。</p>
+<hr>
+<h3 id="String与-str"><a href="#String与-str" class="headerlink" title="&amp;String与&amp;str"></a>&amp;String与&amp;str</h3><p><strong><code>&amp;[&amp;String]</code> 和 <code>&amp;[&amp;str]</code> 都不能直接修改它们所指向的字符串内容</strong>，但它们之间存在重要的区别，尤其是在<strong>所有权</strong>、<strong>生命周期</strong>和<strong>底层内存布局</strong>方面。</p>
+<h2 id="核心区别概览"><a href="#核心区别概览" class="headerlink" title="核心区别概览"></a>核心区别概览</h2><table>
+<thead>
+<tr>
+<th>特性 &#x2F; 类型</th>
+<th><code>&amp;[&amp;String]</code> (指向 <code>&amp;String</code> 数组的切片)</th>
+<th><code>&amp;[&amp;str]</code> (指向 <code>&amp;str</code> 数组的切片)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>切片元素类型</strong></td>
+<td><code>&amp;String</code> (指向 <code>String</code> 的不可变引用)</td>
+<td><code>&amp;str</code> (字符串切片，指向 <code>str</code> 的不可变引用)</td>
+</tr>
+<tr>
+<td><strong>被引用数据的</strong></td>
+<td><strong><code>String</code></strong> 类型（拥有数据，在堆上）</td>
+<td><strong><code>str</code></strong> 类型（通常在数据段或来自 <code>String</code> 的部分）</td>
+</tr>
+<tr>
+<td><strong>内存位置</strong></td>
+<td>引用指向堆上的 <code>String</code> 对象</td>
+<td>引用可以直接指向字符串字面量（静态区）或 <code>String</code> 的堆数据</td>
+</tr>
+<tr>
+<td><strong>底层数据所有权</strong></td>
+<td>切片本身不拥有数据，但它引用的 <code>String</code> <strong>拥有</strong>数据</td>
+<td>切片本身不拥有数据，它引用的 <code>str</code> 也<strong>不拥有</strong>数据</td>
+</tr>
+<tr>
+<td><strong>生命周期管理</strong></td>
+<td><strong><code>String</code> 实例的生命周期</strong>必须比 <code>&amp;String</code> 引用长</td>
+<td><strong><code>str</code> 数据源的生命周期</strong>必须比 <code>&amp;str</code> 引用长</td>
+</tr>
+<tr>
+<td><strong>创建成本</strong></td>
+<td>通常涉及 <code>String::from()</code>，堆分配成本</td>
+<td>直接使用字面量，无运行时成本；从 <code>String</code> 借用也无额外成本</td>
+</tr>
+<tr>
+<td><strong>灵活性</strong></td>
+<td>间接引用堆数据，多了一层封装</td>
+<td>直接引用字符串数据，更灵活，可接受多种来源</td>
+</tr>
+</tbody></table>
+<h3 id="1-String-：指向-String-引用的切片"><a href="#1-String-：指向-String-引用的切片" class="headerlink" title="1. &amp;[&amp;String]：指向 String 引用的切片"></a>1. <code>&amp;[&amp;String]</code>：指向 <code>String</code> 引用的切片</h3><p>当你有 <code>let book_slices: &amp;[&amp;String]</code> 时：</p>
+<ul>
+<li><strong>内部元素是 <code>&amp;String</code></strong>：这意味着切片中的每个元素都是一个<strong>指向 <code>String</code> 类型数据的引用</strong>。</li>
+<li><strong><code>String</code> 拥有数据</strong>：这些 <code>String</code> 对象本身是独立的，它们各自在**堆（heap）**上分配了内存来存储字符串数据。</li>
+<li><strong>多层引用</strong>：你可以将其想象为“一个数组的切片，这个数组里的每个元素都是一个指针，而这些指针又指向堆上的字符串对象”。</li>
+<li><strong>生命周期</strong>：这个 <code>&amp;[&amp;String]</code> 切片的有效性，取决于它所引用的那个数组（它是一个临时数组字面量），以及数组里面所有 <code>&amp;String</code> 引用所指向的<strong>原始 <code>String</code> 实例的生命周期</strong>。这些 <code>String</code> 实例必须在 <code>&amp;[&amp;String]</code> 切片被使用期间保持有效。<ul>
+<li>在你的例子中 <code>&amp;&quot;JVAV&quot;.to_string()</code>，这些 <code>String</code> 实例是<strong>匿名</strong>的。它们在切片被创建的那一行被创建，它们的生命周期被 Rust 自动管理。由于它们在表达式中创建并立即被引用，Rust 编译器会确保它们存活足够长的时间，以供 <code>book_slices</code> 使用。</li>
+</ul>
+</li>
+<li><strong>修改</strong>：你不能通过 <code>&amp;[&amp;String]</code> 切片修改原始的 <code>String</code> 内容，也不能修改切片本身（例如增加或删除元素）。</li>
+</ul>
+<h3 id="2-str-：指向字符串切片的切片"><a href="#2-str-：指向字符串切片的切片" class="headerlink" title="2. &amp;[&amp;str]：指向字符串切片的切片"></a>2. <code>&amp;[&amp;str]</code>：指向字符串切片的切片</h3><p>当你有 <code>let book_str_slices: &amp;[&amp;str]</code> 时：</p>
+<ul>
+<li><strong>内部元素是 <code>&amp;str</code></strong>：这意味着切片中的每个元素都是一个<strong>字符串切片</strong>，直接指向 UTF-8 编码的字符串数据。</li>
+<li><strong><code>&amp;str</code> 不拥有数据</strong>：这些 <code>&amp;str</code> 只是视图，它们不负责内存管理。它们可以指向：<ul>
+<li><strong>静态字符串字面量</strong>（存储在程序的二进制文件中，生命周期是 <code>&#39;static&#39;</code>，贯穿整个程序）。</li>
+<li><strong>堆上 <code>String</code> 的一部分或全部</strong>（如果 <code>&amp;str</code> 是从 <code>String</code> 借用而来）。</li>
+</ul>
+</li>
+<li><strong>单层引用</strong>：这可以看作是“一个数组的切片，这个数组里的每个元素都是一个字符串指针（胖指针），直接指向字符串数据”。</li>
+<li><strong>生命周期</strong>：这个 <code>&amp;[&amp;str]</code> 切片的有效性，取决于它所引用的数组，以及数组里面所有 <code>&amp;str</code> 引用所指向的<strong>原始字符串数据源的生命周期</strong>。这些数据源必须在 <code>&amp;[&amp;str]</code> 切片被使用期间保持有效。</li>
+<li><strong>修改</strong>：你不能通过 <code>&amp;[&amp;str]</code> 切片修改原始的字符串内容，也不能修改切片本身。</li>
+</ul>
+<h2 id="为什么这种区别很重要？"><a href="#为什么这种区别很重要？" class="headerlink" title="为什么这种区别很重要？"></a>为什么这种区别很重要？</h2><ol>
+<li><strong>性能与内存开销</strong>：<ul>
+<li><code>&amp;[&amp;String]</code>：创建时需要先创建 <code>String</code> 对象（堆分配），再获取引用。这会带来额外的内存分配和解分配开销。</li>
+<li><code>&amp;[&amp;str]</code>：如果元素是字符串字面量，就没有堆分配开销。如果元素是从 <code>String</code> 借用的 <code>&amp;str</code>，那么也没有额外的堆分配。通常更轻量级。</li>
+</ul>
+</li>
+<li><strong>生命周期复杂性</strong>：<ul>
+<li><code>&amp;[&amp;String]</code>：你引用的 <code>String</code> 实例必须在切片的整个生命周期内都存在。如果这些 <code>String</code> 是匿名临时创建的，Rust 编译器会尽力延长它们的生命周期，但这并非总是能成功。</li>
+<li><code>&amp;[&amp;str]</code>：其生命周期取决于它所引用的实际 <code>str</code> 数据。<code>&amp;&#39;static str</code> 最简单，可以无限制地使用。从 <code>String</code> 借用的 <code>&amp;str</code> 则受限于 <code>String</code> 的生命周期。</li>
+</ul>
+</li>
+<li><strong>函数通用性</strong>：<ul>
+<li>通常情况下，函数参数更倾向于使用 <code>&amp;str</code> 而不是 <code>&amp;String</code>，因为 <code>&amp;str</code> 更通用，可以接受各种来源的字符串数据。</li>
+<li><code>&amp;[&amp;str]</code> 这样的类型在处理一组通用字符串视图时更为常见。</li>
+</ul>
+</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>虽然 <code>&amp;[&amp;String]</code> 和 <code>&amp;[&amp;str]</code> 都表示不可修改的字符串序列，但它们在<strong>底层数据类型、所有权链、内存分配和生命周期管理</strong>上存在根本区别。</p>
+<ul>
+<li><code>&amp;[&amp;String]</code> 是一个切片，它的元素是<strong>指向堆上 <code>String</code> 对象的引用</strong>。</li>
+<li><code>&amp;[&amp;str]</code> 是一个切片，它的元素是<strong>直接指向 <code>str</code> 数据的引用</strong>（可以是静态区或堆上 <code>String</code> 的一部分）。</li>
+</ul>
+<p>理解这些细微差别对于编写高效、安全且符合 Rust 习惯的代码至关重要。</p>
+<p>但是&amp;[&amp;mut String]是可以对包含的字符串内容进行修改的，可以类比C语言中的字符数组数组。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/17/%E5%9F%BA%E4%BA%8EC%E8%AF%AD%E8%A8%80%E7%AE%80%E6%98%93OOP%E5%AE%9E%E7%8E%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -415,7 +811,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">博客</span>
         </a>
       </div>
