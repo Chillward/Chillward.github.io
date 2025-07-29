@@ -2426,4 +2426,205 @@
         <tag>RUST</tag>
       </tags>
   </entry>
+  <entry>
+    <title>RUST学习日记之trait</title>
+    <url>/2025/07/28/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8Btrait/</url>
+    <content><![CDATA[<p>Trait类似于java语言中的接口</p>
+<h3 id="定义-trait"><a href="#定义-trait" class="headerlink" title="定义 trait"></a>定义 trait</h3><p>一个类型的行为由其可供调用的方法构成。如果可以对不同类型调用相同的方法的话，这些类型就可以共享相同的行为了。trait 定义是一种将方法签名组合起来的方法，目的是定义一个实现某些目的所必需的行为的集合。</p>
+<p>例如，这里有多个存放了不同类型和属性文本的结构体：结构体 <code>NewsArticle</code> 用于存放发生于世界各地的新闻故事，而结构体 <code>Tweet</code> 最多只能存放 280 个字符的内容，以及像是否转推或是否是对推友的回复这样的元数据。</p>
+<p>我们想要创建一个多媒体聚合库用来显示可能储存在 <code>NewsArticle</code> 或 <code>Tweet</code> 实例中的数据的总结。每一个结构体都需要的行为是他们是能够被总结的，这样的话就可以调用实例的 <code>summarize</code> 方法来请求总结。示例 10-12 中展示了一个表现这个概念的 <code>Summary</code> trait 的定义：</p>
+<p>文件名: src&#x2F;lib.rs</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">trait</span> <span class="title class_">Summary</span> &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">summarize</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-12：<code>Summary</code> trait 定义，它包含由 <code>summarize</code> 方法提供的行为</p>
+<p>这里使用 <code>trait</code> 关键字来声明一个 trait，后面是 trait 的名字，在这个例子中是 <code>Summary</code>。在大括号中声明描述实现这个 trait 的类型所需要的行为的方法签名，在这个例子中是 <code>fn summarize(&amp;self) -&gt; String</code>。</p>
+<p>在方法签名后跟分号，而不是在大括号中提供其实现。接着每一个实现这个 trait 的类型都需要提供其自定义行为的方法体，编译器也会确保任何实现 <code>Summary</code> trait 的类型都拥有与这个签名的定义完全一致的 <code>summarize</code> 方法。</p>
+<p>trait 体中可以有多个方法：一行一个方法签名且都以分号结尾。</p>
+<h3 id="为类型实现-trait"><a href="#为类型实现-trait" class="headerlink" title="为类型实现 trait"></a>为类型实现 trait</h3><p>现在我们定义了 <code>Summary</code> trait，接着就可以在多媒体聚合库中需要拥有这个行为的类型上实现它了。示例 10-13 中展示了 <code>NewsArticle</code> 结构体上 <code>Summary</code> trait 的一个实现，它使用标题、作者和创建的位置作为 <code>summarize</code> 的返回值。对于 <code>Tweet</code> 结构体，我们选择将 <code>summarize</code> 定义为用户名后跟推文的全部文本作为返回值，并假设推文内容已经被限制为 280 字符以内。</p>
+<p>文件名: src&#x2F;lib.rs</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">NewsArticle</span> &#123;</span><br><span class="line">    <span class="keyword">pub</span> headline: <span class="type">String</span>,</span><br><span class="line">    <span class="keyword">pub</span> location: <span class="type">String</span>,</span><br><span class="line">    <span class="keyword">pub</span> author: <span class="type">String</span>,</span><br><span class="line">    <span class="keyword">pub</span> content: <span class="type">String</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">impl</span> <span class="title class_">Summary</span> <span class="keyword">for</span> <span class="title class_">NewsArticle</span> &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">summarize</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">        <span class="built_in">format!</span>(<span class="string">&quot;&#123;&#125;, by &#123;&#125; (&#123;&#125;)&quot;</span>, <span class="keyword">self</span>.headline, <span class="keyword">self</span>.author, <span class="keyword">self</span>.location)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">Tweet</span> &#123;</span><br><span class="line">    <span class="keyword">pub</span> username: <span class="type">String</span>,</span><br><span class="line">    <span class="keyword">pub</span> content: <span class="type">String</span>,</span><br><span class="line">    <span class="keyword">pub</span> reply: <span class="type">bool</span>,</span><br><span class="line">    <span class="keyword">pub</span> retweet: <span class="type">bool</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">impl</span> <span class="title class_">Summary</span> <span class="keyword">for</span> <span class="title class_">Tweet</span> &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">summarize</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">        <span class="built_in">format!</span>(<span class="string">&quot;&#123;&#125;: &#123;&#125;&quot;</span>, <span class="keyword">self</span>.username, <span class="keyword">self</span>.content)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-13：在 <code>NewsArticle</code> 和 <code>Tweet</code> 类型上实现 <code>Summary</code> trait</p>
+<p>在类型上实现 trait 类似于实现与 trait 无关的方法。区别在于 <code>impl</code> 关键字之后，我们提供需要实现 trait 的名称，接着是 <code>for</code> 和需要实现 trait 的类型的名称。在 <code>impl</code> 块中，使用 trait 定义中的方法签名，不过不再后跟分号，而是需要在大括号中编写函数体来为特定类型实现 trait 方法所拥有的行为。</p>
+<p>一旦实现了 trait，我们就可以用与 <code>NewsArticle</code> 和 <code>Tweet</code> 实例的非 trait 方法一样的方式调用 trait 方法了：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">tweet</span> = Tweet &#123;</span><br><span class="line">    username: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;horse_ebooks&quot;</span>),</span><br><span class="line">    content: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;of course, as you probably already know, people&quot;</span>),</span><br><span class="line">    reply: <span class="literal">false</span>,</span><br><span class="line">    retweet: <span class="literal">false</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;1 new tweet: &#123;&#125;&quot;</span>, tweet.<span class="title function_ invoke__">summarize</span>());</span><br></pre></td></tr></table></figure>
+
+<p>这会打印出 <code>1 new tweet: horse_ebooks: of course, as you probably already know, people</code>。</p>
+<p>注意因为示例 10-13 中我们在相同的 <em>lib.rs</em> 里定义了 <code>Summary</code> trait 和 <code>NewsArticle</code> 与 <code>Tweet</code> 类型，所以他们是位于同一作用域的。如果这个 <em>lib.rs</em> 是对应 <code>aggregator</code> crate 的，而别人想要利用我们 crate 的功能为其自己的库作用域中的结构体实现 <code>Summary</code> trait。首先他们需要将 trait 引入作用域。这可以通过指定 <code>use aggregator::Summary;</code> 实现，这样就可以为其类型实现 <code>Summary</code> trait 了。<code>Summary</code> 还必须是公有 trait 使得其他 crate 可以实现它，这也是为什么示例 10-12 中将 <code>pub</code> 置于 <code>trait</code> 之前。</p>
+<h3 id="Trait-的可见性"><a href="#Trait-的可见性" class="headerlink" title="Trait 的可见性"></a>Trait 的可见性</h3><p>当你定义一个 <code>trait</code> 时，你需要考虑它是否应该对其他 <code>crate</code> 可用。</p>
+<ul>
+<li>如果一个 <code>trait</code> 只是在你自己的 <code>crate</code> 内部使用，那么它不需要是公共的。</li>
+<li>但如果你希望其他 <code>crate</code> 能够为它们自己的类型实现你定义的 <code>trait</code>，那么这个 <code>trait</code> 必须是 <strong><code>pub</code>（公共的）</strong>。这就是为什么在示例 10-12 中，<code>Summary</code> trait 前面有 <code>pub</code> 关键字，表示它是公共的，其他 <code>crate</code> 才能看到并实现它。</li>
+</ul>
+<h3 id="实现-Trait-的作用域规则"><a href="#实现-Trait-的作用域规则" class="headerlink" title="实现 Trait 的作用域规则"></a>实现 Trait 的作用域规则</h3><p>当你想要为一个类型实现某个 <code>trait</code> 时，有一个重要的限制：<strong>你只能为你自己的 <code>crate</code> 本地定义的类型实现 <code>trait</code>，或者为你自己的 <code>crate</code> 本地定义的 <code>trait</code> 实现类型。</strong></p>
+<p>让我们用例子来说明：</p>
+<ul>
+<li><strong>可以实现的情况：</strong><ul>
+<li><strong>为你自己的类型实现标准库中的 <code>trait</code>：</strong> 比如，你在 <code>aggregator</code> 这个 <code>crate</code> 中定义了一个自定义类型 <code>Tweet</code>。你可以为这个 <code>Tweet</code> 类型实现标准库中的 <code>Display</code> trait（这个 <code>trait</code> 用于控制类型如何打印输出）。这是因为 <code>Tweet</code> 是你 <code>aggregator</code> <code>crate</code> 本地定义的类型。</li>
+<li><strong>为标准库类型实现你自己的 <code>trait</code>：</strong> 同样地，你可以在 <code>aggregator</code> <code>crate</code> 中为标准库类型 <code>Vec&lt;T&gt;</code>（一个向量类型）实现你自定义的 <code>Summary</code> trait。这是因为 <code>Summary</code> <code>trait</code> 是你 <code>aggregator</code> <code>crate</code> 本地定义的 <code>trait</code>。</li>
+</ul>
+</li>
+<li><strong>不能实现的情况（外部类型实现外部 trait）：</strong><ul>
+<li>你<strong>不能</strong>在 <code>aggregator</code> <code>crate</code> 中为标准库类型 <code>Vec&lt;T&gt;</code> 实现标准库中的 <code>Display</code> trait。为什么呢？因为 <code>Display</code> 和 <code>Vec&lt;T&gt;</code> 这两个东西都<strong>不是</strong>你 <code>aggregator</code> <code>crate</code> 本地定义的。它们都来自标准库，对于你的 <code>aggregator</code> <code>crate</code> 来说，它们都是“外部”的。</li>
+</ul>
+</li>
+</ul>
+<h3 id="孤儿规则（Orphan-Rule）的意义"><a href="#孤儿规则（Orphan-Rule）的意义" class="headerlink" title="孤儿规则（Orphan Rule）的意义"></a>孤儿规则（Orphan Rule）的意义</h3><p>这个限制被称为<strong>相干性（coherence）</strong>，更具体地说是<strong>孤儿规则（orphan rule）</strong>。这条规则是为了避免潜在的冲突和混乱：</p>
+<ul>
+<li><strong>避免冲突：</strong> 如果没有这条规则，想象一下：<code>crate A</code> 为 <code>Vec&lt;T&gt;</code> 实现了 <code>Display</code>，而 <code>crate B</code> 也为 <code>Vec&lt;T&gt;</code> 实现了 <code>Display</code>。当你的代码同时依赖 <code>crate A</code> 和 <code>crate B</code> 时，Rust 就会感到困惑，不知道当你想打印 <code>Vec&lt;T&gt;</code> 时，到底应该使用 <code>crate A</code> 的 <code>Display</code> 实现还是 <code>crate B</code> 的 <code>Display</code> 实现。</li>
+<li><strong>保证代码稳定性：</strong> 孤儿规则确保了“别人编写的代码不会破坏你的代码，反之亦然”。它防止了不同 <code>crate</code> 对同一外部类型实现相同外部 <code>trait</code> 导致的行为不确定性。</li>
+</ul>
+<p>简而言之，孤儿规则保证了每个 <code>trait</code> 实现都必须至少有一个“亲属”在当前 <code>crate</code> 中，要么是你实现了这个 <code>trait</code> 的类型是你自己定义的，要么是你实现的这个 <code>trait</code> 是你自己定义的。</p>
+<h3 id="默认实现"><a href="#默认实现" class="headerlink" title="默认实现"></a>默认实现</h3><p>有时为 trait 中的某些或全部方法提供默认的行为，而不是在每个类型的每个实现中都定义自己的行为是很有用的。这样当为某个特定类型实现 trait 时，可以选择保留或重载每个方法的默认行为。</p>
+<p>示例 10-14 中展示了如何为 <code>Summary</code> trait 的 <code>summarize</code> 方法指定一个默认的字符串值，而不是像示例 10-12 中那样只是定义方法签名：</p>
+<p>文件名: src&#x2F;lib.rs</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">trait</span> <span class="title class_">Summary</span> &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">summarize</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">        <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;(Read more...)&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-14：<code>Summary</code> trait 的定义，带有一个 <code>summarize</code> 方法的默认实现</p>
+<p>如果想要对 <code>NewsArticle</code> 实例使用这个默认实现，而不是定义一个自己的实现，则可以通过 <code>impl Summary for NewsArticle &#123;&#125;</code> 指定一个空的 <code>impl</code> 块。</p>
+<p>虽然我们不再直接为 <code>NewsArticle</code> 定义 <code>summarize</code> 方法了，但是我们提供了一个默认实现并且指定 <code>NewsArticle</code> 实现 <code>Summary</code> trait。因此，我们仍然可以对 <code>NewsArticle</code> 实例调用 <code>summarize</code> 方法，如下所示：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">article</span> = NewsArticle &#123;</span><br><span class="line">    headline: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Penguins win the Stanley Cup Championship!&quot;</span>),</span><br><span class="line">    location: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Pittsburgh, PA, USA&quot;</span>),</span><br><span class="line">    author: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Iceburgh&quot;</span>),</span><br><span class="line">    content: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;The Pittsburgh Penguins once again are the best</span></span><br><span class="line"><span class="string">    hockey team in the NHL.&quot;</span>),</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;New article available! &#123;&#125;&quot;</span>, article.<span class="title function_ invoke__">summarize</span>());</span><br></pre></td></tr></table></figure>
+
+<p>这段代码会打印 <code>New article available! (Read more...)</code>。</p>
+<p>为 <code>summarize</code> 创建默认实现并不要求对示例 10-13 中 <code>Tweet</code> 上的 <code>Summary</code> 实现做任何改变。其原因是重载一个默认实现的语法与实现没有默认实现的 trait 方法的语法一样。</p>
+<p>默认实现允许调用相同 trait 中的其他方法，哪怕这些方法没有默认实现。如此，trait 可以提供很多有用的功能而只需要实现指定一小部分内容。例如，我们可以定义 <code>Summary</code> trait，使其具有一个需要实现的 <code>summarize_author</code> 方法，然后定义一个 <code>summarize</code> 方法，此方法的默认实现调用 <code>summarize_author</code> 方法：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">trait</span> <span class="title class_">Summary</span> &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">summarize_author</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">summarize</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">        <span class="built_in">format!</span>(<span class="string">&quot;(Read more from &#123;&#125;...)&quot;</span>, <span class="keyword">self</span>.<span class="title function_ invoke__">summarize_author</span>())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了使用这个版本的 <code>Summary</code>，只需在实现 trait 时定义 <code>summarize_author</code> 即可：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">impl</span> <span class="title class_">Summary</span> <span class="keyword">for</span> <span class="title class_">Tweet</span> &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">summarize_author</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">String</span> &#123;</span><br><span class="line">        <span class="built_in">format!</span>(<span class="string">&quot;@&#123;&#125;&quot;</span>, <span class="keyword">self</span>.username)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一旦定义了 <code>summarize_author</code>，我们就可以对 <code>Tweet</code> 结构体的实例调用 <code>summarize</code> 了，而 <code>summarize</code> 的默认实现会调用我们提供的 <code>summarize_author</code> 定义。因为实现了 <code>summarize_author</code>，<code>Summary</code> trait 就提供了 <code>summarize</code> 方法的功能，且无需编写更多的代码。</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">tweet</span> = Tweet &#123;</span><br><span class="line">    username: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;horse_ebooks&quot;</span>),</span><br><span class="line">    content: <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;of course, as you probably already know, people&quot;</span>),</span><br><span class="line">    reply: <span class="literal">false</span>,</span><br><span class="line">    retweet: <span class="literal">false</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">println!</span>(<span class="string">&quot;1 new tweet: &#123;&#125;&quot;</span>, tweet.<span class="title function_ invoke__">summarize</span>());</span><br></pre></td></tr></table></figure>
+
+<p>这会打印出 <code>1 new tweet: (Read more from @horse_ebooks...)</code>。</p>
+<p>请注意，无法从相同方法的重载实现中调用默认方法。</p>
+<p>核心思想是：<strong><code>trait</code> 定义了行为，<code>trait bound</code> 则限制了泛型类型必须拥有这些行为。</strong></p>
+<h3 id="1-将-Trait-作为函数参数"><a href="#1-将-Trait-作为函数参数" class="headerlink" title="1. 将 Trait 作为函数参数"></a>1. 将 Trait 作为函数参数</h3><p>想象一下，你有一个 <code>Summary</code> trait，它规定了任何实现它的类型都应该有一个 <code>summarize</code> 方法。</p>
+<ul>
+<li><p><strong><code>impl Trait</code> 语法（简单写法）：</strong></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">notify</span>(item: <span class="keyword">impl</span> <span class="title class_">Summary</span>) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Breaking news! &#123;&#125;&quot;</span>, item.<span class="title function_ invoke__">summarize</span>());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这就像在说：“嘿，<code>notify</code> 函数，我不在乎你收到的是 <code>NewsArticle</code> 还是 <code>Tweet</code>，<strong>只要</strong>它能 <code>summarize</code> 就行！” 这种写法简洁明了，编译器会确保你传递进来的类型确实实现了 <code>Summary</code>。如果传了 <code>String</code> 或 <code>i32</code>，编译就会失败，因为它们没有 <code>summarize</code> 方法。</p>
+</li>
+</ul>
+<h3 id="2-Trait-Bound-语法（更详细的写法）"><a href="#2-Trait-Bound-语法（更详细的写法）" class="headerlink" title="2. Trait Bound 语法（更详细的写法）"></a>2. Trait Bound 语法（更详细的写法）</h3><p><code>impl Trait</code> 只是一个语法糖，它的背后是更正式的 <strong>Trait Bound</strong> 语法。</p>
+<ul>
+<li><p><strong>基本等价写法：</strong></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">notify</span>&lt;T: Summary&gt;(item: T) &#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Breaking news! &#123;&#125;&quot;</span>, item.<span class="title function_ invoke__">summarize</span>());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这和上面的 <code>impl Trait</code> 效果一样，但是明确引入了一个<strong>泛型类型 <code>T</code></strong>，并用 <code>&lt;T: Summary&gt;</code> 表示 <code>T</code> 必须实现 <code>Summary</code>。</p>
+</li>
+<li><p><strong>强制多个参数类型一致：</strong> <code>Trait Bound</code> 的强大之处在于它可以让你强制多个泛型参数是<strong>同一个具体类型</strong>。</p>
+<ul>
+<li><p>如果你用 <code>impl Trait</code>：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">notify</span>(item1: <span class="keyword">impl</span> <span class="title class_">Summary</span>, item2: <span class="keyword">impl</span> <span class="title class_">Summary</span>) &#123; <span class="comment">/* ... */</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>item1</code> 可以是 <code>NewsArticle</code>，<code>item2</code> 可以是 <code>Tweet</code>，只要它们都能 <code>summarize</code> 就行。它们<strong>可以是不同类型</strong>。</p>
+</li>
+<li><p>如果你用 <code>Trait Bound</code>：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">notify</span>&lt;T: Summary&gt;(item1: T, item2: T) &#123; <span class="comment">/* ... */</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里 <code>item1</code> 和 <code>item2</code> 都被指定为泛型类型 <code>T</code>。这意味着，如果你给 <code>item1</code> 传了一个 <code>NewsArticle</code>，那么 <code>item2</code> <strong>也必须</strong>是 <code>NewsArticle</code>。它们<strong>必须是相同类型</strong>。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-指定多个-Trait-Bound"><a href="#3-指定多个-Trait-Bound" class="headerlink" title="3. + 指定多个 Trait Bound"></a>3. <code>+</code> 指定多个 Trait Bound</h3><p>如果一个类型需要同时实现多个 <code>trait</code> 呢？用 <code>+</code> 符号连接它们！</p>
+<ul>
+<li><p><strong>使用 <code>impl Trait</code>：</strong></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">notify</span>(item: <span class="keyword">impl</span> <span class="title class_">Summary</span> + Display) &#123; <span class="comment">/* ... */</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这表示 <code>item</code> 既要能 <code>summarize</code>，也要能被 <code>Display</code>（也就是可以被格式化打印出来）。</p>
+</li>
+<li><p><strong>使用 <code>Trait Bound</code>：</strong></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">notify</span>&lt;T: Summary + Display&gt;(item: T) &#123; <span class="comment">/* ... */</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>效果一样，只是写法不同。</p>
+</li>
+</ul>
+<h3 id="4-where-从句简化-Trait-Bound"><a href="#4-where-从句简化-Trait-Bound" class="headerlink" title="4. where 从句简化 Trait Bound"></a>4. <code>where</code> 从句简化 Trait Bound</h3><p>当你的函数有很多泛型参数，并且每个参数都有多个 <code>trait bound</code> 时，函数签名会变得非常长，难以阅读。<code>where</code> 从句就是为了解决这个问题。</p>
+<ul>
+<li><p><strong>没有 <code>where</code> 从句：</strong></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">some_function</span>&lt;T: Display + <span class="built_in">Clone</span>, U: <span class="built_in">Clone</span> + <span class="built_in">Debug</span>&gt;(t: T, u: U) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123; <span class="comment">/* ... */</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>你看，尖括号里一堆东西，函数名和参数列表离得好远。</p>
+</li>
+<li><p><strong>使用 <code>where</code> 从句：</strong></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">some_function</span>&lt;T, U&gt;(t: T, u: U) <span class="punctuation">-&gt;</span> <span class="type">i32</span></span><br><span class="line">    <span class="keyword">where</span> T: Display + <span class="built_in">Clone</span>,</span><br><span class="line">          U: <span class="built_in">Clone</span> + <span class="built_in">Debug</span></span><br><span class="line">&#123; <span class="comment">/* ... */</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样就清晰多了！<code>trait bound</code> 被移到了单独的 <code>where</code> 从句中，函数签名本身就简洁了。</p>
+</li>
+</ul>
+<h3 id="5-返回实现了-Trait-的类型"><a href="#5-返回实现了-Trait-的类型" class="headerlink" title="5. 返回实现了 Trait 的类型"></a>5. 返回实现了 Trait 的类型</h3><p>你也可以让函数返回一个<strong>实现了特定 <code>trait</code> 的类型</strong>，而不需要暴露具体的类型是什么。</p>
+<ul>
+<li><p><strong>语法：</strong></p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">returns_summarizable</span>() <span class="punctuation">-&gt;</span> <span class="keyword">impl</span> <span class="title class_">Summary</span> &#123;</span><br><span class="line">    Tweet &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数承诺它会返回一个可以被“总结”的东西（<code>impl Summary</code>），但具体是 <code>Tweet</code> 还是 <code>NewsArticle</code>，函数调用方并不需要知道。这对于<strong>闭包</strong>和<strong>迭代器</strong>特别有用，因为它们的实际类型可能非常复杂，用 <code>impl Trait</code> 就能大大简化代码。</p>
+</li>
+<li><p><strong>重要限制：</strong> <code>returns_summarizable()</code> 这种写法<strong>只能返回单一的具体类型</strong>。</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 错误示例！不能编译！</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">returns_summarizable</span>(switch: <span class="type">bool</span>) <span class="punctuation">-&gt;</span> <span class="keyword">impl</span> <span class="title class_">Summary</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> switch &#123;</span><br><span class="line">        NewsArticle &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Tweet &#123; <span class="comment">/* ... */</span> &#125; <span class="comment">// 这里返回了不同的类型</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>**你不能根据条件返回不同的实现了 <code>Summary</code> 的类型（比如有时返回 <code>NewsArticle</code>，有时返回 <code>Tweet</code>）。如果需要这样做，你得使用 <strong><code>trait object</code>（特性对象）</strong>，这是第 17 章会讲到的更高级概念。 **</p>
+</li>
+</ul>
+<h3 id="6-修复-largest-函数"><a href="#6-修复-largest-函数" class="headerlink" title="6. 修复 largest 函数"></a>6. 修复 <code>largest</code> 函数</h3><p>回到最开始 <code>largest</code> 函数的错误：</p>
+<ul>
+<li><p><strong>问题一：不能比较 <code>T</code> 类型（<code>&gt;</code> 运算符）。</strong></p>
+<ul>
+<li><p>因为 <code>&gt;</code> 运算符是 <code>std::cmp::PartialOrd</code> 这个 <code>trait</code> 提供的。</p>
+</li>
+<li><p><strong>解决方案：</strong> 给 <code>T</code> 加上 <code>PartialOrd</code> 的 <strong>trait bound</strong>：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">largest</span>&lt;T: <span class="built_in">PartialOrd</span>&gt;(list: &amp;[T]) <span class="punctuation">-&gt;</span> T &#123; <span class="comment">/* ... */</span> &#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p><strong>问题二：不能移动非 <code>Copy</code> 类型的值（<code>list[0]</code> 和 <code>for &amp;item</code>）。</strong></p>
+<ul>
+<li><p><code>list[0]</code> 会把第一个元素“移动”出来，<code>for &amp;item</code> 也尝试“解引用并移动”。但如果 <code>T</code> 没有实现 <code>Copy</code> trait，这种移动是不被允许的（因为移动后原位置就“空”了，而切片 <code>&amp;[T]</code> 不允许这种操作）。像 <code>i32</code> 和 <code>char</code> 这种栈上数据默认是 <code>Copy</code> 的，但其他复杂类型可能不是。</p>
+</li>
+<li><p><strong>解决方案一（简单粗暴）：</strong> 给 <code>T</code> 再加上 <code>Copy</code> 的 <strong>trait bound</strong>。这样就限制了 <code>largest</code> 只能用于那些可以简单复制的类型。</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">largest</span>&lt;T: <span class="built_in">PartialOrd</span> + <span class="built_in">Copy</span>&gt;(list: &amp;[T]) <span class="punctuation">-&gt;</span> T &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">largest</span> = list[<span class="number">0</span>]; <span class="comment">// 现在 T 保证是 Copy 的</span></span><br><span class="line">    <span class="keyword">for</span> &amp;item <span class="keyword">in</span> list.<span class="title function_ invoke__">iter</span>() &#123; <span class="comment">// 现在 &amp;item 可以拷贝一份</span></span><br><span class="line">        <span class="keyword">if</span> item &gt; largest &#123;</span><br><span class="line">            largest = item;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    largest</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>解决方案二（更通用但可能慢）：</strong> 如果不想限制 <code>Copy</code>，可以要求 <code>T</code> 实现 <code>Clone</code>，然后在需要的时候<strong>显式地克隆</strong>数据。但这可能会涉及堆内存分配，效率较低。</p>
+</li>
+<li><p><strong>解决方案三（最佳实践）：</strong> 返回一个<strong>引用</strong> <code>&amp;T</code>！这样就避免了移动或拷贝数据，直接操作原始数据的引用。你会被鼓励尝试自己实现这个版本。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="7-有条件地实现方法和-Blanket-Implementations"><a href="#7-有条件地实现方法和-Blanket-Implementations" class="headerlink" title="7. 有条件地实现方法和 Blanket Implementations"></a>7. 有条件地实现方法和 Blanket Implementations</h3><ul>
+<li><p><strong>有条件实现方法：</strong></p>
+<ul>
+<li><p>你可以给一个泛型结构体（比如 <code>Pair&lt;T&gt;</code>）的 <code>impl</code> 块加上 <strong><code>trait bound</code></strong>。</p>
+</li>
+<li><p>这意味着：<code>Pair&lt;T&gt;</code> 总是有一个 <code>new</code> 方法，但它只有在 <code>T</code> 类型同时实现了 <code>Display</code> 和 <code>PartialOrd</code> 时，才会有 <code>cmp_display</code> 方法。</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">impl</span>&lt;T: Display + <span class="built_in">PartialOrd</span>&gt; Pair&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">cmp_display</span>(&amp;<span class="keyword">self</span>) &#123; <span class="comment">/* ... */</span> &#125; <span class="comment">// 只有当 T 满足条件时才有</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p><strong>Blanket Implementations（毯子实现&#x2F;覆盖实现）：</strong></p>
+<ul>
+<li><p>这是一个非常强大的功能！它允许你<strong>为所有满足特定 <code>trait bound</code> 的类型实现另一个 <code>trait</code></strong>。</p>
+</li>
+<li><p>标准库中就有很多例子，比如：</p>
+<figure class="highlight rust"><table><tr><td class="code"><pre><span class="line"><span class="keyword">impl</span>&lt;T: Display&gt; <span class="built_in">ToString</span> <span class="keyword">for</span> <span class="title class_">T</span> &#123; <span class="comment">/* ... */</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这句话的意思是：“<strong>任何</strong>实现了 <code>Display</code> trait 的类型，都自动实现 <code>ToString</code> trait。”</p>
+</li>
+<li><p>这解释了为什么你可以直接对一个整数（比如 <code>3</code>）调用 <code>.to_string()</code>：<code>3</code> 是 <code>i32</code> 类型，<code>i32</code> 实现了 <code>Display</code>，所以根据这个“毯子实现”，<code>i32</code> 也就自动实现了 <code>ToString</code>。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="总结一下："><a href="#总结一下：" class="headerlink" title="总结一下："></a>总结一下：</h3><p><code>trait</code> 和 <code>trait bound</code> 是 Rust 泛型系统的基石。它们让你能够编写出：</p>
+<ul>
+<li><strong>灵活的代码：</strong> 可以处理多种不同类型。</li>
+<li><strong>安全的代码：</strong> 编译器在编译时就检查类型是否满足所需行为，而不是等到运行时才报错。</li>
+<li><strong>高性能的代码：</strong> 因为编译时已经确定了类型和行为，运行时不需要额外的检查开销。</li>
+</ul>
+<p>这就像是给你的泛型函数或类型打上了“能力标签”，只有拥有这些标签的类型才能被使用，确保了代码的正确性。</p>
+]]></content>
+      <tags>
+        <tag>Rust</tag>
+      </tags>
+  </entry>
 </search>
