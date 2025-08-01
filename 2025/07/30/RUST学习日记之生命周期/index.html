@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="首先我们明确一个概念，生命周期也是一种泛型，生命周期是Rust中很特别的一个特性，它的存在直接从语言层面避免了很多可能出现的问题。 12345678910&#123;    let r;    &#123;        let x &#x3D; 5;        r &#x3D; &amp;x;    &#125;    println!(&quot;r: &#123;&#125;&quot;, r);&amp;#125">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RUST学习日记之生命周期">
+<meta property="og:url" content="http://example.com/2025/07/30/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/index.html">
+<meta property="og:site_name" content="Chillward的博客">
+<meta property="og:description" content="首先我们明确一个概念，生命周期也是一种泛型，生命周期是Rust中很特别的一个特性，它的存在直接从语言层面避免了很多可能出现的问题。 12345678910&#123;    let r;    &#123;        let x &#x3D; 5;        r &#x3D; &amp;x;    &#125;    println!(&quot;r: &#123;&#125;&quot;, r);&amp;#125">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-07-30T10:01:54.000Z">
+<meta property="article:modified_time" content="2025-07-30T14:19:22.311Z">
+<meta property="article:author" content="Chillward">
+<meta property="article:tag" content="RUST">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2025/07/30/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>RUST学习日记之生命周期 | Chillward的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Chillward的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/30/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.png">
+      <meta itemprop="name" content="Chillward">
+      <meta itemprop="description" content="谁躺在漆黑的舞台上，用身体迎接着光芒">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chillward的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RUST学习日记之生命周期
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-07-30 18:01:54 / 修改时间：22:19:22" itemprop="dateCreated datePublished" datetime="2025-07-30T18:01:54+08:00">2025-07-30</time>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>15k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>28 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>首先我们明确一个概念，生命周期也是一种泛型，生命周期是Rust中很特别的一个特性，它的存在直接从语言层面避免了很多可能出现的问题。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">r</span>;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>;</span><br><span class="line">        r = &amp;x;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;r: &#123;&#125;&quot;</span>, r);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这段代码不能编译因为 <code>r</code> 引用的值在尝试使用之前就离开了作用域</p>
+<p>这种悬垂引用在C语言中是可以编译成功的，但是在运行时会出现不可预知的结果，Rust直接在编译阶段就会报错，无法编译，因为借用检查器会阻止这种行为。</p>
+<p>Rust 编译器有一个 <strong>借用检查器</strong>（<em>borrow checker</em>），它比较作用域来确保所有的借用都是有效的。示例 10-18 展示了与示例 10-17 相同的例子，不过带有变量生命周期的注释：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">r</span>;                <span class="comment">// ---------+-- &#x27;a</span></span><br><span class="line">                          <span class="comment">//          |</span></span><br><span class="line">    &#123;                     <span class="comment">//          |</span></span><br><span class="line">        <span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>;        <span class="comment">// -+-- &#x27;b  |</span></span><br><span class="line">        r = &amp;x;           <span class="comment">//  |       |</span></span><br><span class="line">    &#125;                     <span class="comment">// -+       |</span></span><br><span class="line">                          <span class="comment">//          |</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;r: &#123;&#125;&quot;</span>, r); <span class="comment">//          |</span></span><br><span class="line">&#125;                         <span class="comment">// ---------+</span></span><br></pre></td></tr></table></figure>
+
+<p>示例 10-18：<code>r</code> 和 <code>x</code> 的生命周期标注，分别叫做 <code>&#39;a</code> 和 <code>&#39;b</code></p>
+<p>这里将 <code>r</code> 的生命周期标记为 <code>&#39;a</code> 并将 <code>x</code> 的生命周期标记为 <code>&#39;b</code>。如你所见，内部的 <code>&#39;b</code> 块要比外部的生命周期 <code>&#39;a</code> 小得多。在编译时，Rust 比较这两个生命周期的大小，并发现 <code>r</code> 拥有生命周期 <code>&#39;a</code>，不过它引用了一个拥有生命周期 <code>&#39;b</code> 的对象。程序被拒绝编译，因为生命周期 <code>&#39;b</code> 比生命周期 <code>&#39;a</code> 要小：被引用的对象比它的引用者存在的时间更短。</p>
+<p>让我们看看示例 10-19 中这个并没有产生悬垂引用且可以正确编译的例子：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">x</span> = <span class="number">5</span>;            <span class="comment">// ----------+-- &#x27;b</span></span><br><span class="line">                          <span class="comment">//           |</span></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">r</span> = &amp;x;           <span class="comment">// --+-- &#x27;a  |</span></span><br><span class="line">                          <span class="comment">//   |       |</span></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;r: &#123;&#125;&quot;</span>, r); <span class="comment">//   |       |</span></span><br><span class="line">                          <span class="comment">// --+       |</span></span><br><span class="line">&#125;                         <span class="comment">// ----------+</span></span><br></pre></td></tr></table></figure>
+
+<p>示例 10-19：一个有效的引用，因为数据比引用有着更长的生命周期</p>
+<p>这里 <code>x</code> 拥有生命周期 <code>&#39;b</code>，比 <code>&#39;a</code> 要大。这就意味着 <code>r</code> 可以引用 <code>x</code>：Rust 知道 <code>r</code> 中的引用在 <code>x</code> 有效的时候也总是有效的。</p>
+<p>现在我们已经在一个具体的例子中展示了什么是引用的生命周期，并讨论了 Rust 如何分析生命周期来保证引用总是有效的，接下来让我们聊聊在函数的上下文中参数和返回值的泛型生命周期。</p>
+<h3 id="函数中的泛型生命周期"><a href="#函数中的泛型生命周期" class="headerlink" title="函数中的泛型生命周期"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-03-lifetime-syntax.html#%E5%87%BD%E6%95%B0%E4%B8%AD%E7%9A%84%E6%B3%9B%E5%9E%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">函数中的泛型生命周期</a></h3><p>让我们来编写一个函数，返回两个字符串 slice 中较长的那一个。这个函数获取两个字符串 slice 并返回一个字符串 slice。一旦我们实现了 <code>longest</code> 函数，示例 10-20 中的代码应该会打印出 <code>The longest string is abcd</code>：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">string1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;abcd&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">string2</span> = <span class="string">&quot;xyz&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="variable">result</span> = <span class="title function_ invoke__">longest</span>(string1.<span class="title function_ invoke__">as_str</span>(), string2);</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The longest string is &#123;&#125;&quot;</span>, result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-20：<code>main</code> 函数调用 <code>longest</code> 函数来寻找两个字符串 slice 中较长的一个</p>
+<p>请注意，这个函数获取作为引用的字符串 slice，因为我们不希望 <code>longest</code> 函数获取参数的所有权。我们期望该函数接受 <code>String</code> 的 slice（参数 <code>string1</code> 的类型）和字符串字面量（包含于参数 <code>string2</code>）</p>
+<p>参考第 4 章中的 <a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch04-03-slices.html#string-slices-as-parameters">“字符串 slice 作为参数”</a> 部分中更多关于为什么示例 10-20 的参数正符合我们期望的讨论。</p>
+<p>如果尝试像示例 10-21 中那样实现 <code>longest</code> 函数，它并不能编译：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">longest</span>(x: &amp;<span class="type">str</span>, y: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="type">str</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> x.<span class="title function_ invoke__">len</span>() &gt; y.<span class="title function_ invoke__">len</span>() &#123;</span><br><span class="line">        x</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        y</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-21：一个 <code>longest</code> 函数的实现，它返回两个字符串 slice 中较长者，现在还不能编译</p>
+<p>相应地会出现如下有关生命周期的错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">error[E0106]: missing lifetime specifier</span><br><span class="line"> --&gt; src/main.rs:1:33</span><br><span class="line">  |</span><br><span class="line">1 | fn longest(x: &amp;str, y: &amp;str) -&gt; &amp;str &#123;</span><br><span class="line">  |                                 ^ expected lifetime parameter</span><br><span class="line">  |</span><br><span class="line">  = help: this function&#x27;s return type contains a borrowed value, but the</span><br><span class="line">signature does not say whether it is borrowed from `x` or `y`</span><br></pre></td></tr></table></figure>
+
+<p>提示文本揭示了返回值需要一个泛型生命周期参数，因为 Rust 并不知道将要返回的引用是指向 <code>x</code> 或 <code>y</code>。事实上我们也不知道，因为函数体中 <code>if</code> 块返回一个 <code>x</code> 的引用而 <code>else</code> 块返回一个 <code>y</code> 的引用！</p>
+<p>当我们定义这个函数的时候，并不知道传递给函数的具体值，所以也不知道到底是 <code>if</code> 还是 <code>else</code> 会被执行。我们也不知道传入的引用的具体生命周期，所以也就不能像示例 10-18 和 10-19 那样通过观察作用域来确定返回的引用是否总是有效。借用检查器自身同样也无法确定，因为它不知道 <code>x</code> 和 <code>y</code> 的生命周期是如何与返回值的生命周期相关联的。为了修复这个错误，我们将增加泛型生命周期参数来定义引用间的关系以便借用检查器可以进行分析。</p>
+<h3 id="生命周期标注语法"><a href="#生命周期标注语法" class="headerlink" title="生命周期标注语法"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-03-lifetime-syntax.html#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%A0%87%E6%B3%A8%E8%AF%AD%E6%B3%95">生命周期标注语法</a></h3><p>生命周期标注并不改变任何引用的生命周期的长短。与当函数签名中指定了泛型类型参数后就可以接受任何类型一样，当指定了泛型生命周期后函数也能接受任何生命周期的引用。生命周期标注描述了多个引用生命周期相互的关系，而不影响其生命周期。</p>
+<p>生命周期标注有着一个不太常见的语法：生命周期参数名称必须以撇号（<code>&#39;</code>）开头，其名称通常全是小写，类似于泛型其名称非常短。<code>&#39;a</code> 是大多数人默认使用的名称。生命周期参数标注位于引用的 <code>&amp;</code> 之后，并有一个空格来将引用类型与生命周期标注分隔开。</p>
+<p>这里有一些例子：我们有一个没有生命周期参数的 <code>i32</code> 的引用，一个有叫做 <code>&#39;a</code> 的生命周期参数的 <code>i32</code> 的引用，和一个生命周期也是 <code>&#39;a</code> 的 <code>i32</code> 的可变引用：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&amp;<span class="type">i32</span>        <span class="comment">// 引用</span></span><br><span class="line">&amp;<span class="symbol">&#x27;a</span> <span class="type">i32</span>     <span class="comment">// 带有显式生命周期的引用</span></span><br><span class="line">&amp;<span class="symbol">&#x27;a</span> <span class="keyword">mut</span> <span class="type">i32</span> <span class="comment">// 带有显式生命周期的可变引用</span></span><br></pre></td></tr></table></figure>
+
+<p>单个生命周期标注本身没有多少意义，因为生命周期标注告诉 Rust 多个引用的泛型生命周期参数如何相互联系的。例如如果函数有一个生命周期 <code>&#39;a</code> 的 <code>i32</code> 的引用的参数 <code>first</code>。还有另一个同样是生命周期 <code>&#39;a</code> 的 <code>i32</code> 的引用的参数 <code>second</code>。这两个生命周期标注意味着引用 <code>first</code> 和 <code>second</code> 必须与这泛型生命周期存在得一样久。</p>
+<h3 id="函数签名中的生命周期标注"><a href="#函数签名中的生命周期标注" class="headerlink" title="函数签名中的生命周期标注"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-03-lifetime-syntax.html#%E5%87%BD%E6%95%B0%E7%AD%BE%E5%90%8D%E4%B8%AD%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%A0%87%E6%B3%A8">函数签名中的生命周期标注</a></h3><p>现在来看看 <code>longest</code> 函数的上下文中的生命周期。就像泛型类型参数，泛型生命周期参数需要声明在函数名和参数列表间的尖括号中。这里我们想要告诉 Rust 关于参数中的引用和返回值之间的限制是他们都必须拥有相同的生命周期，就像示例 10-22 中在每个引用中都加上了 <code>&#39;a</code> 那样：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">longest</span>&lt;<span class="symbol">&#x27;a</span>&gt;(x: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>, y: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> x.<span class="title function_ invoke__">len</span>() &gt; y.<span class="title function_ invoke__">len</span>() &#123;</span><br><span class="line">        x</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        y</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-22：<code>longest</code> 函数定义指定了签名中所有的引用必须有相同的生命周期 <code>&#39;a</code></p>
+<p>这段代码能够编译并会产生我们希望得到的示例 10-20 中的 <code>main</code> 函数的结果。</p>
+<p>现在函数签名表明对于某些生命周期 <code>&#39;a</code>，函数会获取两个参数，他们都是与生命周期 <code>&#39;a</code> 存在的一样长的字符串 slice。函数会返回一个同样也与生命周期 <code>&#39;a</code> 存在的一样长的字符串 slice。它的实际含义是 <code>longest</code> 函数返回的引用的生命周期与传入该函数的引用的生命周期的较小者一致。这就是我们告诉 Rust 需要其保证的约束条件。记住通过在函数签名中指定生命周期参数时，我们并没有改变任何传入值或返回值的生命周期，而是指出任何不满足这个约束条件的值都将被借用检查器拒绝。注意 <code>longest</code> 函数并不需要知道 <code>x</code> 和 <code>y</code> 具体会存在多久，而只需要知道有某个可以被 <code>&#39;a</code> 替代的作用域将会满足这个签名。</p>
+<p>当在函数中使用生命周期标注时，这些标注出现在函数签名中，而不存在于函数体中的任何代码中。这是因为 Rust 能够分析函数中代码而不需要任何协助，不过当函数引用或被函数之外的代码引用时，让 Rust 自身分析出参数或返回值的生命周期几乎是不可能的。这些生命周期在每次函数被调用时都可能不同。这也就是为什么我们需要手动标记生命周期。</p>
+<p>当具体的引用被传递给 <code>longest</code> 时，被 <code>&#39;a</code> 所替代的具体生命周期是 <code>x</code> 的作用域与 <code>y</code> 的作用域相重叠的那一部分。换一种说法就是泛型生命周期 <code>&#39;a</code> 的具体生命周期等同于 <code>x</code> 和 <code>y</code> 的生命周期中较小的那一个。因为我们用相同的生命周期参数 <code>&#39;a</code> 标注了返回的引用值，所以返回的引用值就能保证在 <code>x</code> 和 <code>y</code> 中较短的那个生命周期结束之前保持有效。</p>
+<p>让我们看看如何通过传递拥有不同具体生命周期的引用来限制 <code>longest</code> 函数的使用。示例 10-23 是一个很直观的例子。</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">string1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;long string is long&quot;</span>);</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">string2</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;xyz&quot;</span>);</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">result</span> = <span class="title function_ invoke__">longest</span>(string1.<span class="title function_ invoke__">as_str</span>(), string2.<span class="title function_ invoke__">as_str</span>());</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;The longest string is &#123;&#125;&quot;</span>, result);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-23：通过拥有不同的具体生命周期的 <code>String</code> 值调用 <code>longest</code> 函数</p>
+<p>在这个例子中，<code>string1</code> 直到外部作用域结束都是有效的，<code>string2</code> 则在内部作用域中是有效的，而 <code>result</code> 则引用了一些直到内部作用域结束都是有效的值。借用检查器认可这些代码；它能够编译和运行，并打印出 <code>The longest string is long string is long</code>。</p>
+<p>接下来，让我们尝试另外一个例子，该例子揭示了 <code>result</code> 的引用的生命周期必须是两个参数中较短的那个。以下代码将 <code>result</code> 变量的声明移动出内部作用域，但是将 <code>result</code> 和 <code>string2</code> 变量的赋值语句一同留在内部作用域中。接着，使用了变量 <code>result</code> 的 <code>println!</code> 也被移动到内部作用域之外。注意示例 10-24 中的代码不能通过编译：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">string1</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;long string is long&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">result</span>;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">string2</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;xyz&quot;</span>);</span><br><span class="line">        result = <span class="title function_ invoke__">longest</span>(string1.<span class="title function_ invoke__">as_str</span>(), string2.<span class="title function_ invoke__">as_str</span>());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;The longest string is &#123;&#125;&quot;</span>, result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-24：尝试在 <code>string2</code> 离开作用域之后使用 <code>result</code></p>
+<p>如果尝试编译会出现如下错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">error[E0597]: `string2` does not live long enough</span><br><span class="line"> --&gt; src/main.rs:6:44</span><br><span class="line">  |</span><br><span class="line">6 |         result = longest(string1.as_str(), string2.as_str());</span><br><span class="line">  |                                            ^^^^^^^ borrowed value does not live long enough</span><br><span class="line">7 |     &#125;</span><br><span class="line">  |     - `string2` dropped here while still borrowed</span><br><span class="line">8 |     println!(&quot;The longest string is &#123;&#125;&quot;, result);</span><br><span class="line">  |                                          ------ borrow later used here</span><br></pre></td></tr></table></figure>
+
+<p>错误表明为了保证 <code>println!</code> 中的 <code>result</code> 是有效的，<code>string2</code> 需要直到外部作用域结束都是有效的。Rust 知道这些是因为（<code>longest</code>）函数的参数和返回值都使用了相同的生命周期参数 <code>&#39;a</code>。</p>
+<p>如果从人的角度读上述代码，我们可能会觉得这个代码是正确的。 <code>string1</code> 更长，因此 <code>result</code> 会包含指向 <code>string1</code> 的引用。因为 <code>string1</code> 尚未离开作用域，对于 <code>println!</code> 来说 <code>string1</code> 的引用仍然是有效的。然而，我们通过生命周期参数告诉 Rust 的是： <code>longest</code> 函数返回的引用的生命周期应该与传入参数的生命周期中较短那个保持一致。因此，借用检查器不允许示例 10-24 中的代码，因为它可能会存在无效的引用。</p>
+<p>请尝试更多采用不同的值和不同生命周期的引用作为 <code>longest</code> 函数的参数和返回值的实验。并在开始编译前猜想你的实验能否通过借用检查器，接着编译一下看看你的理解是否正确！</p>
+<h3 id="深入理解生命周期"><a href="#深入理解生命周期" class="headerlink" title="深入理解生命周期"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-03-lifetime-syntax.html#%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">深入理解生命周期</a></h3><p>指定生命周期参数的正确方式依赖函数实现的具体功能。例如，如果将 <code>longest</code> 函数的实现修改为总是返回第一个参数而不是最长的字符串 slice，就不需要为参数 <code>y</code> 指定一个生命周期。如下代码将能够编译：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">longest</span>&lt;<span class="symbol">&#x27;a</span>&gt;(x: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>, y: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span> &#123;</span><br><span class="line">    x</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中，我们为参数 <code>x</code> 和返回值指定了生命周期参数 <code>&#39;a</code>，不过没有为参数 <code>y</code> 指定，因为 <code>y</code> 的生命周期与参数 <code>x</code> 和返回值的生命周期没有任何关系。</p>
+<p>当从函数返回一个引用，返回值的生命周期参数需要与一个参数的生命周期参数相匹配。如果返回的引用 <strong>没有</strong> 指向任何一个参数，那么唯一的可能就是它指向一个函数内部创建的值，它将会是一个悬垂引用，因为它将会在函数结束时离开作用域。尝试考虑这个并不能编译的 <code>longest</code> 函数实现：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">longest</span>&lt;<span class="symbol">&#x27;a</span>&gt;(x: &amp;<span class="type">str</span>, y: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">result</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;really long string&quot;</span>);</span><br><span class="line">    result.<span class="title function_ invoke__">as_str</span>()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>即便我们为返回值指定了生命周期参数 <code>&#39;a</code>，这个实现却编译失败了，因为返回值的生命周期与参数完全没有关联。这里是会出现的错误信息：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">error[E0597]: `result` does not live long enough</span><br><span class="line"> --&gt; src/main.rs:3:5</span><br><span class="line">  |</span><br><span class="line">3 |     result.as_str()</span><br><span class="line">  |     ^^^^^^ does not live long enough</span><br><span class="line">4 | &#125;</span><br><span class="line">  | - borrowed value only lives until here</span><br><span class="line">  |</span><br><span class="line">note: borrowed value must be valid for the lifetime &#x27;a as defined on the</span><br><span class="line">function body at 1:1...</span><br><span class="line"> --&gt; src/main.rs:1:1</span><br><span class="line">  |</span><br><span class="line">1 | / fn longest&lt;&#x27;a&gt;(x: &amp;str, y: &amp;str) -&gt; &amp;&#x27;a str &#123;</span><br><span class="line">2 | |     let result = String::from(&quot;really long string&quot;);</span><br><span class="line">3 | |     result.as_str()</span><br><span class="line">4 | | &#125;</span><br><span class="line">  | |_^</span><br></pre></td></tr></table></figure>
+
+<p>出现的问题是 <code>result</code> 在 <code>longest</code> 函数的结尾将离开作用域并被清理，而我们尝试从函数返回一个 <code>result</code> 的引用。无法指定生命周期参数来改变悬垂引用，而且 Rust 也不允许我们创建一个悬垂引用。在这种情况，最好的解决方案是返回一个有所有权的数据类型而不是一个引用，这样函数调用者就需要负责清理这个值了。</p>
+<blockquote>
+<p>类似于C语言中不能返回一个局部变量的值，二者是比较类似的</p>
+</blockquote>
+<p>综上，生命周期语法是用于将函数的多个参数与其返回值的生命周期进行关联的。一旦他们形成了某种关联，Rust 就有了足够的信息来允许内存安全的操作并阻止会产生悬垂指针亦或是违反内存安全的行为。</p>
+<h3 id="结构体定义中的生命周期标注"><a href="#结构体定义中的生命周期标注" class="headerlink" title="结构体定义中的生命周期标注"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-03-lifetime-syntax.html#%E7%BB%93%E6%9E%84%E4%BD%93%E5%AE%9A%E4%B9%89%E4%B8%AD%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%A0%87%E6%B3%A8">结构体定义中的生命周期标注</a></h3><p>目前为止，我们只定义过有所有权类型的结构体。接下来，我们将定义包含引用的结构体，不过这需要为结构体定义中的每一个引用添加生命周期标注。示例 10-25 中有一个存放了一个字符串 slice 的结构体 <code>ImportantExcerpt</code>：</p>
+<p>文件名: src&#x2F;main.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">ImportantExcerpt</span>&lt;<span class="symbol">&#x27;a</span>&gt; &#123;</span><br><span class="line">    part: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">novel</span> = <span class="type">String</span>::<span class="title function_ invoke__">from</span>(<span class="string">&quot;Call me Ishmael. Some years ago...&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">first_sentence</span> = novel.<span class="title function_ invoke__">split</span>(<span class="string">&#x27;.&#x27;</span>)</span><br><span class="line">        .<span class="title function_ invoke__">next</span>()</span><br><span class="line">        .<span class="title function_ invoke__">expect</span>(<span class="string">&quot;Could not find a &#x27;.&#x27;&quot;</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">i</span> = ImportantExcerpt &#123; part: first_sentence &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-25：一个存放引用的结构体，所以其定义需要生命周期标注</p>
+<p>这个结构体有一个字段，<code>part</code>，它存放了一个字符串 slice，这是一个引用。类似于泛型参数类型，必须在结构体名称后面的尖括号中声明泛型生命周期参数，以便在结构体定义中使用生命周期参数。这个标注意味着 <code>ImportantExcerpt</code> 的实例不能比其 <code>part</code> 字段中的引用存在的更久。</p>
+<p>这里的 <code>main</code> 函数创建了一个 <code>ImportantExcerpt</code> 的实例，它存放了变量 <code>novel</code> 所拥有的 <code>String</code> 的第一个句子的引用。<code>novel</code> 的数据在 <code>ImportantExcerpt</code> 实例创建之前就存在。另外，直到 <code>ImportantExcerpt</code> 离开作用域之后 <code>novel</code> 都不会离开作用域，所以 <code>ImportantExcerpt</code> 实例中的引用是有效的。</p>
+<h3 id="生命周期省略（Lifetime-Elision）"><a href="#生命周期省略（Lifetime-Elision）" class="headerlink" title="生命周期省略（Lifetime Elision）"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-03-lifetime-syntax.html#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%9C%81%E7%95%A5lifetime-elision">生命周期省略（Lifetime Elision）</a></h3><p>现在我们已经知道了每一个引用都有一个生命周期，而且我们需要为那些使用了引用的函数或结构体指定生命周期。然而，第 4 章的示例 4-9 中有一个函数，如示例 10-26 所示，它没有生命周期标注却能编译成功：</p>
+<p>文件名: src&#x2F;lib.rs</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">first_word</span>(s: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="type">str</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">bytes</span> = s.<span class="title function_ invoke__">as_bytes</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i, &amp;item) <span class="keyword">in</span> bytes.<span class="title function_ invoke__">iter</span>().<span class="title function_ invoke__">enumerate</span>() &#123;</span><br><span class="line">        <span class="keyword">if</span> item == <span class="string">b&#x27; &#x27;</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> &amp;s[<span class="number">0</span>..i];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &amp;s[..]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例 10-26：示例 4-9 定义了一个没有使用生命周期标注的函数，即便其参数和返回值都是引用</p>
+<p>这个函数没有生命周期标注却能编译是由于一些历史原因：在早期版本（pre-1.0）的 Rust 中，这的确是不能编译的。每一个引用都必须有明确的生命周期。那时的函数签名将会写成这样：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">first_word</span>&lt;<span class="symbol">&#x27;a</span>&gt;(s: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span> &#123;</span><br></pre></td></tr></table></figure>
+
+<p>在编写了很多 Rust 代码后，Rust 团队发现在特定情况下 Rust 开发者们总是重复地编写一模一样的生命周期标注。这些场景是可预测的并且遵循几个明确的模式。接着 Rust 团队就把这些模式编码进了 Rust 编译器中，如此借用检查器在这些情况下就能推断出生命周期而不再强制开发者显式的增加标注。</p>
+<p>这里我们提到一些 Rust 的历史是因为更多的明确的模式被合并和添加到编译器中是完全可能的。未来只会需要更少的生命周期标注。</p>
+<p>被编码进 Rust 引用分析的模式被称为 <strong>生命周期省略规则</strong>（<em>lifetime elision rules</em>）。这并不是需要开发者遵守的规则；这些规则是一系列特定的场景，此时编译器会考虑，如果代码符合这些场景，就无需明确指定生命周期。</p>
+<p>省略规则并不提供完整的推断：如果 Rust 在明确遵守这些规则的前提下变量的生命周期仍然是模棱两可的话，它不会猜测剩余引用的生命周期应该是什么。在这种情况，编译器会给出一个错误，这可以通过增加对应引用之间相联系的生命周期标注来解决。</p>
+<p>函数或方法的参数的生命周期被称为 <strong>输入生命周期</strong>（<em>input lifetimes</em>），而返回值的生命周期被称为 <strong>输出生命周期</strong>（<em>output lifetimes</em>）。</p>
+<p>编译器采用三条规则来判断引用何时不需要明确的标注。第一条规则适用于输入生命周期，后两条规则适用于输出生命周期。如果编译器检查完这三条规则后仍然存在没有计算出生命周期的引用，编译器将会停止并生成错误。这些规则适用于 <code>fn</code> 定义，以及 <code>impl</code> 块。</p>
+<p>第一条规则是每一个是引用的参数都有它自己的生命周期参数。换句话说就是，有一个引用参数的函数有一个生命周期参数：<code>fn foo&lt;&#39;a&gt;(x: &amp;&#39;a i32)</code>，有两个引用参数的函数有两个不同的生命周期参数，<code>fn foo&lt;&#39;a, &#39;b&gt;(x: &amp;&#39;a i32, y: &amp;&#39;b i32)</code>，依此类推。</p>
+<p>第二条规则是如果只有一个输入生命周期参数，那么它被赋予所有输出生命周期参数：<code>fn foo&lt;&#39;a&gt;(x: &amp;&#39;a i32) -&gt; &amp;&#39;a i32</code>。</p>
+<p>第三条规则是如果方法有多个输入生命周期参数并且其中一个参数是 <code>&amp;self</code> 或 <code>&amp;mut self</code>，说明是个对象的方法(method)(译者注： 这里涉及 Rust 的面向对象，参见第 17 章), 那么所有输出生命周期参数被赋予 <code>self</code> 的生命周期。第三条规则使得方法更容易读写，因为只需更少的符号。</p>
+<p>假设我们自己就是编译器。并应用这些规则来计算示例 10-26 中 <code>first_word</code> 函数签名中的引用的生命周期。开始时签名中的引用并没有关联任何生命周期：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">first_word</span>(s: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="type">str</span> &#123;</span><br></pre></td></tr></table></figure>
+
+<p>接着编译器应用第一条规则，也就是每个引用参数都有其自己的生命周期。我们像往常一样称之为 <code>&#39;a</code>，所以现在签名看起来像这样：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">first_word</span>&lt;<span class="symbol">&#x27;a</span>&gt;(s: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="type">str</span> &#123;</span><br></pre></td></tr></table></figure>
+
+<p>对于第二条规则，因为这里正好只有一个输入生命周期参数所以是适用的。第二条规则表明输入参数的生命周期将被赋予输出生命周期参数，所以现在签名看起来像这样：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">first_word</span>&lt;<span class="symbol">&#x27;a</span>&gt;(s: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span> &#123;</span><br></pre></td></tr></table></figure>
+
+<p>现在这个函数签名中的所有引用都有了生命周期，如此编译器可以继续它的分析而无须开发者标记这个函数签名中的生命周期。</p>
+<p>让我们再看看另一个例子，这次我们从示例 10-21 中没有生命周期参数的 <code>longest</code> 函数开始：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">longest</span>(x: &amp;<span class="type">str</span>, y: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="type">str</span> &#123;</span><br></pre></td></tr></table></figure>
+
+<p>再次假设我们自己就是编译器并应用第一条规则：每个引用参数都有其自己的生命周期。这次有两个参数，所以就有两个（不同的）生命周期：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">fn</span> <span class="title function_">longest</span>&lt;<span class="symbol">&#x27;a</span>, <span class="symbol">&#x27;b</span>&gt;(x: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>, y: &amp;<span class="symbol">&#x27;b</span> <span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="type">str</span> &#123;</span><br></pre></td></tr></table></figure>
+
+<p>再来应用第二条规则，因为函数存在多个输入生命周期，它并不适用于这种情况。再来看第三条规则，它同样也不适用，这是因为没有 <code>self</code> 参数。应用了三个规则之后编译器还没有计算出返回值类型的生命周期。这就是我们在尝试编译示例 10-21 中的代码时出现错误的原因：编译器使用所有已知的生命周期省略规则，仍不能计算出签名中所有引用的生命周期。</p>
+<p>因为第三条规则真正能够适用的就只有方法签名，现在就让我们看看那种情况中的生命周期，并看看为什么这条规则意味着我们经常不需要在方法签名中标注生命周期。</p>
+<blockquote>
+<p>关于这几条规则，AI是这么说的</p>
+</blockquote>
+<p>你描述的“生命周期省略规则”（Lifetime Elision Rules）是 Rust 编译器的一项便利功能，它旨在减少你在编写 Rust 代码时手动添加生命周期注解的次数。简单来说，这些规则是编译器内置的一些<strong>模式识别能力</strong>，当你的代码符合这些模式时，编译器就能<strong>自动推断</strong>引用的生命周期，而不需要你显式地写出来。</p>
+<h3 id="生命周期的核心问题回顾"><a href="#生命周期的核心问题回顾" class="headerlink" title="生命周期的核心问题回顾"></a>生命周期的核心问题回顾</h3><p>在深入规则之前，我们先快速回顾一下为什么需要生命周期：</p>
+<ul>
+<li><strong>安全保证：</strong> Rust 的核心优势之一是内存安全，没有垃圾回收器。它通过所有权系统和借用检查器来实现这一点。</li>
+<li><strong>引用的有效性：</strong> 当你创建一个引用（例如 <code>&amp;str</code>），这个引用不能比它所指向的数据“活”得更久。如果引用比数据活得久，就会变成<strong>悬垂引用</strong>，指向一片无效的内存。</li>
+<li><strong>生命周期注解：</strong> 为了确保引用的有效性，Rust 引入了<strong>生命周期注解</strong>（如 <code>&#39;a</code>），它们不是改变引用的生命周期，而是告诉借用检查器：这个引用需要和它所指的数据一样长寿，或者更短寿。当函数接收引用参数并返回引用时，编译器需要知道输入引用和输出引用之间的生命周期关系，以确保返回的引用是有效的。</li>
+</ul>
+<h3 id="生命周期省略规则的由来"><a href="#生命周期省略规则的由来" class="headerlink" title="生命周期省略规则的由来"></a>生命周期省略规则的由来</h3><p>在 Rust 的早期版本中，每个引用都必须有明确的生命周期注解，这导致代码中充斥着大量的 <code>&#39;a</code>、<code>&#39;b</code> 等，使得代码显得冗长且难以阅读。Rust 团队发现，在大多数常见场景下，开发者总是以相同的方式标注生命周期。于是，他们将这些常见的、可预测的模式“硬编码”到编译器中，让编译器在这些情况下<strong>自动推断</strong>。这些模式就是“生命周期省略规则”。</p>
+<p><strong>注意：</strong></p>
+<ul>
+<li>这些规则是<strong>编译器内部的逻辑</strong>，而不是你需要遵循的编码规范。你不需要刻意去记住它们并应用到你的代码中。</li>
+<li>它们<strong>不提供完整的推断</strong>。如果根据这些规则，引用的生命周期仍然模棱两可，编译器会报错，要求你手动添加注解。</li>
+</ul>
+<h3 id="三条生命周期省略规则详解"><a href="#三条生命周期省略规则详解" class="headerlink" title="三条生命周期省略规则详解"></a>三条生命周期省略规则详解</h3><p>编译器在判断何时可以省略生命周期注解时，会按照以下三条规则顺序检查。如果所有规则都应用完了，仍然有不明确的生命周期，编译器就会报错。</p>
+<h4 id="1-输入生命周期规则-针对函数或方法的参数"><a href="#1-输入生命周期规则-针对函数或方法的参数" class="headerlink" title="1. 输入生命周期规则 (针对函数或方法的参数)"></a>1. 输入生命周期规则 (针对函数或方法的参数)</h4><p><strong>规则：</strong> 函数或方法中，每个是<strong>引用类型</strong>的参数都拥有自己独立的生命周期参数。</p>
+<p><strong>例子：</strong></p>
+<ul>
+<li><p>如果函数有一个引用参数 s: &amp;str，它会变成 s: &amp;’a str。</p>
+<p>fn first_word(s: &amp;str) → fn first_word&lt;’a&gt;(s: &amp;’a str)</p>
+</li>
+<li><p>如果函数有两个引用参数 x: &amp;str, y: &amp;str，它们会分别获得不同的生命周期。</p>
+<p>fn longest(x: &amp;str, y: &amp;str) → fn longest&lt;’a, ‘b&gt;(x: &amp;’a str, y: &amp;’b str)</p>
+</li>
+<li><p>如果有一个引用参数和一个非引用参数，只有引用参数会获得生命周期。</p>
+<p>fn foo(x: &amp;’a i32, y: i32) → fn foo&lt;’a&gt;(x: &amp;’a i32, y: i32)</p>
+</li>
+</ul>
+<h4 id="2-输出生命周期规则-针对函数或方法的返回值"><a href="#2-输出生命周期规则-针对函数或方法的返回值" class="headerlink" title="2. 输出生命周期规则 (针对函数或方法的返回值)"></a>2. 输出生命周期规则 (针对函数或方法的返回值)</h4><p><strong>规则：</strong> 如果函数或方只有一个输入生命周期参数**，那么这个唯一的输入生命周期参数会被赋给<strong>所有</strong>输出生命周期参数。</p>
+<p><strong>例子：</strong></p>
+<ul>
+<li><p>考虑 first_word 函数：fn first_word&lt;’a&gt;(s: &amp;’a str) -&gt; &amp;str。</p>
+<p>因为只有一个输入生命周期 ‘a，根据这条规则，返回值 &amp;str 也会被赋予 ‘a。</p>
+<p>最终签名变为：fn first_word&lt;’a&gt;(s: &amp;’a str) -&gt; &amp;’a str。</p>
+<p>这意味着 first_word 返回的引用和输入引用 s 具有相同的生命周期。</p>
+</li>
+</ul>
+<h4 id="3-方法的输出生命周期规则-针对带有-self-或-mut-self-的方法"><a href="#3-方法的输出生命周期规则-针对带有-self-或-mut-self-的方法" class="headerlink" title="3. 方法的输出生命周期规则 (针对带有 &amp;self 或 &amp;mut self 的方法)"></a>3. 方法的输出生命周期规则 (针对带有 <code>&amp;self</code> 或 <code>&amp;mut self</code> 的方法)</h4><p><strong>规则：</strong> 如果方法有<strong>多个输入生命周期参数</strong>，并且其中一个参数是 <code>&amp;self</code> 或 <code>&amp;mut self</code>（即这是一个方法，而不是普通的函数），那么所有输出生命周期参数都被赋予 <code>self</code> 的生命周期。</p>
+<p>例子：</p>
+<p>假设有一个结构体 struct MyStruct&lt;’a&gt; { data: &amp;’a str }，以及它的一个方法：</p>
+<p>impl&lt;’a&gt; MyStruct&lt;’a&gt; { fn get_data(&amp;self) -&gt; &amp;str { self.data } }</p>
+<ul>
+<li><p>应用第一条规则：fn get_data&lt;’b&gt;(&amp;’b self) -&gt; &amp;str</p>
+<p>（注意，MyStruct 可能已经有自己的生命周期 ‘a，但 &amp;self 自身作为参数会获得一个新的生命周期 ‘b。实际上，Rust 会聪明地把 &amp;self 的生命周期和结构体本身的生命周期关联起来。）</p>
+</li>
+<li><p>由于有 &amp;self 参数，并且可能有其他输入生命周期（尽管在这个简单例子中没有），第三条规则适用。它会将 self 的生命周期赋给返回值。</p>
+<p>最终签名（实际上是编译器推断出的）：fn get_data(&amp;’a self) -&gt; &amp;’a str</p>
+<p>这意味着方法返回的引用和 self 实例的生命周期相同。 这对于对象方法来说非常方便，因为它们通常返回对自身数据的引用。</p>
+</li>
+</ul>
+<h3 id="first-word-和-longest-函数的推断过程："><a href="#first-word-和-longest-函数的推断过程：" class="headerlink" title="first_word 和 longest 函数的推断过程："></a><code>first_word</code> 和 <code>longest</code> 函数的推断过程：</h3><h4 id="first-word-函数-示例-10-26"><a href="#first-word-函数-示例-10-26" class="headerlink" title="first_word 函数 (示例 10-26):"></a><code>first_word</code> 函数 (示例 10-26):</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fn first_word(s: &amp;str) -&gt; &amp;str</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>应用第一条规则： s: &amp;str 是一个引用参数，所以它获得自己的生命周期。</p>
+<p>fn first_word&lt;’a&gt;(s: &amp;’a str) -&gt; &amp;str</p>
+</li>
+<li><p>应用第二条规则： 只有一个输入生命周期参数 (‘a)，所以它被赋给输出生命周期。</p>
+<p>fn first_word&lt;’a&gt;(s: &amp;’a str) -&gt; &amp;’a str</p>
+</li>
+<li><p><strong>结果：</strong> 所有引用都有了明确的生命周期，编译器可以成功编译。</p>
+</li>
+</ol>
+<h4 id="longest-函数-示例-10-21"><a href="#longest-函数-示例-10-21" class="headerlink" title="longest 函数 (示例 10-21):"></a><code>longest</code> 函数 (示例 10-21):</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fn longest(x: &amp;str, y: &amp;str) -&gt; &amp;str</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>应用第一条规则： x: &amp;str 和 y: &amp;str 都是引用参数，所以它们分别获得自己的生命周期。</p>
+<p>fn longest&lt;’a, ‘b&gt;(x: &amp;’a str, y: &amp;’b str) -&gt; &amp;str</p>
+</li>
+<li><p><strong>应用第二条规则：</strong> 无法适用，因为有<strong>多个</strong>输入生命周期 (<code>&#39;a</code> 和 <code>&#39;b&#39;</code>)。</p>
+</li>
+<li><p><strong>应用第三条规则：</strong> 无法适用，因为这不是一个方法（没有 <code>&amp;self</code> 或 <code>&amp;mut self</code> 参数）。</p>
+</li>
+<li><p>结果： 编译器无法推断出返回值 &amp;str 的生命周期。它不知道返回的引用是和 ‘a 一样长寿，还是和 ‘b 一样长寿。这会导致一个编译错误，要求你手动添加生命周期注解，比如：</p>
+<p>fn longest&lt;’a&gt;(x: &amp;’a str, y: &amp;’a str) -&gt; &amp;’a str （这表示返回的引用和 x、y 中生命周期较短的那个一样长）</p>
+</li>
+</ol>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>生命周期省略规则极大地简化了 Rust 代码的编写，减少了不必要的生命周期注解，使得代码更加清晰易读。它们是编译器为了方便开发者而提供的“智能推断”，而非必须手动遵守的规则。当你遇到编译器报错提示生命周期不明确时，通常就是因为你的代码不符合这三条省略规则，你需要手动添加相应的生命周期注解来帮助编译器理解引用之间的关系。</p>
+<h3 id="方法定义中的生命周期标注"><a href="#方法定义中的生命周期标注" class="headerlink" title="方法定义中的生命周期标注"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-03-lifetime-syntax.html#%E6%96%B9%E6%B3%95%E5%AE%9A%E4%B9%89%E4%B8%AD%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%A0%87%E6%B3%A8">方法定义中的生命周期标注</a></h3><p>当为带有生命周期的结构体实现方法时，其语法依然类似示例 10-11 中展示的泛型类型参数的语法。声明和使用生命周期参数的位置依赖于生命周期参数是否同结构体字段或方法参数和返回值相关。</p>
+<p>（实现方法时）结构体字段的生命周期必须总是在 <code>impl</code> 关键字之后声明并在结构体名称之后被使用，因为这些生命周期是结构体类型的一部分。</p>
+<p><code>impl</code> 块里的方法签名中，引用可能与结构体字段中的引用相关联，也可能是独立的。另外，生命周期省略规则也经常让我们无需在方法签名中使用生命周期标注。让我们看看一些使用示例 10-25 中定义的结构体 <code>ImportantExcerpt</code> 的例子。</p>
+<p>首先，这里有一个方法 <code>level</code>。其唯一的参数是 <code>self</code> 的引用，而且返回值只是一个 <code>i32</code>，并不引用任何值：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">impl</span>&lt;<span class="symbol">&#x27;a</span>&gt; ImportantExcerpt&lt;<span class="symbol">&#x27;a</span>&gt; &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">level</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">i32</span> &#123;</span><br><span class="line">        <span class="number">3</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>impl</code> 之后和类型名称之后的生命周期参数是必要的，不过因为第一条生命周期规则我们并不必须标注 <code>self</code> 引用的生命周期。</p>
+<p>这里是一个适用于第三条生命周期省略规则的例子：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">impl</span>&lt;<span class="symbol">&#x27;a</span>&gt; ImportantExcerpt&lt;<span class="symbol">&#x27;a</span>&gt; &#123;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">announce_and_return_part</span>(&amp;<span class="keyword">self</span>, announcement: &amp;<span class="type">str</span>) <span class="punctuation">-&gt;</span> &amp;<span class="type">str</span> &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;Attention please: &#123;&#125;&quot;</span>, announcement);</span><br><span class="line">        <span class="keyword">self</span>.part</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里有两个输入生命周期，所以 Rust 应用第一条生命周期省略规则并给予 <code>&amp;self</code> 和 <code>announcement</code> 他们各自的生命周期。接着，因为其中一个参数是 <code>&amp;self</code>，返回值类型被赋予了 <code>&amp;self</code> 的生命周期，这样所有的生命周期都被计算出来了。</p>
+<h3 id="静态生命周期"><a href="#静态生命周期" class="headerlink" title="静态生命周期"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-03-lifetime-syntax.html#%E9%9D%99%E6%80%81%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">静态生命周期</a></h3><p>这里有一种特殊的生命周期值得讨论：<code>&#39;static</code>，其生命周期<strong>能够</strong>存活于整个程序期间。所有的字符串字面量都拥有 <code>&#39;static</code> 生命周期，我们也可以选择像下面这样标注出来：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="variable">s</span>: &amp;<span class="symbol">&#x27;static</span> <span class="type">str</span> = <span class="string">&quot;I have a static lifetime.&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这个字符串的文本被直接储存在程序的二进制文件中而这个文件总是可用的。因此所有的字符串字面量都是 <code>&#39;static</code> 的。</p>
+<p>你可能在错误信息的帮助文本中见过使用 <code>&#39;static</code> 生命周期的建议，不过将引用指定为 <code>&#39;static</code> 之前，思考一下这个引用是否真的在整个程序的生命周期里都有效。你也许要考虑是否希望它存在得这么久，即使这是可能的。大部分情况，代码中的问题是尝试创建一个悬垂引用或者可用的生命周期不匹配，请解决这些问题而不是指定一个 <code>&#39;static</code> 的生命周期。</p>
+<h3 id="结合泛型类型参数、trait-bounds-和生命周期"><a href="#结合泛型类型参数、trait-bounds-和生命周期" class="headerlink" title="结合泛型类型参数、trait bounds 和生命周期"></a><a target="_blank" rel="noopener" href="https://rustwiki.org/zh-CN/book/ch10-03-lifetime-syntax.html#%E7%BB%93%E5%90%88%E6%B3%9B%E5%9E%8B%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0trait-bounds-%E5%92%8C%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F">结合泛型类型参数、trait bounds 和生命周期</a></h3><p>让我们简要的看一下在同一函数中指定泛型类型参数、trait bounds 和生命周期的语法！</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">use</span> std::fmt::Display;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">longest_with_an_announcement</span>&lt;<span class="symbol">&#x27;a</span>, T&gt;(x: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>, y: &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span>, ann: T) <span class="punctuation">-&gt;</span> &amp;<span class="symbol">&#x27;a</span> <span class="type">str</span></span><br><span class="line">    <span class="keyword">where</span> T: Display</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;Announcement! &#123;&#125;&quot;</span>, ann);</span><br><span class="line">    <span class="keyword">if</span> x.<span class="title function_ invoke__">len</span>() &gt; y.<span class="title function_ invoke__">len</span>() &#123;</span><br><span class="line">        x</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        y</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个是示例 10-22 中那个返回两个字符串 slice 中较长者的 <code>longest</code> 函数，不过带有一个额外的参数 <code>ann</code>。<code>ann</code> 的类型是泛型 <code>T</code>，它可以被放入任何实现了 <code>where</code> 从句中指定的 <code>Display</code> trait 的类型。这个额外的参数会在函数比较字符串 slice 的长度之前被打印出来，这也就是为什么 <code>Display</code> trait bound 是必须的。因为生命周期也是泛型，所以生命周期参数 <code>&#39;a</code> 和泛型类型参数 <code>T</code> 都位于函数名后的同一尖括号列表中。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Chillward
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/07/30/RUST%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" title="RUST学习日记之生命周期">http://example.com/2025/07/30/RUST学习日记之生命周期/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RUST/" rel="tag"># RUST</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/07/30/RT-Rhread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%BA%BF%E7%A8%8B/" rel="prev" title="RT-Rhread学习日记之线程">
+      <i class="fa fa-chevron-left"></i> RT-Rhread学习日记之线程
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/08/01/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E5%92%8C%E9%9D%A2%E5%90%91%E8%BF%87%E7%A8%8B%E7%9A%84%E7%9A%84%E5%8C%BA%E5%88%AB/" rel="next" title="面向对象和面向过程的的区别">
+      面向对象和面向过程的的区别 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E4%B8%AD%E7%9A%84%E6%B3%9B%E5%9E%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">1.</span> <span class="nav-text">函数中的泛型生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%A0%87%E6%B3%A8%E8%AF%AD%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">生命周期标注语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E7%AD%BE%E5%90%8D%E4%B8%AD%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%A0%87%E6%B3%A8"><span class="nav-number">3.</span> <span class="nav-text">函数签名中的生命周期标注</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">4.</span> <span class="nav-text">深入理解生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84%E4%BD%93%E5%AE%9A%E4%B9%89%E4%B8%AD%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%A0%87%E6%B3%A8"><span class="nav-number">5.</span> <span class="nav-text">结构体定义中的生命周期标注</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%9C%81%E7%95%A5%EF%BC%88Lifetime-Elision%EF%BC%89"><span class="nav-number">6.</span> <span class="nav-text">生命周期省略（Lifetime Elision）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%9A%84%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98%E5%9B%9E%E9%A1%BE"><span class="nav-number">7.</span> <span class="nav-text">生命周期的核心问题回顾</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%9C%81%E7%95%A5%E8%A7%84%E5%88%99%E7%9A%84%E7%94%B1%E6%9D%A5"><span class="nav-number">8.</span> <span class="nav-text">生命周期省略规则的由来</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E6%9D%A1%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E7%9C%81%E7%95%A5%E8%A7%84%E5%88%99%E8%AF%A6%E8%A7%A3"><span class="nav-number">9.</span> <span class="nav-text">三条生命周期省略规则详解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%BE%93%E5%85%A5%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%A7%84%E5%88%99-%E9%92%88%E5%AF%B9%E5%87%BD%E6%95%B0%E6%88%96%E6%96%B9%E6%B3%95%E7%9A%84%E5%8F%82%E6%95%B0"><span class="nav-number">9.1.</span> <span class="nav-text">1. 输入生命周期规则 (针对函数或方法的参数)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%BE%93%E5%87%BA%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%A7%84%E5%88%99-%E9%92%88%E5%AF%B9%E5%87%BD%E6%95%B0%E6%88%96%E6%96%B9%E6%B3%95%E7%9A%84%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="nav-number">9.2.</span> <span class="nav-text">2. 输出生命周期规则 (针对函数或方法的返回值)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E6%96%B9%E6%B3%95%E7%9A%84%E8%BE%93%E5%87%BA%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E8%A7%84%E5%88%99-%E9%92%88%E5%AF%B9%E5%B8%A6%E6%9C%89-self-%E6%88%96-mut-self-%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-number">9.3.</span> <span class="nav-text">3. 方法的输出生命周期规则 (针对带有 &amp;self 或 &amp;mut self 的方法)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#first-word-%E5%92%8C-longest-%E5%87%BD%E6%95%B0%E7%9A%84%E6%8E%A8%E6%96%AD%E8%BF%87%E7%A8%8B%EF%BC%9A"><span class="nav-number">10.</span> <span class="nav-text">first_word 和 longest 函数的推断过程：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#first-word-%E5%87%BD%E6%95%B0-%E7%A4%BA%E4%BE%8B-10-26"><span class="nav-number">10.1.</span> <span class="nav-text">first_word 函数 (示例 10-26):</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#longest-%E5%87%BD%E6%95%B0-%E7%A4%BA%E4%BE%8B-10-21"><span class="nav-number">10.2.</span> <span class="nav-text">longest 函数 (示例 10-21):</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">11.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E5%AE%9A%E4%B9%89%E4%B8%AD%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%A0%87%E6%B3%A8"><span class="nav-number">12.</span> <span class="nav-text">方法定义中的生命周期标注</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">13.</span> <span class="nav-text">静态生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E5%90%88%E6%B3%9B%E5%9E%8B%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E3%80%81trait-bounds-%E5%92%8C%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">14.</span> <span class="nav-text">结合泛型类型参数、trait bounds 和生命周期</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Chillward"
+      src="/uploads/avatar.png">
+  <p class="site-author-name" itemprop="name">Chillward</p>
+  <div class="site-description" itemprop="description">谁躺在漆黑的舞台上，用身体迎接着光芒</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">博客</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chillward</span>
+</div>
+  <div class="powered-by">
+    <!--由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动 -->
+  </div>
+
+<!-- 网站运行时间的设置 -->
+<span id="timeDate">载入天数...</span>
+<span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("07/16/2025 10:00:00"); //此处修改你的建站时间或者网站上线时间
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒.";
+    }
+setInterval("createtime()",250);
+</script>
+        
+
+
+
+
+
+
+
+
+	 </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4/dist/browser/pangu.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script data-pjax>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'dark',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+    <div id="pjax">
+  
+
+  
+
+    </div>
+</body>
+</html>
