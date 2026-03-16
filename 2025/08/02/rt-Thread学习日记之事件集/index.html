@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"default"},"fold":{"enable":true,"height":300},"language":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":true,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":5,"unescape":false,"preload":true}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="事件集 事件集也是线程间同步的机制之一，一个事件集可以包含多个事件，利用事件集可以完成一对多，多对多的线程间同步。下面以坐公交为例说明事件，在公交站等公交时可能有以下几种情况： ①P1 坐公交去某地，只有一种公交可以到达目的地，等到此公交即可出发。 ②P1 坐公交去某地，有 3 种公交都可以到达目的地，等到其中任意一辆即可出发。 ③P1 约另一人 P2 一起去某地，则 P1 必须要等到 “同伴 P">
+<meta property="og:type" content="article">
+<meta property="og:title" content="rt-Thread学习日记之事件集">
+<meta property="og:url" content="http://example.com/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E4%BA%8B%E4%BB%B6%E9%9B%86/index.html">
+<meta property="og:site_name" content="Chillward的博客">
+<meta property="og:description" content="事件集 事件集也是线程间同步的机制之一，一个事件集可以包含多个事件，利用事件集可以完成一对多，多对多的线程间同步。下面以坐公交为例说明事件，在公交站等公交时可能有以下几种情况： ①P1 坐公交去某地，只有一种公交可以到达目的地，等到此公交即可出发。 ②P1 坐公交去某地，有 3 种公交都可以到达目的地，等到其中任意一辆即可出发。 ③P1 约另一人 P2 一起去某地，则 P1 必须要等到 “同伴 P">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/06event_work.png">
+<meta property="og:image" content="http://example.com/images/06event_ops.png">
+<meta property="og:image" content="http://example.com/images/06event_use.png">
+<meta property="article:published_time" content="2025-08-02T08:46:14.000Z">
+<meta property="article:modified_time" content="2025-08-02T08:55:10.491Z">
+<meta property="article:author" content="Chillward">
+<meta property="article:tag" content="rt-thread">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/06event_work.png">
+
+
+<link rel="canonical" href="http://example.com/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E4%BA%8B%E4%BB%B6%E9%9B%86/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E4%BA%8B%E4%BB%B6%E9%9B%86/","path":"2025/08/02/rt-Thread学习日记之事件集/","title":"rt-Thread学习日记之事件集"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>rt-Thread学习日记之事件集 | Chillward的博客</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lozad.js/1.16.0/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/pjax.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+  <script class="next-config" data-name="wavedrom" type="application/json">{"enable":true,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/wavedrom/3.5.0/wavedrom.min.js","integrity":"sha256-INLAoJc6quTNfiMWkGZniYO2cxE8mHpddnLow1m6RFs="}}</script>
+  <script class="next-config" data-name="wavedrom_skin" type="application/json">{"enable":true,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/wavedrom/3.5.0/skins/default.js","integrity":"sha256-fduc/Zszk5ezWws2uInY/ALWVmIrmV6VTgXbsYSReFI="}}</script>
+  <script src="/js/third-party/tags/wavedrom.js" defer></script>
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha256-UF1fgpAiu3tPJN/uCqEUHNe7pnr+QR0SQDNfgglgtcM=" crossorigin="anonymous">
+  <script class="next-config" data-name="katex" type="application/json">{"copy_tex_js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/copy-tex.min.js","integrity":"sha256-Us54+rSGDSTvIhKKUs4kygE2ipA0RXpWWh0/zLqw3bs="}}</script>
+  <script src="/js/third-party/math/katex.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Chillward的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E9%9B%86%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="nav-number">1.</span> <span class="nav-text">事件集工作机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E9%9B%86%E6%8E%A7%E5%88%B6%E5%9D%97"><span class="nav-number">2.</span> <span class="nav-text">事件集控制块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E9%9B%86%E7%9A%84%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">事件集的管理方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%92%8C%E5%88%A0%E9%99%A4%E4%BA%8B%E4%BB%B6%E9%9B%86"><span class="nav-number">3.1.</span> <span class="nav-text">创建和删除事件集</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%92%8C%E8%84%B1%E7%A6%BB%E4%BA%8B%E4%BB%B6%E9%9B%86"><span class="nav-number">3.2.</span> <span class="nav-text">初始化和脱离事件集</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%91%E9%80%81%E4%BA%8B%E4%BB%B6"><span class="nav-number">3.3.</span> <span class="nav-text">发送事件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6%E4%BA%8B%E4%BB%B6"><span class="nav-number">3.4.</span> <span class="nav-text">接收事件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E9%9B%86%E5%BA%94%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-number">4.</span> <span class="nav-text">事件集应用示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E9%9B%86%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E5%90%88"><span class="nav-number">5.</span> <span class="nav-text">事件集的使用场合</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Chillward"
+      src="/uploads/avatar.png">
+  <p class="site-author-name" itemprop="name">Chillward</p>
+  <div class="site-description" itemprop="description">西郊有密林，祝君出重围</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="返回顶部">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E4%BA%8B%E4%BB%B6%E9%9B%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.png">
+      <meta itemprop="name" content="Chillward">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chillward的博客">
+      <meta itemprop="description" content="西郊有密林，祝君出重围">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="rt-Thread学习日记之事件集 | Chillward的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          rt-Thread学习日记之事件集
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-08-02 16:46:14 / 修改时间：16:55:10" itemprop="dateCreated datePublished" datetime="2025-08-02T16:46:14+08:00">2025-08-02</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E4%BA%8B%E4%BB%B6%E9%9B%86">事件集</a></p>
+<p>事件集也是线程间同步的机制之一，一个事件集可以包含多个事件，利用事件集可以完成一对多，多对多的线程间同步。下面以坐公交为例说明事件，在公交站等公交时可能有以下几种情况：</p>
+<p>①P1 坐公交去某地，只有一种公交可以到达目的地，等到此公交即可出发。</p>
+<p>②P1 坐公交去某地，有 3 种公交都可以到达目的地，等到其中任意一辆即可出发。</p>
+<p>③P1 约另一人 P2 一起去某地，则 P1 必须要等到 “同伴 P2 到达公交站” 与“公交到达公交站”两个条件都满足后，才能出发。</p>
+<p>这里，可以将 P1 去某地视为线程，将 “公交到达公交站”、“同伴 P2 到达公交站” 视为事件的发生，情况①是特定事件唤醒线程；情况②是任意单个事件唤醒线程；情况③是多个事件同时发生才唤醒线程。</p>
+<h3 id="事件集工作机制"><a href="#事件集工作机制" class="headerlink" title="事件集工作机制"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E4%BA%8B%E4%BB%B6%E9%9B%86%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6">事件集工作机制</a></h3><p>事件集主要用于线程间的同步，与信号量不同，它的特点是可以实现一对多，多对多的同步。即一个线程与多个事件的关系可设置为：其中任意一个事件唤醒线程，或几个事件都到达后才唤醒线程进行后续的处理；同样，事件也可以是多个线程同步多个事件。这种多个事件的集合可以用一个 32 位无符号整型变量来表示，变量的每一位代表一个事件，线程通过 “逻辑与” 或“逻辑或”将一个或多个事件关联起来，形成事件组合。事件的 “逻辑或” 也称为是独立型同步，指的是线程与任何事件之一发生同步；事件 “逻辑与” 也称为是关联型同步，指的是线程与若干事件都发生同步。</p>
+<p>RT-Thread 定义的事件集有以下特点：</p>
+<p>1）事件只与线程相关，事件间相互独立：每个线程可拥有 32 个事件标志，采用一个 32 bit 无符号整型数进行记录，每一个 bit 代表一个事件；</p>
+<p>2）事件仅用于同步，不提供数据传输功能；</p>
+<p>3）事件无排队性，即多次向线程发送同一事件 (如果线程还未来得及读走)，其效果等同于只发送一次。</p>
+<p>在 RT-Thread 中，每个线程都拥有一个事件信息标记，它有三个属性，分别是 RT_EVENT_FLAG_AND(逻辑与)，RT_EVENT_FLAG_OR(逻辑或）以及 RT_EVENT_FLAG_CLEAR(清除标记）。当线程等待事件同步时，可以通过 32 个事件标志和这个事件信息标记来判断当前接收的事件是否满足同步条件。</p>
+<p><img data-src="/../images/06event_work.png" alt="事件集工作示意图"></p>
+<p>如上图所示，线程 #1 的事件标志中第 1 位和第 30 位被置位，如果事件信息标记位设为逻辑与，则表示线程 #1 只有在事件 1 和事件 30 都发生以后才会被触发唤醒，如果事件信息标记位设为逻辑或，则事件 1 或事件 30 中的任意一个发生都会触发唤醒线程 #1。如果信息标记同时设置了清除标记位，则当线程 #1 唤醒后将主动把事件 1 和事件 30 清为零，否则事件标志将依然存在（即置 1）。</p>
+<h3 id="事件集控制块"><a href="#事件集控制块" class="headerlink" title="事件集控制块"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E4%BA%8B%E4%BB%B6%E9%9B%86%E6%8E%A7%E5%88%B6%E5%9D%97">事件集控制块</a></h3><p>在 RT-Thread 中，事件集控制块是操作系统用于管理事件的一个数据结构，由结构体 struct rt_event 表示。另外一种 C 表达方式 rt_event_t，表示的是事件集的句柄，在 C 语言中的实现是事件集控制块的指针。事件集控制块结构的详细定义请见以下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">rt_event</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">rt_ipc_object</span> <span class="title">parent</span>;</span>    <span class="comment">/* 继承自 ipc_object 类 */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 事件集合，每一 bit 表示 1 个事件，bit 位的值可以标记某事件是否发生 */</span></span><br><span class="line">    <span class="type">rt_uint32_t</span> <span class="built_in">set</span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">/* rt_event_t 是指向事件结构体的指针类型  */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">rt_event</span>* <span class="title">rt_event_t</span>;</span></span><br></pre></td></tr></table></figure>
+
+<p>rt_event 对象从 rt_ipc_object 中派生，由 IPC 容器所管理。</p>
+<h3 id="事件集的管理方式"><a href="#事件集的管理方式" class="headerlink" title="事件集的管理方式"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E4%BA%8B%E4%BB%B6%E9%9B%86%E7%9A%84%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F">事件集的管理方式</a></h3><p>事件集控制块中含有与事件集相关的重要参数，在事件集功能的实现中起重要的作用。事件集相关接口如下图所示，对一个事件集的操作包含：创建 &#x2F; 初始化事件集、发送事件、接收事件、删除 &#x2F; 脱离事件集。</p>
+<p><img data-src="/../images/06event_ops.png" alt="事件相关接口"></p>
+<h4 id="创建和删除事件集"><a href="#创建和删除事件集" class="headerlink" title="创建和删除事件集"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E5%88%9B%E5%BB%BA%E5%92%8C%E5%88%A0%E9%99%A4%E4%BA%8B%E4%BB%B6%E9%9B%86">创建和删除事件集</a></h4><p>当创建一个事件集时，内核首先创建一个事件集控制块，然后对该事件集控制块进行基本的初始化，创建事件集使用下面的函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_event_t</span> <span class="title function_">rt_event_create</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* name, <span class="type">rt_uint8_t</span> flag)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>调用该函数接口时，系统会从对象管理器中分配事件集对象，并初始化这个对象，然后初始化父类 IPC 对象。下表描述了该函数的输入参数与返回值：</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>name</td>
+<td>事件集的名称</td>
+</tr>
+<tr>
+<td>flag</td>
+<td>事件集的标志，它可以取如下数值： RT_IPC_FLAG_FIFO 或 RT_IPC_FLAG_PRIO</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_NULL</td>
+<td>创建失败</td>
+</tr>
+<tr>
+<td>事件对象的句柄</td>
+<td>创建成功</td>
+</tr>
+</tbody></table>
+<p>Note</p>
+<p>注：RT_IPC_FLAG_FIFO 属于非实时调度方式，除非应用程序非常在意先来后到，并且你清楚地明白所有涉及到该事件集的线程都将会变为非实时线程，方可使用 RT_IPC_FLAG_FIFO，否则建议采用 RT_IPC_FLAG_PRIO，即确保线程的实时性。</p>
+<p>系统不再使用 rt_event_create() 创建的事件集对象时，通过删除事件集对象控制块来释放系统资源。删除事件集可以使用下面的函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_event_delete</span><span class="params">(<span class="type">rt_event_t</span> event)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在调用 rt_event_delete 函数删除一个事件集对象时，应该确保该事件集不再被使用。在删除前会唤醒所有挂起在该事件集上的线程（线程的返回值是 - RT_ERROR），然后释放事件集对象占用的内存块。下表描述了该函数的输入参数与返回值：</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>event</td>
+<td>事件集对象的句柄</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>成功</td>
+</tr>
+</tbody></table>
+<h4 id="初始化和脱离事件集"><a href="#初始化和脱离事件集" class="headerlink" title="初始化和脱离事件集"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E5%88%9D%E5%A7%8B%E5%8C%96%E5%92%8C%E8%84%B1%E7%A6%BB%E4%BA%8B%E4%BB%B6%E9%9B%86">初始化和脱离事件集</a></h4><p>静态事件集对象的内存是在系统编译时由编译器分配的，一般放于读写数据段或未初始化数据段中。在使用静态事件集对象前，需要先行对它进行初始化操作。初始化事件集使用下面的函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_event_init</span><span class="params">(<span class="type">rt_event_t</span> event, <span class="type">const</span> <span class="type">char</span>* name, <span class="type">rt_uint8_t</span> flag)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>调用该接口时，需指定静态事件集对象的句柄（即指向事件集控制块的指针），然后系统会初始化事件集对象，并加入到系统对象容器中进行管理。下表描述了该函数的输入参数与返回值：</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>event</td>
+<td>事件集对象的句柄</td>
+</tr>
+<tr>
+<td>name</td>
+<td>事件集的名称</td>
+</tr>
+<tr>
+<td>flag</td>
+<td>事件集的标志，它可以取如下数值： RT_IPC_FLAG_FIFO 或 RT_IPC_FLAG_PRIO</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>成功</td>
+</tr>
+</tbody></table>
+<p>系统不再使用 rt_event_init() 初始化的事件集对象时，通过脱离事件集对象控制块来释放系统资源。脱离事件集是将事件集对象从内核对象管理器中脱离。脱离事件集使用下面的函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_event_detach</span><span class="params">(<span class="type">rt_event_t</span> event)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>用户调用这个函数时，系统首先唤醒所有挂在该事件集等待队列上的线程（线程的返回值是 - RT_ERROR），然后将该事件集从内核对象管理器中脱离。下表描述了该函数的输入参数与返回值：</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>event</td>
+<td>事件集对象的句柄</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>成功</td>
+</tr>
+</tbody></table>
+<h4 id="发送事件"><a href="#发送事件" class="headerlink" title="发送事件"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E5%8F%91%E9%80%81%E4%BA%8B%E4%BB%B6">发送事件</a></h4><p>发送事件函数可以发送事件集中的一个或多个事件，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_event_send</span><span class="params">(<span class="type">rt_event_t</span> event, <span class="type">rt_uint32_t</span> <span class="built_in">set</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>使用该函数接口时，通过参数 set 指定的事件标志来设定 event 事件集对象的事件标志值，然后遍历等待在 event 事件集对象上的等待线程链表，判断是否有线程的事件激活要求与当前 event 对象事件标志值匹配，如果有，则唤醒该线程。下表描述了该函数的输入参数与返回值：</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>event</td>
+<td>事件集对象的句柄</td>
+</tr>
+<tr>
+<td>set</td>
+<td>发送的一个或多个事件的标志值</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>成功</td>
+</tr>
+</tbody></table>
+<h4 id="接收事件"><a href="#接收事件" class="headerlink" title="接收事件"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E6%8E%A5%E6%94%B6%E4%BA%8B%E4%BB%B6">接收事件</a></h4><p>内核使用 32 位的无符号整数来标识事件集，它的每一位代表一个事件，因此一个事件集对象可同时等待接收 32 个事件，内核可以通过指定选择参数 “逻辑与” 或“逻辑或”来选择如何激活线程，使用 “逻辑与” 参数表示只有当所有等待的事件都发生时才激活线程，而使用 “逻辑或” 参数则表示只要有一个等待的事件发生就激活线程。接收事件使用下面的函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_event_recv</span><span class="params">(<span class="type">rt_event_t</span> event,</span></span><br><span class="line"><span class="params">                           <span class="type">rt_uint32_t</span> <span class="built_in">set</span>,</span></span><br><span class="line"><span class="params">                           <span class="type">rt_uint8_t</span> option,</span></span><br><span class="line"><span class="params">                           <span class="type">rt_int32_t</span> timeout,</span></span><br><span class="line"><span class="params">                           <span class="type">rt_uint32_t</span>* recved)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>当用户调用这个接口时，系统首先根据 set 参数和接收选项 option 来判断它要接收的事件是否发生，如果已经发生，则根据参数 option 上是否设置有 RT_EVENT_FLAG_CLEAR 来决定是否重置事件的相应标志位，然后返回（其中 recved 参数返回接收到的事件）；如果没有发生，则把等待的 set 和 option 参数填入线程本身的结构中，然后把线程挂起在此事件上，直到其等待的事件满足条件或等待时间超过指定的超时时间。如果超时时间设置为零，则表示当线程要接受的事件没有满足其要求时就不等待，而直接返回 - RT_ETIMEOUT。下表描述了该函数的输入参数与返回值：</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>event</td>
+<td>事件集对象的句柄</td>
+</tr>
+<tr>
+<td>set</td>
+<td>接收线程感兴趣的事件</td>
+</tr>
+<tr>
+<td>option</td>
+<td>接收选项</td>
+</tr>
+<tr>
+<td>timeout</td>
+<td>指定超时时间</td>
+</tr>
+<tr>
+<td>recved</td>
+<td>指向接收到的事件</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>成功</td>
+</tr>
+<tr>
+<td>-RT_ETIMEOUT</td>
+<td>超时</td>
+</tr>
+<tr>
+<td>-RT_ERROR</td>
+<td>错误</td>
+</tr>
+</tbody></table>
+<p>option 的值可取：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 选择 逻辑与 或 逻辑或 的方式接收事件 */</span></span><br><span class="line">RT_EVENT_FLAG_OR</span><br><span class="line">RT_EVENT_FLAG_AND</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 选择清除重置事件标志位 */</span></span><br><span class="line">RT_EVENT_FLAG_CLEAR</span><br></pre></td></tr></table></figure>
+
+<h3 id="事件集应用示例"><a href="#事件集应用示例" class="headerlink" title="事件集应用示例"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E4%BA%8B%E4%BB%B6%E9%9B%86%E5%BA%94%E7%94%A8%E7%A4%BA%E4%BE%8B">事件集应用示例</a></h3><p>这是事件集的应用例程，例子中初始化了一个事件集，两个线程。一个线程等待自己关心的事件发生，另外一个线程发送事件，如以下代码所示：</p>
+<p><strong>事件集的使用例程</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;rtthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> THREAD_PRIORITY      9</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> THREAD_TIMESLICE     5</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> EVENT_FLAG3 (1 &lt;&lt; 3)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> EVENT_FLAG5 (1 &lt;&lt; 5)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 事件控制块 */</span></span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">rt_event</span> <span class="title">event</span>;</span></span><br><span class="line"></span><br><span class="line">ALIGN(RT_ALIGN_SIZE)</span><br><span class="line"><span class="type">static</span> <span class="type">char</span> thread1_stack[<span class="number">1024</span>];</span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">rt_thread</span> <span class="title">thread1</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 线程 1 入口函数 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">thread1_recv_event</span><span class="params">(<span class="type">void</span> *param)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">rt_uint32_t</span> e;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 第一次接收事件，事件 3 或事件 5 任意一个可以触发线程 1，接收完后清除事件标志 */</span></span><br><span class="line">    <span class="keyword">if</span> (rt_event_recv(&amp;event, (EVENT_FLAG3 | EVENT_FLAG5),</span><br><span class="line">                      RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,</span><br><span class="line">                      RT_WAITING_FOREVER, &amp;e) == RT_EOK)</span><br><span class="line">    &#123;</span><br><span class="line">        rt_kprintf(<span class="string">&quot;thread1: OR recv event 0x%x\n&quot;</span>, e);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    rt_kprintf(<span class="string">&quot;thread1: delay 1s to prepare the second event\n&quot;</span>);</span><br><span class="line">    rt_thread_mdelay(<span class="number">1000</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 第二次接收事件，事件 3 和事件 5 均发生时才可以触发线程 1，接收完后清除事件标志 */</span></span><br><span class="line">    <span class="keyword">if</span> (rt_event_recv(&amp;event, (EVENT_FLAG3 | EVENT_FLAG5),</span><br><span class="line">                      RT_EVENT_FLAG_AND | RT_EVENT_FLAG_CLEAR,</span><br><span class="line">                      RT_WAITING_FOREVER, &amp;e) == RT_EOK)</span><br><span class="line">    &#123;</span><br><span class="line">        rt_kprintf(<span class="string">&quot;thread1: AND recv event 0x%x\n&quot;</span>, e);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* 执行完该事件集后进行事件集的脱离，事件集重复初始化会导致再次运行时，出现重复初始化的问题 */</span></span><br><span class="line">    rt_event_detach(&amp;event);</span><br><span class="line">    rt_kprintf(<span class="string">&quot;thread1 leave.\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">ALIGN(RT_ALIGN_SIZE)</span><br><span class="line"><span class="type">static</span> <span class="type">char</span> thread2_stack[<span class="number">1024</span>];</span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">rt_thread</span> <span class="title">thread2</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 线程 2 入口 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">thread2_send_event</span><span class="params">(<span class="type">void</span> *param)</span></span><br><span class="line">&#123;</span><br><span class="line">    rt_kprintf(<span class="string">&quot;thread2: send event3\n&quot;</span>);</span><br><span class="line">    rt_event_send(&amp;event, EVENT_FLAG3);</span><br><span class="line">    rt_thread_mdelay(<span class="number">200</span>);</span><br><span class="line"></span><br><span class="line">    rt_kprintf(<span class="string">&quot;thread2: send event5\n&quot;</span>);</span><br><span class="line">    rt_event_send(&amp;event, EVENT_FLAG5);</span><br><span class="line">    rt_thread_mdelay(<span class="number">200</span>);</span><br><span class="line"></span><br><span class="line">    rt_kprintf(<span class="string">&quot;thread2: send event3\n&quot;</span>);</span><br><span class="line">    rt_event_send(&amp;event, EVENT_FLAG3);</span><br><span class="line">    rt_kprintf(<span class="string">&quot;thread2 leave.\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">event_sample</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">rt_err_t</span> result;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 初始化事件对象 */</span></span><br><span class="line">    result = rt_event_init(&amp;event, <span class="string">&quot;event&quot;</span>, RT_IPC_FLAG_PRIO);</span><br><span class="line">    <span class="keyword">if</span> (result != RT_EOK)</span><br><span class="line">    &#123;</span><br><span class="line">        rt_kprintf(<span class="string">&quot;init event failed.\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    rt_thread_init(&amp;thread1,</span><br><span class="line">                   <span class="string">&quot;thread1&quot;</span>,</span><br><span class="line">                   thread1_recv_event,</span><br><span class="line">                   RT_NULL,</span><br><span class="line">                   &amp;thread1_stack[<span class="number">0</span>],</span><br><span class="line">                   <span class="keyword">sizeof</span>(thread1_stack),</span><br><span class="line">                   THREAD_PRIORITY - <span class="number">1</span>, THREAD_TIMESLICE);</span><br><span class="line">    rt_thread_startup(&amp;thread1);</span><br><span class="line"></span><br><span class="line">    rt_thread_init(&amp;thread2,</span><br><span class="line">                   <span class="string">&quot;thread2&quot;</span>,</span><br><span class="line">                   thread2_send_event,</span><br><span class="line">                   RT_NULL,</span><br><span class="line">                   &amp;thread2_stack[<span class="number">0</span>],</span><br><span class="line">                   <span class="keyword">sizeof</span>(thread2_stack),</span><br><span class="line">                   THREAD_PRIORITY, THREAD_TIMESLICE);</span><br><span class="line">    rt_thread_startup(&amp;thread2);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 导出到 msh 命令列表中 */</span></span><br><span class="line">MSH_CMD_EXPORT(event_sample, event sample);</span><br></pre></td></tr></table></figure>
+
+<p>仿真运行结果如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"> \ | /</span><br><span class="line">- RT -     Thread Operating System</span><br><span class="line"> / | \     <span class="number">4.1</span>.<span class="number">1</span> build Sep  <span class="number">5</span> <span class="number">2024</span> <span class="number">15</span>:<span class="number">53</span>:<span class="number">21</span></span><br><span class="line"> <span class="number">2006</span> - <span class="number">2022</span> Copyright by RT-Thread team</span><br><span class="line">msh &gt;event_sample</span><br><span class="line">thread2: send event3</span><br><span class="line">thread1: OR recv event <span class="number">0x8</span></span><br><span class="line">thread1: delay <span class="number">1</span>s to prepare the second event</span><br><span class="line">msh &gt;thread2: send event5</span><br><span class="line">thread2: send event3</span><br><span class="line">thread2 leave.</span><br><span class="line">thread1: AND recv event <span class="number">0x28</span></span><br><span class="line">thread1 leave.</span><br><span class="line"></span><br><span class="line">msh &gt;event_sample</span><br><span class="line">thread2: send event3</span><br><span class="line">thread1: OR recv event <span class="number">0x8</span></span><br><span class="line">thread1: delay <span class="number">1</span>s to prepare the second event</span><br><span class="line">msh &gt;thread2: send event5</span><br><span class="line">thread2: send event3</span><br><span class="line">thread2 leave.</span><br><span class="line">thread1: AND recv event <span class="number">0x28</span></span><br><span class="line">thread1 leave.</span><br></pre></td></tr></table></figure>
+
+<p>例程演示了事件集的使用方法。线程 1 前后两次接收事件，分别使用了 “逻辑或” 与“逻辑与”的方法。</p>
+<h3 id="事件集的使用场合"><a href="#事件集的使用场合" class="headerlink" title="事件集的使用场合"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/ipc1/ipc1?id=%E4%BA%8B%E4%BB%B6%E9%9B%86%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E5%90%88">事件集的使用场合</a></h3><p>事件集可使用于多种场合，它能够在一定程度上替代信号量，用于线程间同步。一个线程或中断服务例程发送一个事件给事件集对象，而后等待的线程被唤醒并对相应的事件进行处理。但是它与信号量不同的是，事件的发送操作在事件未清除前，是不可累计的，而信号量的释放动作是累计的。事件的另一个特性是，接收线程可等待多种事件，即多个事件对应一个线程或多个线程。同时按照线程等待的参数，可选择是 “逻辑或” 触发还是 “逻辑与” 触发。这个特性也是信号量等所不具备的，信号量只能识别单一的释放动作，而不能同时等待多种类型的释放。如下图所示为多事件接收示意图：</p>
+<p><img data-src="/../images/06event_use.png" alt="多事件接收示意图"></p>
+<p>一个事件集中包含 32 个事件，特定线程只等待、接收它关注的事件。可以是一个线程等待多个事件的到来（线程 1、2 均等待多个事件，事件间可以使用 “与” 或者 “或” 逻辑触发线程），也可以是多个线程等待一个事件的到来（事件 25）。当有它们关注的事件发生时，线程将被唤醒并进行后续的处理动作。</p>
+<blockquote>
+<p>这写的还是挺像人话的，就是暂时不知道有什么用</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/rt-thread/" rel="tag"># rt-thread</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E4%BF%A1%E5%8F%B7%E9%87%8F%E4%B8%8E%E4%BA%92%E6%96%A5%E9%87%8F/" rel="prev" title="rt-Thread学习日记之信号量与互斥量">
+                  <i class="fa fa-angle-left"></i> rt-Thread学习日记之信号量与互斥量
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/08/03/C%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0lambdas/" rel="next" title="C语言实现lambdas">
+                  C语言实现lambdas <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Chillward</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

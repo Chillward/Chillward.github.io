@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"default"},"fold":{"enable":true,"height":300},"language":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":true,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":5,"unescape":false,"preload":true}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="任何操作系统都需要提供一个时钟节拍，以供系统处理所有和时间有关的事件，如线程的延时、线程的时间片轮转调度以及定时器超时等。时钟节拍是特定的周期性中断，这个中断可以看做是系统心跳，中断之间的时间间隔取决于不同的应用，一般是 1ms–100ms，时钟节拍率越快，系统的实时响应越快，但是系统的额外开销就越大，从系统启动开始计数的时钟节拍数称为系统时间。  可以类比之前蓝桥杯的时候用到systick实现">
+<meta property="og:type" content="article">
+<meta property="og:title" content="rt-Thread学习日记之时钟管理">
+<meta property="og:url" content="http://example.com/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%97%B6%E9%92%9F%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="Chillward的博客">
+<meta property="og:description" content="任何操作系统都需要提供一个时钟节拍，以供系统处理所有和时间有关的事件，如线程的延时、线程的时间片轮转调度以及定时器超时等。时钟节拍是特定的周期性中断，这个中断可以看做是系统心跳，中断之间的时间间隔取决于不同的应用，一般是 1ms–100ms，时钟节拍率越快，系统的实时响应越快，但是系统的额外开销就越大，从系统启动开始计数的时钟节拍数称为系统时间。  可以类比之前蓝桥杯的时候用到systick实现">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/image-20250802082923845.png">
+<meta property="og:image" content="http://example.com/images/05timer_linked_list.png">
+<meta property="og:image" content="http://example.com/images/05timer_linked_list2.png">
+<meta property="og:image" content="http://example.com/images/05timer_ops.png">
+<meta property="article:published_time" content="2025-08-01T23:09:46.000Z">
+<meta property="article:modified_time" content="2025-08-02T02:05:23.869Z">
+<meta property="article:author" content="Chillward">
+<meta property="article:tag" content="rt-thread">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/image-20250802082923845.png">
+
+
+<link rel="canonical" href="http://example.com/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%97%B6%E9%92%9F%E7%AE%A1%E7%90%86/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%97%B6%E9%92%9F%E7%AE%A1%E7%90%86/","path":"2025/08/02/rt-Thread学习日记之时钟管理/","title":"rt-Thread学习日记之时钟管理"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>rt-Thread学习日记之时钟管理 | Chillward的博客</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lozad.js/1.16.0/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/pjax.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+  <script class="next-config" data-name="wavedrom" type="application/json">{"enable":true,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/wavedrom/3.5.0/wavedrom.min.js","integrity":"sha256-INLAoJc6quTNfiMWkGZniYO2cxE8mHpddnLow1m6RFs="}}</script>
+  <script class="next-config" data-name="wavedrom_skin" type="application/json">{"enable":true,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/wavedrom/3.5.0/skins/default.js","integrity":"sha256-fduc/Zszk5ezWws2uInY/ALWVmIrmV6VTgXbsYSReFI="}}</script>
+  <script src="/js/third-party/tags/wavedrom.js" defer></script>
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha256-UF1fgpAiu3tPJN/uCqEUHNe7pnr+QR0SQDNfgglgtcM=" crossorigin="anonymous">
+  <script class="next-config" data-name="katex" type="application/json">{"copy_tex_js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/copy-tex.min.js","integrity":"sha256-Us54+rSGDSTvIhKKUs4kygE2ipA0RXpWWh0/zLqw3bs="}}</script>
+  <script src="/js/third-party/math/katex.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Chillward的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%92%9F%E8%8A%82%E6%8B%8D%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">时钟节拍的实现方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RT-Thread-%E7%9A%84%E8%BD%AF%E4%BB%B6%E5%AE%9A%E6%97%B6%E5%99%A8%E7%B3%BB%E7%BB%9F"><span class="nav-number">2.</span> <span class="nav-text">RT-Thread 的软件定时器系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rt-timer-check-%E5%87%BD%E6%95%B0%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">3.</span> <span class="nav-text">rt_timer_check() 函数的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%91%A8%E6%9C%9F%E6%80%A7%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E7%89%B9%E6%AE%8A%E5%A4%84%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">周期性定时器的特殊处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E6%97%B6%E9%92%9F%E8%8A%82%E6%8B%8D"><span class="nav-number">6.</span> <span class="nav-text">获取时钟节拍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8%E7%AE%A1%E7%90%86"><span class="nav-number">7.</span> <span class="nav-text">定时器管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RT-Thread-%E5%AE%9A%E6%97%B6%E5%99%A8%E4%BB%8B%E7%BB%8D"><span class="nav-number">7.1.</span> <span class="nav-text">RT-Thread 定时器介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A6%E5%8F%91%E6%9C%BA%E5%88%B6"><span class="nav-number">7.1.1.</span> <span class="nav-text">触发机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%BC%8F"><span class="nav-number">7.2.</span> <span class="nav-text">执行模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#HARD-TIMER-%E6%A8%A1%E5%BC%8F"><span class="nav-number">7.2.1.</span> <span class="nav-text">HARD_TIMER 模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SOFT-TIMER-%E6%A8%A1%E5%BC%8F"><span class="nav-number">7.2.2.</span> <span class="nav-text">SOFT_TIMER 模式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="nav-number">7.3.</span> <span class="nav-text">定时器工作机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8%E6%8E%A7%E5%88%B6%E5%9D%97"><span class="nav-number">7.3.1.</span> <span class="nav-text">定时器控制块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8%E8%B7%B3%E8%A1%A8-Skip-List-%E7%AE%97%E6%B3%95"><span class="nav-number">7.3.2.</span> <span class="nav-text">定时器跳表 (Skip List) 算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F"><span class="nav-number">7.4.</span> <span class="nav-text">定时器的管理方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%92%8C%E5%88%A0%E9%99%A4%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="nav-number">7.4.1.</span> <span class="nav-text">创建和删除定时器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%92%8C%E8%84%B1%E7%A6%BB%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="nav-number">7.4.2.</span> <span class="nav-text">初始化和脱离定时器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E5%92%8C%E5%81%9C%E6%AD%A2%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="nav-number">7.4.3.</span> <span class="nav-text">启动和停止定时器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%A7%E5%88%B6%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="nav-number">7.4.4.</span> <span class="nav-text">控制定时器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8%E5%BA%94%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-number">8.</span> <span class="nav-text">定时器应用示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AB%98%E7%B2%BE%E5%BA%A6%E5%BB%B6%E6%97%B6"><span class="nav-number">9.</span> <span class="nav-text">高精度延时</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Chillward"
+      src="/uploads/avatar.png">
+  <p class="site-author-name" itemprop="name">Chillward</p>
+  <div class="site-description" itemprop="description">西郊有密林，祝君出重围</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="返回顶部">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E6%97%B6%E9%92%9F%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.png">
+      <meta itemprop="name" content="Chillward">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chillward的博客">
+      <meta itemprop="description" content="西郊有密林，祝君出重围">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="rt-Thread学习日记之时钟管理 | Chillward的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          rt-Thread学习日记之时钟管理
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-08-02 07:09:46 / 修改时间：10:05:23" itemprop="dateCreated datePublished" datetime="2025-08-02T07:09:46+08:00">2025-08-02</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><blockquote>
+<p>任何操作系统都需要提供一个时钟节拍，以供系统处理所有和时间有关的事件，如线程的延时、线程的时间片轮转调度以及定时器超时等。时钟节拍是特定的周期性中断，这个中断可以看做是系统心跳，中断之间的时间间隔取决于不同的应用，一般是 1ms–100ms，时钟节拍率越快，系统的实时响应越快，但是系统的额外开销就越大，从系统启动开始计数的时钟节拍数称为系统时间。</p>
+</blockquote>
+<p>可以类比之前蓝桥杯的时候用到systick实现的”系统心跳”，不过rt-thread将其进行了进一步封装。在不同的硬件平台上，这个时钟节拍的实现方式是不一样的。</p>
+<p>在stm32上，一般是由一个配置为中断模式的硬件定时器来实现的(并且一般是systick，当systick被占用时，可以由其他定时器代替)。</p>
+<blockquote>
+<p>这个中断可以看做是系统心跳，中断之间的时间间隔取决于不同的应用，一般是 1ms–100ms，时钟节拍率越快，系统的实时响应越快，但是系统的额外开销就越大，从系统启动开始计数的时钟节拍数称为系统时间。RT-Thread 中，时钟节拍的长度可以根据 RT_TICK_PER_SECOND 的定义来调整，等于 1&#x2F;RT_TICK_PER_SECOND 秒。</p>
+</blockquote>
+<h3 id="时钟节拍的实现方式"><a href="#时钟节拍的实现方式" class="headerlink" title="时钟节拍的实现方式"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E6%97%B6%E9%92%9F%E8%8A%82%E6%8B%8D%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F">时钟节拍的实现方式</a></h3><p>时钟节拍由配置为中断触发模式的硬件定时器产生，当中断到来时，将调用一次：void rt_tick_increase(void)，通知操作系统已经过去一个系统时钟；不同硬件定时器中断实现都不同，下面的中断函数以 STM32 定时器作为示例。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">SysTick_Handler</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* 进入中断 */</span></span><br><span class="line">    rt_interrupt_enter();</span><br><span class="line">    ……</span><br><span class="line">    rt_tick_increase();</span><br><span class="line">    <span class="comment">/* 退出中断 */</span></span><br><span class="line">    rt_interrupt_leave();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在中断函数中调用 rt_tick_increase() 对全局变量 rt_tick 进行自加，代码如下所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">rt_tick_increase</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">rt_thread</span> *<span class="title">thread</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 全局变量 rt_tick 自加 */</span></span><br><span class="line">    ++ rt_tick;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 检查时间片 */</span></span><br><span class="line">    thread = rt_thread_self();</span><br><span class="line"></span><br><span class="line">    -- thread-&gt;remaining_tick;</span><br><span class="line">    <span class="keyword">if</span> (thread-&gt;remaining_tick == <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* 重新赋初值 */</span></span><br><span class="line">        thread-&gt;remaining_tick = thread-&gt;init_tick;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 线程挂起 */</span></span><br><span class="line">        rt_thread_yield();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 检查定时器 */</span></span><br><span class="line">    rt_timer_check();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到全局变量 rt_tick 在每经过一个时钟节拍时，值就会加 1，rt_tick 的值表示了系统从启动开始总共经过的时钟节拍数，即系统时间。此外，每经过一个时钟节拍时，都会检查当前线程的时间片是否用完，以及是否有定时器超时。</p>
+<blockquote>
+<p> 注：中断中的 rt_timer_check() 用于检查系统硬件定时器链表，如果有定时器超时，将调用相应的超时函数。且所有定时器在定时超时后都会从定时器链表中被移除，而周期性定时器会在它再次启动时被加入定时器链表。</p>
+</blockquote>
+<p>上头这句话是什么意思，我去问了一下Ai，它给了我这样的回复</p>
+<p>你提到的“系统硬件定时器链表”是一个关键概念，但根据RT-Thread的实现，它其实更准确地说是<strong>软件定时器链表</strong>，并且这个链表是由硬件定时器驱动的。</p>
+<p>让我来为你详细解释一下这个机制。</p>
+<h3 id="RT-Thread-的软件定时器系统"><a href="#RT-Thread-的软件定时器系统" class="headerlink" title="RT-Thread 的软件定时器系统"></a>RT-Thread 的软件定时器系统</h3><p>RT-Thread 并没有一个专门用于硬件定时器的链表。它只有一个<strong>全局的软件定时器链表</strong>，所有由 <code>rt_timer_create()</code> 创建的定时器，无论它们是单次定时还是周期性定时，都会被挂载到这个链表中。</p>
+<p>这个链表是一个<strong>按超时时间排序的链表</strong>。系统在每次时钟节拍（Tick）中断中，都会检查这个链表。</p>
+<h3 id="rt-timer-check-函数的作用"><a href="#rt-timer-check-函数的作用" class="headerlink" title="rt_timer_check() 函数的作用"></a><code>rt_timer_check()</code> 函数的作用</h3><p><code>rt_timer_check()</code> 这个函数在每个时钟节拍中断中被调用，它的主要职责是：</p>
+<ol>
+<li><strong>检查链表头部的定时器是否超时</strong>：它会遍历软件定时器链表，比较每个定时器的超时时间与当前的系统时钟节拍 (<code>rt_tick</code>)。</li>
+<li><strong>调用超时函数</strong>：如果发现有定时器超时，它会调用你为该定时器设定的回调函数。</li>
+<li><strong>移除定时器</strong>：无论是单次定时器还是周期性定时器，在超时并执行完回调函数后，<code>rt_timer_check()</code> 都会将它从链表中移除。</li>
+</ol>
+<h3 id="周期性定时器的特殊处理"><a href="#周期性定时器的特殊处理" class="headerlink" title="周期性定时器的特殊处理"></a>周期性定时器的特殊处理</h3><p>这里就是你提到的“周期性定时器会在它再次启动时被加入定时器链表”的机制。对于一个<strong>周期性定时器</strong>，当它超时并被移除后，系统会：</p>
+<ul>
+<li><strong>重新计算下一次超时时间</strong>：根据它的周期值，计算出它下一次的超时节拍。</li>
+<li><strong>重新加入链表</strong>：将它重新插入到软件定时器链表中的正确位置（按照新的超时时间排序）。</li>
+</ul>
+<p>通过这种方式，周期性定时器才能不断地重复执行。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>所以，你所说的“系统硬件定时器链表”更准确的理解应该是：</p>
+<p>一个<strong>由硬件定时器中断驱动的、按超时时间排序的软件定时器链表</strong>。硬件定时器提供周期性的“心跳”，而 <code>rt_timer_check()</code> 函数在每次“心跳”中检查这个链表，并处理那些超时的软件定时器。这个链表是 RT-Thread 软件定时器系统的核心，实现了所有定时器的管理、调度和执行。</p>
+<h3 id="获取时钟节拍"><a href="#获取时钟节拍" class="headerlink" title="获取时钟节拍"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E8%8E%B7%E5%8F%96%E6%97%B6%E9%92%9F%E8%8A%82%E6%8B%8D">获取时钟节拍</a></h3><p>由于全局变量 rt_tick 在每经过一个时钟节拍时，值就会加 1，通过调用 rt_tick_get 会返回当前 rt_tick 的值，即可以获取到当前的时钟节拍值。此接口可用于记录系统的运行时间长短，或者测量某任务运行的时间。接口函数如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_tick_t</span> <span class="title function_">rt_tick_get</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>下表描述了 rt_tick_get() 函数的返回值：</p>
+<table>
+<thead>
+<tr>
+<th><strong>返回</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>rt_tick</td>
+<td>当前时钟节拍值</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>这个函数其实就类似于HAL库里头的HAL_GetTick();这个函数(函数名应该是这个)，不过rt-thread对其进行了进一步封装</p>
+</blockquote>
+<h2 id="定时器管理"><a href="#定时器管理" class="headerlink" title="定时器管理"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E5%AE%9A%E6%97%B6%E5%99%A8%E7%AE%A1%E7%90%86">定时器管理</a></h2><p>定时器，是指从指定的时刻开始，经过一定的指定时间后触发一个事件，例如定个时间提醒第二天能够按时起床。定时器有硬件定时器和软件定时器之分：</p>
+<p>1）<strong>硬件定时器</strong>是芯片本身提供的定时功能。一般是由外部晶振提供给芯片输入时钟，芯片向软件模块提供一组配置寄存器，接受控制输入，到达设定时间值后芯片中断控制器产生时钟中断。硬件定时器的精度一般很高，可以达到纳秒级别，并且是中断触发方式。</p>
+<p>2）<strong>软件定时器</strong>是由操作系统提供的一类系统接口，它构建在硬件定时器基础之上，使系统能够提供不受数目限制的定时器服务。</p>
+<p>RT-Thread 操作系统提供软件实现的定时器，以时钟节拍（OS Tick）的时间长度为单位，即定时数值必须是 OS Tick 的整数倍，例如一个 OS Tick 是 10ms，那么上层软件定时器只能是 10ms，20ms，100ms 等，而不能定时为 15ms。RT-Thread 的定时器也基于系统的节拍，提供了基于节拍整数倍的定时能力。</p>
+<h3 id="RT-Thread-定时器介绍"><a href="#RT-Thread-定时器介绍" class="headerlink" title="RT-Thread 定时器介绍"></a>RT-Thread 定时器介绍</h3><p>RT-Thread 的定时器提供了两类触发机制和两种执行模式。</p>
+<h4 id="触发机制"><a href="#触发机制" class="headerlink" title="触发机制"></a>触发机制</h4><ul>
+<li><strong>单次触发定时器</strong>：这类定时器在启动后只会触发一次事件，然后自动停止。</li>
+<li><strong>周期触发定时器</strong>：这类定时器会周期性地触发事件，直到被手动停止。</li>
+</ul>
+<h3 id="执行模式"><a href="#执行模式" class="headerlink" title="执行模式"></a>执行模式</h3><p>根据超时函数执行时的上下文环境，RT-Thread 的定时器可以分为 <strong>HARD_TIMER</strong> 和 <strong>SOFT_TIMER</strong> 两种模式。</p>
+<h4 id="HARD-TIMER-模式"><a href="#HARD-TIMER-模式" class="headerlink" title="HARD_TIMER 模式"></a>HARD_TIMER 模式</h4><p>HARD_TIMER 模式是 <strong>RT-Thread 的默认定时器模式</strong>。</p>
+<ul>
+<li><strong>执行上下文</strong>：超时函数在**中断服务程序（ISR）**中执行。</li>
+<li><strong>优点</strong>：响应速度快，实时性高。</li>
+<li><strong>缺点</strong>：因为在中断中执行，超时函数的执行时间必须非常短。<strong>不能</strong>调用任何会导致当前上下文挂起的函数，例如 <code>rt_thread_delay()</code>、<code>rt_mutex_take()</code> 等。</li>
+<li><strong>使用场景</strong>：适合执行一些简单、快速的操作，如设置一个标志位或发送一个信号量。</li>
+</ul>
+<h4 id="SOFT-TIMER-模式"><a href="#SOFT-TIMER-模式" class="headerlink" title="SOFT_TIMER 模式"></a>SOFT_TIMER 模式</h4><p>SOFT_TIMER 模式需要通过宏定义 <code>RT_USING_TIMER_SOFT</code> 来启用。</p>
+<ul>
+<li><strong>执行上下文</strong>：超时函数在一个专门的<strong>定时器线程</strong>中执行。</li>
+<li><strong>优点</strong>：超时函数可以在独立的线程中执行，因此可以调用几乎所有 RT-Thread API，包括会引起阻塞或挂起的函数。</li>
+<li><strong>缺点</strong>：响应时间不如 HARD_TIMER 模式快，因为它需要等待线程调度。</li>
+<li><strong>使用场景</strong>：适合执行一些复杂、耗时较长的操作，或者需要调用阻塞型 API 的任务。</li>
+</ul>
+<blockquote>
+<p> SOFT_TIMER 模式可配置，通过宏定义 RT_USING_TIMER_SOFT 来决定是否启用该模式。该模式被启用后，系统会在初始化时创建一个 timer 线程，然后 SOFT_TIMER 模式的定时器超时函数在都会在 timer 线程的上下文环境中执行。可以在初始化 &#x2F; 创建定时器时使用参数 <strong>RT_TIMER_FLAG_SOFT_TIMER</strong> 来指定设置 SOFT_TIMER 模式。</p>
+</blockquote>
+<p><img data-src="/../images/image-20250802082923845.png" alt="image-20250802082923845"></p>
+<h3 id="定时器工作机制"><a href="#定时器工作机制" class="headerlink" title="定时器工作机制"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E5%AE%9A%E6%97%B6%E5%99%A8%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6">定时器工作机制</a></h3><p>下面以一个例子来说明 RT-Thread 定时器的工作机制。在 RT-Thread 定时器模块中维护着两个重要的全局变量：</p>
+<p>（1）当前系统经过的 tick 时间 rt_tick（当硬件定时器中断来临时，它将加 1）；</p>
+<p>（2）定时器链表 rt_timer_list。系统新创建并激活的定时器都会按照以超时时间排序的方式插入到 rt_timer_list 链表中。</p>
+<p>如下图所示，系统当前 tick 值为 20，在当前系统中已经创建并启动了三个定时器，分别是定时时间为 50 个 tick 的 Timer1、100 个 tick 的 Timer2 和 500 个 tick 的 Timer3，这三个定时器分别加上系统当前时间 rt_tick&#x3D;20，从小到大排序链接在 rt_timer_list 链表中，形成如图所示的定时器链表结构。</p>
+<p><img data-src="/../images/05timer_linked_list.png" alt="定时器链表示意图"></p>
+<p>而 rt_tick 随着硬件定时器的触发一直在增长（每一次硬件定时器中断来临，rt_tick 变量会加 1），50 个 tick 以后，rt_tick 从 20 增长到 70，与 Timer1 的 timeout 值相等，这时会触发与 Timer1 定时器相关联的超时函数，同时将 Timer1 从 rt_timer_list 链表上删除。同理，100 个 tick 和 500 个 tick 过去后，与 Timer2 和 Timer3 定时器相关联的超时函数会被触发，接着将 Timer2 和 Timer3 定时器从 rt_timer_list 链表中删除。</p>
+<p>如果系统当前定时器状态在 10 个 tick 以后（rt_tick&#x3D;30）有一个任务新创建了一个 tick 值为 300 的 Timer4 定时器，由于 Timer4 定时器的 timeout&#x3D;rt_tick+300&#x3D;330, 因此它将被插入到 Timer2 和 Timer3 定时器中间，形成如下图所示链表结构：</p>
+<p><img data-src="/../images/05timer_linked_list2.png" alt="定时器链表插入示意图"></p>
+<blockquote>
+<p>这块讲的非常清晰明了</p>
+</blockquote>
+<h4 id="定时器控制块"><a href="#定时器控制块" class="headerlink" title="定时器控制块"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E5%AE%9A%E6%97%B6%E5%99%A8%E6%8E%A7%E5%88%B6%E5%9D%97">定时器控制块</a></h4><p>在 RT-Thread 操作系统中，定时器控制块由结构体 struct rt_timer 定义并形成定时器内核对象，再链接到内核对象容器中进行管理。它是操作系统用于管理定时器的一个数据结构，会存储定时器的一些信息，例如初始节拍数，超时时的节拍数，也包含定时器与定时器之间连接用的链表结构，超时回调函数等。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">rt_timer</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">rt_object</span> <span class="title">parent</span>;</span> <span class="comment">//一些rt-thread中的对象所具有的默认属性</span></span><br><span class="line">    <span class="type">rt_list_t</span> row[RT_TIMER_SKIP_LIST_LEVEL];  <span class="comment">/* 定时器链表节点 */</span></span><br><span class="line"></span><br><span class="line">    <span class="type">void</span> (*timeout_func)(<span class="type">void</span> *parameter);    <span class="comment">/* 定时器超时调用的函数 */</span></span><br><span class="line">    <span class="type">void</span>      *parameter;                         <span class="comment">/* 超时函数的参数 */</span></span><br><span class="line">    <span class="type">rt_tick_t</span> init_tick;                         <span class="comment">/* 定时器初始超时节拍数 */</span></span><br><span class="line">    <span class="type">rt_tick_t</span> timeout_tick;                     <span class="comment">/* 定时器实际超时时的节拍数 */</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">rt_timer</span> *<span class="title">rt_timer_t</span>;</span></span><br></pre></td></tr></table></figure>
+
+<p>定时器控制块由 struct rt_timer 结构体定义并形成定时器内核对象，再链接到内核对象容器中进行管理，list 成员则用于把一个激活的（已经启动的）定时器链接到 rt_timer_list 链表中。</p>
+<h4 id="定时器跳表-Skip-List-算法"><a href="#定时器跳表-Skip-List-算法" class="headerlink" title="定时器跳表 (Skip List) 算法"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E5%AE%9A%E6%97%B6%E5%99%A8%E8%B7%B3%E8%A1%A8-skip-list-%E7%AE%97%E6%B3%95">定时器跳表 (Skip List) 算法</a></h4><blockquote>
+<p>这个其实直接理解成二叉树 + 链表就行了，只管用就完事了，算一种空间换时间</p>
+</blockquote>
+<blockquote>
+<p>下面这块对于应用来说是比较重要的</p>
+</blockquote>
+<h3 id="定时器的管理方式"><a href="#定时器的管理方式" class="headerlink" title="定时器的管理方式"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E5%AE%9A%E6%97%B6%E5%99%A8%E7%9A%84%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F">定时器的管理方式</a></h3><p>前面介绍了 RT-Thread 定时器并对定时器的工作机制进行了概念上的讲解，本节将深入到定时器的各个接口，帮助读者在代码层次上理解 RT-Thread 定时器。</p>
+<p>在系统启动时需要初始化定时器管理系统。可以通过下面的函数接口完成：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">rt_system_timer_init</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果需要使用 SOFT_TIMER，则系统初始化时，应该调用下面这个函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">rt_system_timer_thread_init</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果想要使用SOFT_TIMER的话，两个函数都得调用一次</p>
+</blockquote>
+<p>定时器控制块中含有定时器相关的重要参数，在定时器各种状态间起到纽带的作用。定时器的相关操作如下图所示，对定时器的操作包含：创建 &#x2F; 初始化定时器、启动定时器、运行定时器、删除 &#x2F; 脱离定时器，所有定时器在定时超时后都会从定时器链表中被移除，而周期性定时器会在它再次启动时被加入定时器链表，这与定时器参数设置相关。在每次的操作系统时钟中断发生时，都会对已经超时的定时器状态参数做改变。</p>
+<p><img data-src="/../images/05timer_ops.png" alt="定时器相关操作"></p>
+<h4 id="创建和删除定时器"><a href="#创建和删除定时器" class="headerlink" title="创建和删除定时器"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E5%88%9B%E5%BB%BA%E5%92%8C%E5%88%A0%E9%99%A4%E5%AE%9A%E6%97%B6%E5%99%A8">创建和删除定时器</a></h4><p>当动态创建一个定时器时，可使用下面的函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_timer_t</span> <span class="title function_">rt_timer_create</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* name,</span></span><br><span class="line"><span class="params">                           <span class="type">void</span> (*timeout)(<span class="type">void</span>* parameter),</span></span><br><span class="line"><span class="params">                           <span class="type">void</span>* parameter,</span></span><br><span class="line"><span class="params">                           <span class="type">rt_tick_t</span> time,</span></span><br><span class="line"><span class="params">                           <span class="type">rt_uint8_t</span> flag)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>调用该函数接口后，内核首先从动态内存堆中分配一个定时器控制块，然后对该控制块进行基本的初始化。其中的各参数和返回值说明详见下表：</p>
+<p>rt_timer_create() 的输入参数和返回值</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>name</td>
+<td>定时器的名称</td>
+</tr>
+<tr>
+<td>void (timeout) (void parameter)</td>
+<td>定时器超时函数指针（当定时器超时时，系统会调用这个函数）</td>
+</tr>
+<tr>
+<td>parameter</td>
+<td>定时器超时函数的入口参数（当定时器超时时，调用超时回调函数会把这个参数做为入口参数传递给超时函数）</td>
+</tr>
+<tr>
+<td>time</td>
+<td>定时器的超时时间，单位是时钟节拍</td>
+</tr>
+<tr>
+<td>flag</td>
+<td>定时器创建时的参数，支持的值包括单次定时、周期定时、硬件定时器、软件定时器等（可以用 “或” 关系取多个值）</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_NULL</td>
+<td>创建失败（通常会由于系统内存不够用而返回 RT_NULL）</td>
+</tr>
+<tr>
+<td>定时器的句柄</td>
+<td>定时器创建成功</td>
+</tr>
+</tbody></table>
+<p>include&#x2F;rtdef.h 中定义了一些定时器相关的宏，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> RT_TIMER_FLAG_ONE_SHOT      0x0     <span class="comment">/* 单次定时     */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RT_TIMER_FLAG_PERIODIC      0x2     <span class="comment">/* 周期定时     */</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RT_TIMER_FLAG_HARD_TIMER    0x0     <span class="comment">/* 硬件定时器   */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RT_TIMER_FLAG_SOFT_TIMER    0x4     <span class="comment">/* 软件定时器   */</span></span></span><br></pre></td></tr></table></figure>
+
+<p>上面 2 组值可以以 “或” 逻辑的方式赋给 flag。当指定的 flag 为 RT_TIMER_FLAG_HARD_TIMER 时，如果定时器超时，定时器的回调函数将在时钟中断的服务例程上下文中被调用；当指定的 flag 为 RT_TIMER_FLAG_SOFT_TIMER 时，如果定时器超时，定时器的回调函数将在系统时钟 timer 线程的上下文中被调用。</p>
+<p>系统不再使用动态定时器时，可使用下面的函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_timer_delete</span><span class="params">(<span class="type">rt_timer_t</span> timer)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>调用这个函数接口后，系统会把这个定时器从 rt_timer_list 链表中删除，然后释放相应的定时器控制块占有的内存，其中的各参数和返回值说明详见下表：</p>
+<p>rt_timer_delete() 的输入参数和返回值</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>timer</td>
+<td>定时器句柄，指向要删除的定时器</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>删除成功（如果参数 timer 句柄是一个 RT_NULL，将会导致一个 ASSERT 断言）</td>
+</tr>
+</tbody></table>
+<h4 id="初始化和脱离定时器"><a href="#初始化和脱离定时器" class="headerlink" title="初始化和脱离定时器"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E5%88%9D%E5%A7%8B%E5%8C%96%E5%92%8C%E8%84%B1%E7%A6%BB%E5%AE%9A%E6%97%B6%E5%99%A8">初始化和脱离定时器</a></h4><p>当选择静态创建定时器时，可利用 rt_timer_init 接口来初始化该定时器，函数接口如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">rt_timer_init</span><span class="params">(<span class="type">rt_timer_t</span> timer,</span></span><br><span class="line"><span class="params">                   <span class="type">const</span> <span class="type">char</span>* name,</span></span><br><span class="line"><span class="params">                   <span class="type">void</span> (*timeout)(<span class="type">void</span>* parameter),</span></span><br><span class="line"><span class="params">                   <span class="type">void</span>* parameter,</span></span><br><span class="line"><span class="params">                   <span class="type">rt_tick_t</span> time, <span class="type">rt_uint8_t</span> flag)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>使用该函数接口时会初始化相应的定时器控制块，初始化相应的定时器名称，定时器超时函数等等，其中的各参数和返回值说明详见下表：</p>
+<p>rt_timer_init() 的输入参数和返回值</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>timer</td>
+<td>定时器句柄，指向要初始化的定时器控制块</td>
+</tr>
+<tr>
+<td>name</td>
+<td>定时器的名称</td>
+</tr>
+<tr>
+<td>void (timeout) (void parameter)</td>
+<td>定时器超时函数指针（当定时器超时时，系统会调用这个函数）</td>
+</tr>
+<tr>
+<td>parameter</td>
+<td>定时器超时函数的入口参数（当定时器超时时，调用超时回调函数会把这个参数做为入口参数传递给超时函数）</td>
+</tr>
+<tr>
+<td>time</td>
+<td>定时器的超时时间，单位是时钟节拍</td>
+</tr>
+<tr>
+<td>flag</td>
+<td>定时器创建时的参数，支持的值包括单次定时、周期定时、硬件定时器、软件定时器（可以用 “或” 关系取多个值），详见创建定时器小节</td>
+</tr>
+</tbody></table>
+<p>当一个静态定时器不需要再使用时，可以使用下面的函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_timer_detach</span><span class="params">(<span class="type">rt_timer_t</span> timer)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>脱离定时器时，系统会把定时器对象从内核对象容器中脱离，但是定时器对象所占有的内存不会被释放，其中的各参数和返回值说明详见表下表：</p>
+<p>rt_timer_detach() 的输入参数和返回值</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>timer</td>
+<td>定时器句柄，指向要脱离的定时器控制块</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>脱离成功</td>
+</tr>
+</tbody></table>
+<h4 id="启动和停止定时器"><a href="#启动和停止定时器" class="headerlink" title="启动和停止定时器"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E5%90%AF%E5%8A%A8%E5%92%8C%E5%81%9C%E6%AD%A2%E5%AE%9A%E6%97%B6%E5%99%A8">启动和停止定时器</a></h4><p>当定时器被创建或者初始化以后，并不会被立即启动，必须在调用启动定时器函数接口后，才开始工作，启动定时器函数接口如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_timer_start</span><span class="params">(<span class="type">rt_timer_t</span> timer)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>调用定时器启动函数接口后，定时器的状态将更改为激活状态（RT_TIMER_FLAG_ACTIVATED），并按照超时顺序插入到 rt_timer_list 队列链表中，其中的各参数和返回值说明详见下表：</p>
+<p>rt_timer_start() 的输入参数和返回值</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>timer</td>
+<td>定时器句柄，指向要启动的定时器控制块</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>启动成功</td>
+</tr>
+</tbody></table>
+<p>启动定时器的例子请参考后面的示例代码。</p>
+<p>启动定时器以后，若想使它停止，可以使用下面的函数接口：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_timer_stop</span><span class="params">(<span class="type">rt_timer_t</span> timer)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>调用定时器停止函数接口后，定时器状态将更改为停止状态，并从 rt_timer_list 链表中脱离出来不参与定时器超时检查。当一个（周期性）定时器超时时，也可以调用这个函数接口停止这个（周期性）定时器本身，其中的各参数和返回值说明详见下表：</p>
+<p>rt_timer_stop() 的输入参数和返回值</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>timer</td>
+<td>定时器句柄，指向要停止的定时器控制块</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>成功停止定时器</td>
+</tr>
+<tr>
+<td>- RT_ERROR</td>
+<td>timer 已经处于停止状态</td>
+</tr>
+</tbody></table>
+<h4 id="控制定时器"><a href="#控制定时器" class="headerlink" title="控制定时器"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E6%8E%A7%E5%88%B6%E5%AE%9A%E6%97%B6%E5%99%A8">控制定时器</a></h4><p>除了上述提供的一些编程接口，RT-Thread 也额外提供了定时器控制函数接口，以获取或设置更多定时器的信息。控制定时器函数接口如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">rt_err_t</span> <span class="title function_">rt_timer_control</span><span class="params">(<span class="type">rt_timer_t</span> timer, <span class="type">rt_uint8_t</span> cmd, <span class="type">void</span>* arg)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>控制定时器函数接口可根据命令类型参数，来查看或改变定时器的设置，其中的各参数和返回值说明详见下表：</p>
+<p>rt_timer_control() 的输入参数和返回值</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>描述</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>timer</td>
+<td>定时器句柄，指向要控制的定时器控制块</td>
+</tr>
+<tr>
+<td>cmd</td>
+<td>用于控制定时器的命令，当前支持四个命令，分别是设置定时时间，查看定时时间，设置单次触发，设置周期触发</td>
+</tr>
+<tr>
+<td>arg</td>
+<td>与 cmd 相对应的控制命令参数 比如，cmd 为设定超时时间时，就可以将超时时间参数通过 arg 进行设定</td>
+</tr>
+<tr>
+<td><strong>返回</strong></td>
+<td>——</td>
+</tr>
+<tr>
+<td>RT_EOK</td>
+<td>成功</td>
+</tr>
+</tbody></table>
+<p>函数参数 cmd 支持的命令：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> RT_TIMER_CTRL_SET_TIME      0x0     <span class="comment">/* 设置定时器超时时间       */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RT_TIMER_CTRL_GET_TIME      0x1     <span class="comment">/* 获得定时器超时时间       */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RT_TIMER_CTRL_SET_ONESHOT   0x2     <span class="comment">/* 设置定时器为单次定时器   */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RT_TIMER_CTRL_SET_PERIODIC  0x3     <span class="comment">/* 设置定时器为周期型定时器 */</span></span></span><br></pre></td></tr></table></figure>
+
+<p>使用定时器控制接口的代码请见动态定时器例程。</p>
+<h2 id="定时器应用示例"><a href="#定时器应用示例" class="headerlink" title="定时器应用示例"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E5%AE%9A%E6%97%B6%E5%99%A8%E5%BA%94%E7%94%A8%E7%A4%BA%E4%BE%8B">定时器应用示例</a></h2><p>这是一个创建定时器的例子，这个例程会创建两个动态定时器，一个是单次定时，一个是周期性定时并让周期定时器运行一段时间后停止运行，如下所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;rtthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 定时器的控制块 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">rt_timer_t</span> timer1;</span><br><span class="line"><span class="type">static</span> <span class="type">rt_timer_t</span> timer2;</span><br><span class="line"><span class="type">static</span> <span class="type">rt_uint8_t</span> cnt = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 定时器 1 超时函数 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">timeout1</span><span class="params">(<span class="type">void</span> *parameter)</span></span><br><span class="line">&#123;</span><br><span class="line">    rt_kprintf(<span class="string">&quot;periodic timer is timeout %d\n&quot;</span>, cnt);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 运行第 10 次，停止周期定时器 */</span></span><br><span class="line">    <span class="keyword">if</span> (cnt++&gt;= <span class="number">9</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* 清除计数值 */</span></span><br><span class="line">        cnt = <span class="number">0</span>;</span><br><span class="line">        rt_timer_stop(timer1);</span><br><span class="line">        rt_kprintf(<span class="string">&quot;periodic timer was stopped! \n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 定时器 2 超时函数 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">timeout2</span><span class="params">(<span class="type">void</span> *parameter)</span></span><br><span class="line">&#123;</span><br><span class="line">    rt_kprintf(<span class="string">&quot;one shot timer is timeout\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 检查，清理上次的定时器 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">check_timer_exist</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (timer1 != RT_NULL)</span><br><span class="line">    &#123;</span><br><span class="line">        rt_timer_delete(timer1);</span><br><span class="line">        timer1 = RT_NULL;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (timer2 != RT_NULL)</span><br><span class="line">    &#123;</span><br><span class="line">        rt_timer_delete(timer2);</span><br><span class="line">        timer2 = RT_NULL;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">timer_sample</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* 检查，清理上次的定时器 */</span></span><br><span class="line">    check_timer_exist();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 创建定时器 1  周期定时器 */</span></span><br><span class="line">    timer1 = rt_timer_create(<span class="string">&quot;timer1&quot;</span>, timeout1,</span><br><span class="line">                             RT_NULL, <span class="number">10</span>,</span><br><span class="line">                             RT_TIMER_FLAG_PERIODIC);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 启动定时器 1 */</span></span><br><span class="line">    <span class="keyword">if</span> (timer1 != RT_NULL) rt_timer_start(timer1);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 创建定时器 2 单次定时器 */</span></span><br><span class="line">    timer2 = rt_timer_create(<span class="string">&quot;timer2&quot;</span>, timeout2,</span><br><span class="line">                             RT_NULL,  <span class="number">30</span>,</span><br><span class="line">                             RT_TIMER_FLAG_ONE_SHOT);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 启动定时器 2 */</span></span><br><span class="line">    <span class="keyword">if</span> (timer2 != RT_NULL) rt_timer_start(timer2);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 导出到 msh 命令列表中 */</span></span><br><span class="line">MSH_CMD_EXPORT(timer_sample, timer sample);</span><br></pre></td></tr></table></figure>
+
+<p>仿真运行结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"> \ | /</span><br><span class="line">- RT -     Thread Operating System</span><br><span class="line"> / | \     3.1.0 build Aug 24 2018</span><br><span class="line"> 2006 - 2018 Copyright by rt-thread team</span><br><span class="line">msh &gt;timer_sample</span><br><span class="line">msh &gt;periodic timer is timeout 0</span><br><span class="line">periodic timer is timeout 1</span><br><span class="line">one shot timer is timeout</span><br><span class="line">periodic timer is timeout 2</span><br><span class="line">periodic timer is timeout 3</span><br><span class="line">periodic timer is timeout 4</span><br><span class="line">periodic timer is timeout 5</span><br><span class="line">periodic timer is timeout 6</span><br><span class="line">periodic timer is timeout 7</span><br><span class="line">periodic timer is timeout 8</span><br><span class="line">periodic timer is timeout 9</span><br><span class="line">periodic timer was stopped!</span><br></pre></td></tr></table></figure>
+
+<p>周期性定时器 1 的超时函数，每 10 个 OS Tick 运行 1 次，共运行 10 次（10 次后调用 rt_timer_stop 使定时器 1 停止运行）；单次定时器 2 的超时函数在第 30 个 OS Tick 时运行一次。</p>
+<p>初始化定时器的例子与创建定时器的例子类似，这个程序会初始化 2 个静态定时器，一个是单次定时，一个是周期性的定时，如下代码所示：</p>
+<p>初始化静态定时器例程</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;rtthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 定时器的控制块 */</span></span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">rt_timer</span> <span class="title">timer1</span>;</span></span><br><span class="line"><span class="type">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">rt_timer</span> <span class="title">timer2</span>;</span></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> cnt = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 定时器 1 超时函数 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">timeout1</span><span class="params">(<span class="type">void</span>* parameter)</span></span><br><span class="line">&#123;</span><br><span class="line">    rt_kprintf(<span class="string">&quot;periodic timer is timeout\n&quot;</span>);</span><br><span class="line">    <span class="comment">/* 运行 10 次 */</span></span><br><span class="line">    <span class="keyword">if</span> (cnt++&gt;= <span class="number">9</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        cnt = <span class="number">0</span>;</span><br><span class="line">        rt_timer_stop(&amp;timer1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 定时器 2 超时函数 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">timeout2</span><span class="params">(<span class="type">void</span>* parameter)</span></span><br><span class="line">&#123;</span><br><span class="line">    rt_kprintf(<span class="string">&quot;one shot timer is timeout\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 检查，清理上次的定时器 */</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">check_timer_exist</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="keyword">if</span> (rt_object_find(<span class="string">&quot;timer1&quot;</span>, RT_Object_Class_Timer) != RT_NULL)</span><br><span class="line">   &#123;</span><br><span class="line">       rt_timer_detach(&amp;timer1);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">if</span> (rt_object_find(<span class="string">&quot;timer2&quot;</span>, RT_Object_Class_Timer) != RT_NULL)</span><br><span class="line">   &#123;</span><br><span class="line">       rt_timer_detach(&amp;timer2);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">timer_static_sample</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* 检查，清理上次的定时器 */</span></span><br><span class="line">    check_timer_exist();</span><br><span class="line">    <span class="comment">/* 初始化定时器 */</span></span><br><span class="line">    rt_timer_init(&amp;timer1, <span class="string">&quot;timer1&quot;</span>,  <span class="comment">/* 定时器名字是 timer1 */</span></span><br><span class="line">                    timeout1, <span class="comment">/* 超时时回调的处理函数 */</span></span><br><span class="line">                    RT_NULL, <span class="comment">/* 超时函数的入口参数 */</span></span><br><span class="line">                    <span class="number">10</span>, <span class="comment">/* 定时长度，以 OS Tick 为单位，即 10 个 OS Tick */</span></span><br><span class="line">                    RT_TIMER_FLAG_PERIODIC); <span class="comment">/* 周期性定时器 */</span></span><br><span class="line">    rt_timer_init(&amp;timer2, <span class="string">&quot;timer2&quot;</span>,   <span class="comment">/* 定时器名字是 timer2 */</span></span><br><span class="line">                    timeout2, <span class="comment">/* 超时时回调的处理函数 */</span></span><br><span class="line">                      RT_NULL, <span class="comment">/* 超时函数的入口参数 */</span></span><br><span class="line">                      <span class="number">30</span>, <span class="comment">/* 定时长度为 30 个 OS Tick */</span></span><br><span class="line">                    RT_TIMER_FLAG_ONE_SHOT); <span class="comment">/* 单次定时器 */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 启动定时器 */</span></span><br><span class="line">    rt_timer_start(&amp;timer1);</span><br><span class="line">    rt_timer_start(&amp;timer2);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* 导出到 msh 命令列表中 */</span></span><br><span class="line">MSH_CMD_EXPORT(timer_static_sample, timer_static sample);</span><br></pre></td></tr></table></figure>
+
+<p>仿真运行结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">\ | /</span><br><span class="line">- RT -     Thread Operating System</span><br><span class="line"> / | \     3.1.0 build Aug 24 2018</span><br><span class="line"> 2006 - 2018 Copyright by rt-thread team</span><br><span class="line">msh &gt;timer_static_sample</span><br><span class="line">msh &gt;periodic timer is timeout</span><br><span class="line">periodic timer is timeout</span><br><span class="line">one shot timer is timeout</span><br><span class="line">periodic timer is timeout</span><br><span class="line">periodic timer is timeout</span><br><span class="line">periodic timer is timeout</span><br><span class="line">periodic timer is timeout</span><br><span class="line">periodic timer is timeout</span><br><span class="line">periodic timer is timeout</span><br><span class="line">periodic timer is timeout</span><br><span class="line">periodic timer is timeout</span><br></pre></td></tr></table></figure>
+
+<p>周期性定时器 1 的超时函数，每 10 个 OS Tick 运行 1 次，共运行 10 次（10 次后调用 rt_timer_stop 使定时器 1 停止运行）；单次定时器 2 的超时函数在第 30 个 OS Tick 时运行一次。</p>
+<h2 id="高精度延时"><a href="#高精度延时" class="headerlink" title="高精度延时"></a><a target="_blank" rel="noopener" href="https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/timer/timer?id=%E9%AB%98%E7%B2%BE%E5%BA%A6%E5%BB%B6%E6%97%B6">高精度延时</a></h2><p>RT-Thread 定时器的最小精度是由系统时钟节拍所决定的（1 OS Tick &#x3D; 1&#x2F;RT_TICK_PER_SECOND 秒，RT_TICK_PER_SECOND 值在 rtconfig.h 文件中定义），定时器设定的时间必须是 OS Tick 的整数倍。当需要实现更短时间长度的系统定时时，例如 OS Tick 是 10ms，而程序需要实现 1ms 的定时或延时，这种时候操作系统定时器将不能够满足要求，只能通过读取系统某个硬件定时器的计数器或直接使用硬件定时器的方式。</p>
+<p>在 Cortex-M 系列中，SysTick 已经被 RT-Thread 用于作为 OS Tick 使用，它被配置成 1&#x2F;RT_TICK_PER_SECOND 秒后触发一次中断的方式，中断处理函数使用 Cortex-M3 默认的 SysTick_Handler 名字。在 Cortex-M3 的 CMSIS（Cortex Microcontroller Software Interface Standard）规范中规定了 SystemCoreClock 代表芯片的主频，所以基于 SysTick 以及 SystemCoreClock，我们能够使用 SysTick 获得一个精确的延时函数，如下例所示，Cortex-M3 上的基于 SysTick 的精确延时（需要系统在使能 SysTick 后使用）：</p>
+<p>高精度延时的例程如下所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;board.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">rt_hw_us_delay</span><span class="params">(<span class="type">rt_uint32_t</span> us)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">rt_uint32_t</span> ticks;</span><br><span class="line">    <span class="type">rt_uint32_t</span> told, tnow, tcnt = <span class="number">0</span>;</span><br><span class="line">    <span class="type">rt_uint32_t</span> reload = SysTick-&gt;LOAD;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 获得延时经过的 tick 数 */</span></span><br><span class="line">    ticks = us * reload / (<span class="number">1000000</span> / RT_TICK_PER_SECOND);</span><br><span class="line">    <span class="comment">/* 获得当前时间 */</span></span><br><span class="line">    told = SysTick-&gt;VAL;</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* 循环获得当前时间，直到达到指定的时间后退出循环 */</span></span><br><span class="line">        tnow = SysTick-&gt;VAL;</span><br><span class="line">        <span class="keyword">if</span> (tnow != told)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (tnow &lt; told)</span><br><span class="line">            &#123;</span><br><span class="line">                tcnt += told - tnow;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">                tcnt += reload - tnow + told;</span><br><span class="line">            &#125;</span><br><span class="line">            told = tnow;</span><br><span class="line">            <span class="keyword">if</span> (tcnt &gt;= ticks)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中入口参数 us 指示出需要延时的微秒数目，这个函数只能支持低于 1 OS Tick 的延时。</p>
+<blockquote>
+<p>这个其实就是我们之前在蓝桥杯嵌入式的时候利用systick手写延时的ProMax版本，这种写法可以码一下</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/rt-thread/" rel="tag"># rt-thread</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/08/01/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E5%92%8C%E9%9D%A2%E5%90%91%E8%BF%87%E7%A8%8B%E7%9A%84%E7%9A%84%E5%8C%BA%E5%88%AB/" rel="prev" title="面向对象和面向过程的的区别">
+                  <i class="fa fa-angle-left"></i> 面向对象和面向过程的的区别
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/08/02/rt-Thread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E4%BF%A1%E5%8F%B7%E9%87%8F%E4%B8%8E%E4%BA%92%E6%96%A5%E9%87%8F/" rel="next" title="rt-Thread学习日记之信号量与互斥量">
+                  rt-Thread学习日记之信号量与互斥量 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Chillward</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
