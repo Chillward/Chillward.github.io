@@ -18,32 +18,32 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"default"},"fold":{"enable":true,"height":300},"language":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":true,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":5,"unescape":false,"preload":true}}</script><script src="/js/config.js" defer></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chillward.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"default"},"fold":{"enable":true,"height":300},"language":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":true,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":5,"unescape":false,"preload":true}}</script><script src="/js/config.js" defer></script>
 
     <meta name="description" content="在之前的STM32开发过程中，我一直是使用裸机开发，裸机开发对MCU性能占用低，但是不够灵活，没法真正意义上实现并行，就算实现了简单的调度器，也是非阻塞式的，不够好用。  线程管理的功能特点RT-Thread 线程管理的主要功能是对线程进行管理和调度，系统中总共存在两类线程，分别是系统线程和用户线程，系统线程是由 RT-Thread 内核创建的线程，用户线程是由应用程序创建的线程，这两类线程都会">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RT-Rhread学习日记之线程">
-<meta property="og:url" content="http://example.com/2025/07/30/RT-Rhread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%BA%BF%E7%A8%8B/index.html">
+<meta property="og:url" content="https://chillward.github.io/2025/07/30/RT-Rhread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%BA%BF%E7%A8%8B/index.html">
 <meta property="og:site_name" content="Chillward的博客">
 <meta property="og:description" content="在之前的STM32开发过程中，我一直是使用裸机开发，裸机开发对MCU性能占用低，但是不够灵活，没法真正意义上实现并行，就算实现了简单的调度器，也是非阻塞式的，不够好用。  线程管理的功能特点RT-Thread 线程管理的主要功能是对线程进行管理和调度，系统中总共存在两类线程，分别是系统线程和用户线程，系统线程是由 RT-Thread 内核创建的线程，用户线程是由应用程序创建的线程，这两类线程都会">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/images/image-20250730222612572.png">
-<meta property="og:image" content="http://example.com/images/image-20250730223159009.png">
-<meta property="og:image" content="http://example.com/images/image-20250730224231420.png">
-<meta property="og:image" content="http://example.com/images/image-20250730225228737.png">
-<meta property="og:image" content="http://example.com/images/04thread_ops.png">
+<meta property="og:image" content="https://chillward.github.io/images/image-20250730222612572.png">
+<meta property="og:image" content="https://chillward.github.io/images/image-20250730223159009.png">
+<meta property="og:image" content="https://chillward.github.io/images/image-20250730224231420.png">
+<meta property="og:image" content="https://chillward.github.io/images/image-20250730225228737.png">
+<meta property="og:image" content="https://chillward.github.io/images/04thread_ops.png">
 <meta property="article:published_time" content="2025-07-30T01:34:10.000Z">
 <meta property="article:modified_time" content="2026-03-16T13:18:46.381Z">
 <meta property="article:author" content="Chillward">
 <meta property="article:tag" content="RT-Thread">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/images/image-20250730222612572.png">
+<meta name="twitter:image" content="https://chillward.github.io/images/image-20250730222612572.png">
 
 
-<link rel="canonical" href="http://example.com/2025/07/30/RT-Rhread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%BA%BF%E7%A8%8B/">
+<link rel="canonical" href="https://chillward.github.io/2025/07/30/RT-Rhread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%BA%BF%E7%A8%8B/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/07/30/RT-Rhread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%BA%BF%E7%A8%8B/","path":"2025/07/30/RT-Rhread学习日记之线程/","title":"RT-Rhread学习日记之线程"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chillward.github.io/2025/07/30/RT-Rhread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%BA%BF%E7%A8%8B/","path":"2025/07/30/RT-Rhread学习日记之线程/","title":"RT-Rhread学习日记之线程"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>RT-Rhread学习日记之线程 | Chillward的博客</title>
@@ -193,18 +193,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -235,7 +235,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/30/RT-Rhread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%BA%BF%E7%A8%8B/">
+    <link itemprop="mainEntityOfPage" href="https://chillward.github.io/2025/07/30/RT-Rhread%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0%E4%B9%8B%E7%BA%BF%E7%A8%8B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.png">
