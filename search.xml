@@ -4955,4 +4955,128 @@
         <tag>RUST</tag>
       </tags>
   </entry>
+  <entry>
+    <title>C语言与设计模式之简单工厂模式</title>
+    <url>/2026/03/17/C%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%AE%80%E5%8D%95%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<blockquote>
+<p>时隔不知道多久的颓废之后，正在尝试恢复人类形态（并非</p>
+</blockquote>
+<p>在面向对象编程中，设计模式是解决常见问题的经典方案。然而，在C语言这种非面向对象的语言中实现设计模式需要一些技巧。本文将探讨如何在C语言中实现简单工厂模式，这是一种创建型设计模式，用于封装对象的创建过程。</p>
+<h2 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h2><p>首先，让我们看一下这个简单示例的目录结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">├── include/</span><br><span class="line">│   ├── shape.h</span><br><span class="line">│   ├── circle.h</span><br><span class="line">│   └── rectangle.h</span><br><span class="line">├── src/</span><br><span class="line">│   ├── shape.c</span><br><span class="line">│   ├── circle.c</span><br><span class="line">│   └── rectangle.c</span><br></pre></td></tr></table></figure>
+
+<h2 id="挑战与思路"><a href="#挑战与思路" class="headerlink" title="挑战与思路"></a>挑战与思路</h2><blockquote>
+<p>拿C语言写设计模式真是一整个牢住了，没有继承，没有多态，什么都没有。突然有点想念强面向对象语言。</p>
+</blockquote>
+<p>用C语言实现设计模式确实有一定挑战，因为C语言本身不支持继承、多态等面向对象特性。但通过一些技巧，我们仍然可以模拟出类似的效果。</p>
+<p>在这个简单工厂模式的实现中，我们使用了一些模拟面向对象编程的技术，包括不透明指针模式。这些技术可以帮助我们在C语言中实现类似面向对象的行为。</p>
+<blockquote>
+<p>顺带一提，在这个简单工厂模式的实现里，有涉及到一些模拟oop跟不透明模式的东西，或许大概可能也许以后会写一下这些东西（逃</p>
+</blockquote>
+<h2 id="Shape句柄的实现"><a href="#Shape句柄的实现" class="headerlink" title="Shape句柄的实现"></a>Shape句柄的实现</h2><p>让我们先来看看<code>shape_t</code>这个句柄是如何定义的：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">shape_api</span> **<span class="title">shape_t</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">shape_api</span> &#123;</span></span><br><span class="line">    <span class="type">void</span> (*draw)(<span class="type">shape_t</span> shape);</span><br><span class="line">    <span class="type">void</span> (*destroy)(<span class="type">shape_t</span> shape);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">shape</span> &#123;</span></span><br><span class="line">    <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">shape_api</span> *<span class="title">api</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><code>shape_t</code> 是一个指向 <code>shape_api</code> 结构体指针的指针。通过这种设计，我们可以使用 <code>(*shape_t)-&gt;成员函数</code> 的方式来访问不同形状类实现的成员函数。</p>
+<h2 id="工厂函数"><a href="#工厂函数" class="headerlink" title="工厂函数"></a>工厂函数</h2><p>在简单工厂模式中，工厂的主要职责是创建对象。我们实现了以下两个工厂函数：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">shape_t</span> <span class="title function_">shape_create</span><span class="params">(<span class="keyword">enum</span> shape_type type)</span>;</span><br><span class="line"><span class="type">shape_t</span> <span class="title function_">shape_create_with_param</span><span class="params">(<span class="type">const</span> <span class="type">shape_config_t</span> *config)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>shape_create</code> 是 <code>shape_create_with_param</code> 的简化版本，使用预定义的默认参数。让我们重点分析 <code>shape_create_with_param</code> 函数：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">shape_t</span> <span class="title function_">shape_create_with_param</span><span class="params">(<span class="type">const</span> <span class="type">shape_config_t</span> *config)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!config)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">switch</span> (config-&gt;type) &#123;</span><br><span class="line">        <span class="keyword">case</span> SHAPE_CIRCLE: &#123;</span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">shape_circle</span> *<span class="title">circle</span> =</span></span><br><span class="line">                (<span class="keyword">struct</span> shape_circle *)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> shape_circle));</span><br><span class="line">            <span class="keyword">if</span> (!circle)</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">            shape_circle_init_with_radius(circle, config-&gt;params.circle.radius);</span><br><span class="line">            <span class="keyword">return</span> &amp;circle-&gt;shape.api;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">case</span> SHAPE_RECTANGLE: &#123;</span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">shape_rectangle</span> *<span class="title">rectangle</span> =</span></span><br><span class="line">                (<span class="keyword">struct</span> shape_rectangle *)<span class="built_in">malloc</span>(</span><br><span class="line">                    <span class="keyword">sizeof</span>(<span class="keyword">struct</span> shape_rectangle));</span><br><span class="line">            <span class="keyword">if</span> (!rectangle)</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">            shape_rectangle_init_with_size(rectangle,</span><br><span class="line">                                           config-&gt;params.rectangle.width,</span><br><span class="line">                                           config-&gt;params.rectangle.height);</span><br><span class="line">            <span class="keyword">return</span> &amp;rectangle-&gt;shape.api;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里没有什么错误处理，毕竟它只是一个简易的demo而已。</p>
+</blockquote>
+<p>这个函数的主要逻辑是：</p>
+<ol>
+<li>检查配置参数是否有效</li>
+<li>根据配置中的类型创建相应的对象</li>
+<li>调用对应类的初始化函数</li>
+<li>返回对象的句柄</li>
+</ol>
+<p>由于我没有实现自己的内存分配函数，所以我们这里就使用 <code>malloc()</code>。</p>
+<h2 id="配置结构体"><a href="#配置结构体" class="headerlink" title="配置结构体"></a>配置结构体</h2><p>工厂函数需要一个配置结构体来指定要创建的对象类型和参数：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">shape_config</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">enum</span> <span class="title">shape_type</span> <span class="title">type</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">            <span class="type">float</span> radius;</span><br><span class="line">        &#125; circle;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">            <span class="type">float</span> width, height;</span><br><span class="line">        &#125; rectangle;</span><br><span class="line">    &#125; params;</span><br><span class="line">&#125; <span class="type">shape_config_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>shape_config_t</code> 结构体使用联合体（union）来存储不同类型形状的参数。这种设计使得我们可以用一个结构体来表示所有可能形状的配置。</p>
+<blockquote>
+<p>基本上来说，shape_config_t基本上就只是一个单纯的结构体，包含了需要构建对象的类别跟所需要的参数</p>
+</blockquote>
+<h2 id="设计考虑"><a href="#设计考虑" class="headerlink" title="设计考虑"></a>设计考虑</h2><p>需要注意的是，当前的实现存在一个设计上的局限性：每次添加新的形状类型时，都需要修改 <code>shape_config_t</code> 结构体和 <code>shape_create_with_param</code> 函数。这违反了开闭原则（对扩展开放，对修改封闭）。</p>
+<blockquote>
+<p>当然，这个配置结构体跟刚才提到的create函数都是不符合开闭原则的。每添加一个类都需要对他俩进行修改，这很不优雅。</p>
+</blockquote>
+<p>在实际项目中，可以考虑更灵活的解决方案，比如使用注册机制或配置表来避免直接修改核心代码。不过，对于这个简单的演示来说，当前的实现已经足够清晰。</p>
+<blockquote>
+<p>在拷打了一会AI之后，AI给了我一种新的解决方案，待我有空了去研究研究。</p>
+</blockquote>
+<h2 id="初始化函数"><a href="#初始化函数" class="headerlink" title="初始化函数"></a>初始化函数</h2><blockquote>
+<p>回归正题，我们发现这个工厂要求被它管理的类需要有”shape_rectangle_init_with_size”这样一个暴露出来的初始化函数</p>
+</blockquote>
+<p>工厂要求每个被管理的类都提供一个公开的初始化函数。以矩形为例：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">shape_rectangle_init_with_size</span><span class="params">(<span class="keyword">struct</span> shape_rectangle *self, <span class="type">float</span> width,<span class="type">float</span> height)</span> &#123;</span><br><span class="line">    <span class="built_in">memset</span>(self, <span class="number">0</span>, <span class="keyword">sizeof</span>(*self));</span><br><span class="line">    self-&gt;shape.api = &amp;_rectangle_api;</span><br><span class="line">    self-&gt;width = width;</span><br><span class="line">    self-&gt;height = height;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>随便掏一个出来，可以发现它所做的工作也并不复杂，只是很单纯的置0了对象，然后把传进来的参数填进去了而已。</p>
+</blockquote>
+<p>初始化函数主要完成以下工作：</p>
+<ol>
+<li>使用 <code>memset</code> 将对象内存清零</li>
+<li>将虚函数表指针绑定到对象的 <code>api</code> 成员</li>
+<li>设置对象的特定参数（如矩形的宽度和高度）</li>
+</ol>
+<blockquote>
+<p>“self-&gt;shape.api &#x3D; &amp;_rectangle_api;”这一句可以稍微注意一下，这个初始化函数将对应子类的（基类为shape）虚函数表绑定到了self-&gt;shape.api，这是我们之后实现运行时多态的必要条件</p>
+</blockquote>
+<h2 id="虚函数表"><a href="#虚函数表" class="headerlink" title="虚函数表"></a>虚函数表</h2><p>每个形状类都有自己的虚函数表，定义了该类实现的特定行为：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">shape_api</span> _<span class="title">rectangle_api</span> =</span> &#123;.draw = _shape_rectangle_draw, .destroy = _shape_rectangle_destroy&#125;;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>虚函数表大概长这样，我们实现了draw跟destroy函数并且绑定到了这个结构体上</p>
+</blockquote>
+<p>这个虚函数表包含了指向实际实现函数的指针。对于矩形类，我们实现了 <code>_shape_rectangle_draw</code> 和 <code>_shape_rectangle_destroy</code> 函数。</p>
+<h2 id="成员函数实现"><a href="#成员函数实现" class="headerlink" title="成员函数实现"></a>成员函数实现</h2><p>让我们看看 <code>_shape_rectangle_destroy</code> 函数的实现：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> _shape_rectangle_destroy(<span class="type">shape_t</span> shape) &#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">shape_rectangle</span> *<span class="title">self</span> =</span></span><br><span class="line">        container_of(shape, <span class="keyword">struct</span> shape_rectangle, shape.api);</span><br><span class="line">    <span class="built_in">free</span>(self);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里把destroy掏出来看看，基本上来说它就只是单纯的用container_of宏，通过在rectangle子类中包含的shape*的地址和一些别的信息反推出了rectangle本身的地址，然后执行了free。其实draw也是差不多的，也是反推出来本身地址之后，取出结构体中的内容物进行使用，你甚至可以再次进行一个分层，这没什么问题。</p>
+</blockquote>
+<p>这个函数使用 <code>container_of</code> 宏从 <code>shape_t</code> 句柄反推出完整的矩形对象地址，然后释放内存。<code>draw</code> 函数的实现原理类似，也是通过反推地址来访问对象的特定数据。</p>
+<p><code>container_of</code> 宏是一个常用的C语言技巧，它通过结构体成员的地址计算出整个结构体的地址。</p>
+<h2 id="通用接口函数"><a href="#通用接口函数" class="headerlink" title="通用接口函数"></a>通用接口函数</h2><p>虽然严格来说，以下两个函数不属于工厂模式的核心部分，但它们提供了统一的接口来操作所有形状对象：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">shape_draw</span><span class="params">(<span class="type">shape_t</span> shape)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">shape_destroy</span><span class="params">(<span class="type">shape_t</span> shape)</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>虽然强行归类一切没什么意义，C语言甚至都不是面向对象的，更不是强面向对象。但是没法把他俩归类还是让我有点烦。</p>
+</blockquote>
+<p>这些函数提供了类型安全的操作接口，隐藏了具体的实现细节。</p>
+<p><code>shape_draw</code> 函数的实现展示了如何通过虚函数表调用具体的实现：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">shape_draw</span><span class="params">(<span class="type">shape_t</span> shape)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (shape &amp;&amp; *shape &amp;&amp; (*shape)-&gt;draw) &#123;</span><br><span class="line">        (*shape)-&gt;draw(shape);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>他俩其实也挺简单的，就是进行一个简单的判空之后，解引用出*shape_api，然后再通过结构体首个成员的地址是整个结构体的地址这个机制套娃两次就可以对子类绑定好的成员函数进行一个调用了。</p>
+</blockquote>
+<p>这个函数首先进行空指针检查，然后通过双重解引用访问虚函数表中的 <code>draw</code> 函数指针，最后调用具体的实现。这种设计允许我们在不知道具体类型的情况下调用正确的方法。</p>
+<h2 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h2><p>下面是一个完整的使用示例，展示了如何创建和使用不同形状：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;=== Simple Factory Pattern Demo ===\n\n&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 测试1: 使用默认参数创建形状</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Test 1: Creating shapes with default parameters\n&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="type">shape_t</span> circle1 = shape_create(SHAPE_CIRCLE);</span><br><span class="line">    <span class="keyword">if</span> (circle1) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created default circle\n&quot;</span>);</span><br><span class="line">        shape_draw(circle1);</span><br><span class="line">        shape_destroy(circle1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> rectangle1 = shape_create(SHAPE_RECTANGLE);</span><br><span class="line">    <span class="keyword">if</span> (rectangle1) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created default rectangle\n&quot;</span>);</span><br><span class="line">        shape_draw(rectangle1);</span><br><span class="line">        shape_destroy(rectangle1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 测试2: 使用带参数的工厂函数创建自定义形状</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Test 2: Creating shapes with custom parameters\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_config_t</span> circle_config = &#123;.type = SHAPE_CIRCLE,</span><br><span class="line">                                    .params.circle.radius = <span class="number">2.5f</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> circle2 = shape_create_with_param(&amp;circle_config);</span><br><span class="line">    <span class="keyword">if</span> (circle2) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created custom circle with radius 2.5\n&quot;</span>);</span><br><span class="line">        shape_draw(circle2);</span><br><span class="line">        shape_destroy(circle2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_config_t</span> rectangle_config = &#123;.type = SHAPE_RECTANGLE,</span><br><span class="line">                                       .params.rectangle.width = <span class="number">3.0f</span>,</span><br><span class="line">                                       .params.rectangle.height = <span class="number">4.0f</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> rectangle2 = shape_create_with_param(&amp;rectangle_config);</span><br><span class="line">    <span class="keyword">if</span> (rectangle2) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created custom rectangle with width 3.0 and height 4.0\n&quot;</span>);</span><br><span class="line">        shape_draw(rectangle2);</span><br><span class="line">        shape_destroy(rectangle2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 测试3: 错误处理 - 无效类型</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Test 3: Error handling - invalid shape type\n&quot;</span>);</span><br><span class="line">    <span class="type">shape_t</span> unknown_shape = shape_create(<span class="number">999</span>); <span class="comment">// 无效类型</span></span><br><span class="line">    <span class="keyword">if</span> (!unknown_shape) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Correctly rejected unknown shape type\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n=== Demo Completed ===\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>当然，最后在这里赋上一个main.c</p>
+</blockquote>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过这个简单的示例，我们可以看到如何在C语言中实现简单工厂模式。虽然C语言本身不支持面向对象特性，但通过一些技巧，我们仍然可以模拟出类似的效果：</p>
+<ol>
+<li><strong>不透明指针</strong>：使用 <code>shape_t</code> 作为不透明句柄，隐藏实现细节</li>
+<li><strong>虚函数表</strong>：通过结构体指针模拟虚函数表，实现运行时多态</li>
+<li><strong>工厂函数</strong>：封装对象的创建过程，提供统一的创建接口</li>
+<li><strong>配置结构体</strong>：使用联合体存储不同类型对象的参数</li>
+</ol>
+<blockquote>
+<p>感觉这种设计模式，复杂的已经不是单个成员函数了，复杂的是这些函数之间的关系了感觉。</p>
+</blockquote>
+<p>这种设计模式的复杂性主要来自于函数之间的关系和交互，而不是单个函数的实现。通过合理的抽象和封装，我们可以在C语言中构建出灵活、可扩展的系统。</p>
+<p>在实际项目中，可以根据需要进一步优化这个实现，比如添加更完善的错误处理、支持动态注册新类型、或者实现更复杂的设计模式。</p>
+]]></content>
+      <tags>
+        <tag>C</tag>
+      </tags>
+  </entry>
 </search>
