@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chillward.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"default"},"fold":{"enable":true,"height":300},"language":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":true,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":5,"unescape":false,"preload":true}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="我知道这个标题不太像人类，但是这不重要  我们可以先来看两段代码 123456789101112131415161718192021222324int main(int, char **)&#123;    DynamicArray *arr &#x3D; arr_init(3);    arr_push(arr, 10);    arr_push(arr, 20);    arr_push(arr, 3">
+<meta property="og:type" content="article">
+<meta property="og:title" content="动态数组：从普通数组到侵入式Header">
+<meta property="og:url" content="https://chillward.github.io/2026/03/26/%E5%8A%A8%E6%80%81%E6%95%B0%E7%BB%84%EF%BC%9A%E4%BB%8E%E6%99%AE%E9%80%9A%E6%95%B0%E7%BB%84%E5%88%B0%E4%BE%B5%E5%85%A5%E5%BC%8FHeader/index.html">
+<meta property="og:site_name" content="Chillward的博客">
+<meta property="og:description" content="我知道这个标题不太像人类，但是这不重要  我们可以先来看两段代码 123456789101112131415161718192021222324int main(int, char **)&#123;    DynamicArray *arr &#x3D; arr_init(3);    arr_push(arr, 10);    arr_push(arr, 20);    arr_push(arr, 3">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-26T09:00:40.000Z">
+<meta property="article:modified_time" content="2026-03-26T10:01:09.100Z">
+<meta property="article:author" content="Chillward">
+<meta property="article:tag" content="C">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chillward.github.io/2026/03/26/%E5%8A%A8%E6%80%81%E6%95%B0%E7%BB%84%EF%BC%9A%E4%BB%8E%E6%99%AE%E9%80%9A%E6%95%B0%E7%BB%84%E5%88%B0%E4%BE%B5%E5%85%A5%E5%BC%8FHeader/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chillward.github.io/2026/03/26/%E5%8A%A8%E6%80%81%E6%95%B0%E7%BB%84%EF%BC%9A%E4%BB%8E%E6%99%AE%E9%80%9A%E6%95%B0%E7%BB%84%E5%88%B0%E4%BE%B5%E5%85%A5%E5%BC%8FHeader/","path":"2026/03/26/动态数组：从普通数组到侵入式Header/","title":"动态数组：从普通数组到侵入式Header"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>动态数组：从普通数组到侵入式Header | Chillward的博客</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lozad.js/1.16.0/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/pjax.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+  <script class="next-config" data-name="wavedrom" type="application/json">{"enable":true,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/wavedrom/3.5.0/wavedrom.min.js","integrity":"sha256-INLAoJc6quTNfiMWkGZniYO2cxE8mHpddnLow1m6RFs="}}</script>
+  <script class="next-config" data-name="wavedrom_skin" type="application/json">{"enable":true,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/wavedrom/3.5.0/skins/default.js","integrity":"sha256-fduc/Zszk5ezWws2uInY/ALWVmIrmV6VTgXbsYSReFI="}}</script>
+  <script src="/js/third-party/tags/wavedrom.js" defer></script>
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha256-UF1fgpAiu3tPJN/uCqEUHNe7pnr+QR0SQDNfgglgtcM=" crossorigin="anonymous">
+  <script class="next-config" data-name="katex" type="application/json">{"copy_tex_js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/copy-tex.min.js","integrity":"sha256-Us54+rSGDSTvIhKKUs4kygE2ipA0RXpWWh0/zLqw3bs="}}</script>
+  <script src="/js/third-party/math/katex.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Chillward的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Chillward"
+      src="/uploads/avatar.png">
+  <p class="site-author-name" itemprop="name">Chillward</p>
+  <div class="site-description" itemprop="description">西郊有密林，祝君出重围</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="返回顶部">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chillward.github.io/2026/03/26/%E5%8A%A8%E6%80%81%E6%95%B0%E7%BB%84%EF%BC%9A%E4%BB%8E%E6%99%AE%E9%80%9A%E6%95%B0%E7%BB%84%E5%88%B0%E4%BE%B5%E5%85%A5%E5%BC%8FHeader/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.png">
+      <meta itemprop="name" content="Chillward">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Chillward的博客">
+      <meta itemprop="description" content="西郊有密林，祝君出重围">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="动态数组：从普通数组到侵入式Header | Chillward的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          动态数组：从普通数组到侵入式Header
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-26 17:00:40 / 修改时间：18:01:09" itemprop="dateCreated datePublished" datetime="2026-03-26T17:00:40+08:00">2026-03-26</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><blockquote>
+<p>我知道这个标题不太像人类，但是这不重要</p>
+</blockquote>
+<p>我们可以先来看两段代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span>, <span class="type">char</span> **)</span></span><br><span class="line">&#123;</span><br><span class="line">    DynamicArray *arr = arr_init(<span class="number">3</span>);</span><br><span class="line">    arr_push(arr, <span class="number">10</span>);</span><br><span class="line">    arr_push(arr, <span class="number">20</span>);</span><br><span class="line">    arr_push(arr, <span class="number">30</span>);</span><br><span class="line">    arr_print(arr);</span><br><span class="line">    arr_free(arr);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span>, <span class="type">char</span> **)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> *numbers = <span class="literal">NULL</span>;</span><br><span class="line">    arr_push(numbers, <span class="number">69</span>);</span><br><span class="line">    arr_push(numbers, <span class="number">420</span>);</span><br><span class="line">    arr_push(numbers, <span class="number">1337</span>);</span><br><span class="line">    arr_push(numbers, <span class="number">80085</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">size_t</span> i = <span class="number">0</span>; i &lt; arr_len(numbers); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>, numbers[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    arr_free(numbers);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一个 <code>main</code> 函数中，我们初始化的是 <code>DynamicArray *</code> 类型的<strong>自定义动态数组结构体指针</strong>，后续所有操作函数均基于该指针类型实现；第二个 <code>main</code> 函数中，我们仅初始化了单纯的 <code>int *</code> 类型<strong>原生整型指针</strong>，配套的操作函数(宏)也仅针对这个明确数据类型的指针进行操作。</p>
+<hr>
+<p>在 C 语言及绝大多数编程语言中，一个完整可用的动态数组，必须包含以下三个关键要素：</p>
+<ol>
+<li><p><strong>数据块</strong> 存储数组元素的连续内存空间，是动态数组的数据存储载体。</p>
+</li>
+<li><p><strong>当前使用量 (count)</strong> 标记数组中<strong>有效元素的实际个数</strong>，用于控制遍历、访问边界。</p>
+</li>
+<li><p><strong>容量 (capacity)</strong> 标记当前内存<strong>最大可容纳的元素总数</strong>，用于判断动态扩容的时机。</p>
+</li>
+</ol>
+<p>这个数据块部分，在C语言这边的话，一般来说都是由一个指向要存储元素类型的指针跟一套内存分配机制一起组成的(比如glib实现的malloc)。</p>
+<p>在我们常见的实现方法中，这三部分通常会被存放在一个结构体中，大概像这样</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span></span><br><span class="line">    <span class="type">int</span> *items;      <span class="comment">// 数组元素</span></span><br><span class="line">    <span class="type">size_t</span> count;    <span class="comment">// 当前元素数量</span></span><br><span class="line">    <span class="type">size_t</span> capacity; <span class="comment">// 数组容量</span></span><br><span class="line">&#125; DynamicArray;</span><br></pre></td></tr></table></figure>
+
+<p>我们通常会先初始化一个动态数组结构体变量(malloc或者栈分配)，再通过结构体内部的指针，操作存储数据的内存块；当容量 <code>capacity</code> 不足时执行的 <code>realloc</code> 重分配操作，就是这类内存操作的典型例子。</p>
+<p>而我们今天提到的 <code>Header_Array</code>（头部数组），其典型的 <code>Header</code> 结构体声明如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span></span><br><span class="line">    <span class="type">size_t</span> count;</span><br><span class="line">    <span class="type">size_t</span> capacity;</span><br><span class="line">&#125; Header;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以发现，这个结构体中<strong>并没有存储数组元素的成员</strong>。基于此，我们可以提出两个关键问题：</p>
+<ul>
+<li><p>如果仅观察 <code>main</code> 函数的代码：管理数组所需的头部信息究竟存放在哪里？</p>
+</li>
+<li><p>如果仅分析这个 <code>Header</code> 结构体：数组的实际数据又存储在什么地方？</p>
+</li>
+</ul>
+<p>在标准实现中，头部信息会存储在<strong>显式定义的结构体变量</strong>中，我们通过变量内部的指针对数据进行操作；此时，存储头部信息与存储实际数据的内存<strong>可能是相互分离、不连续的</strong>。</p>
+<p>而在<code>Header_Array</code>（头部数组）中，<strong>整个动态数组占用一整块连续的内存</strong>，头部信息会<strong>隐式地存储在数据段的前方</strong>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────────────────────────────────┐</span><br><span class="line">│  DynamicArray 结构体 (栈上或堆上，此处假设堆上)           │</span><br><span class="line">├──────────────────────────────────────────────────────┤</span><br><span class="line">│  count     │  capacity   │  items 指针                │</span><br><span class="line">│  (size_t)  │  (size_t)   │  (int*)                   │</span><br><span class="line">│     4      │     6       │  ────────┐                │</span><br><span class="line">└────────────┴─────────────┴──────────┼────────────────┘</span><br><span class="line">                                      │</span><br><span class="line">                                      ↓</span><br><span class="line">                         ┌─────────────────────────────┐</span><br><span class="line">                         │  数据区（另一个独立堆块）       │</span><br><span class="line">                         ├─────────────────────────────┤</span><br><span class="line">                         │  10 │ 20 │ 30 │ 40 │  ? │ ? │</span><br><span class="line">                         └─────────────────────────────┘</span><br><span class="line"></span><br><span class="line">┌───────────────────────────────────────────────┐</span><br><span class="line">│  Header           │  数据区（用户可访问）       │</span><br><span class="line">│  (count, capacity)│  [0] [1] [2] [3] ...     │</span><br><span class="line">└───────────────────────────────────────────────┘</span><br><span class="line">▲                  ▲</span><br><span class="line">│                  │</span><br><span class="line">header指针         arr 指针（用户持有）</span><br><span class="line">(Header*)(arr)-1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这种 <code>Header_Array</code> 还有一个显著优势：<strong>借助宏展开，可以很方便地实现泛型动态数组</strong>。</p>
+<p>当然，这本身也是侵入式数据结构的一大特性，这部分内容我们可以放在最后再展开说明。</p>
+</blockquote>
+<hr>
+<p>实现该操作依赖的核心语法特性是：<strong>对指针进行加减运算时，地址偏移量由指针指向的数据类型大小决定</strong>。</p>
+<p>借助这一特性，我们可以通过<strong>强制转换指针类型</strong>、执行指针运算并对结果解引用，精准获取<strong>隐藏在内存块最前端的头部信息（Header）</strong>，以及其中存储的元数据。</p>
+<p>我们可以先从一个 <code>int</code> 类型的侵入式动态数组入手，实现逻辑其实非常简洁：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> *<span class="title function_">arr_init</span><span class="params">(<span class="type">int</span> *ptr, <span class="type">int</span> size)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (ptr == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        Header *header = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(*ptr) * size + <span class="keyword">sizeof</span>(Header));</span><br><span class="line">        header-&gt;capacity = size;</span><br><span class="line">        header-&gt;count = <span class="number">0</span>;</span><br><span class="line">        ptr = (<span class="type">int</span> *)(header + <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ptr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">arr_push</span><span class="params">(<span class="type">int</span> **arr_ptr, <span class="type">int</span> data)</span>&#123;</span><br><span class="line">    <span class="type">int</span> *arr = *arr_ptr;</span><br><span class="line">    Header *header = ((Header *)arr - <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (header-&gt;count &gt;= header-&gt;capacity)</span><br><span class="line">    &#123;</span><br><span class="line">        header-&gt;capacity *= <span class="number">2</span>;</span><br><span class="line">        header = <span class="built_in">realloc</span>(header, <span class="keyword">sizeof</span>(*arr) * header-&gt;capacity +</span><br><span class="line">                                     <span class="keyword">sizeof</span>(Header));</span><br><span class="line">        arr = (<span class="type">int</span> *)(header + <span class="number">1</span>);</span><br><span class="line">        *arr_ptr = arr;</span><br><span class="line">    &#125;</span><br><span class="line">    arr[header-&gt;count++] = data;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">arr_free</span><span class="params">(<span class="type">int</span> *arr)</span>&#123;</span><br><span class="line">    <span class="built_in">free</span>((Header *)(arr)<span class="number">-1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实只要理解了前面提到的<strong>指针运算特性</strong>—— 对指针进行加减操作时，偏移量由指针指向类型的大小决定，这段代码就很好理解、也很好写了。</p>
+<p>这里有一个<strong>细节</strong>需要重点注意：结合 <code>realloc</code> 的核心特性可知，当原内存地址后无足够连续空间时，<code>realloc()</code> 会<strong>将内存块整体迁移至新的内存位置</strong>。</p>
+<p>若迁移成功，函数会返回<strong>新的内存地址</strong>，<strong>原指针将失效</strong>，必须用新地址覆盖旧指针，否则会引发野指针、内存访问异常等问题。</p>
+<p>正是由于这一特性，我们在 <code>arr_push</code> 函数的参数列表中特意使用<strong>二级指针</strong>，核心目的就是：当 <code>realloc</code> 触发内存迁移时，能够直接修改并更新原数组指针的地址，保证指针始终有效。</p>
+<hr>
+<p>但这种实现方式<strong>只能处理 int 类型的动态数组</strong>，如果想支持其他数据类型，就必须为每一种类型单独编写一套操作函数。</p>
+<p>这时我们就可以<strong>用上 C 语言的宏</strong>，借助它来实现<strong>泛型动态数组</strong>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> arr_push(arr, x)                                                   \</span></span><br><span class="line"><span class="meta">    do &#123;                                                                   \</span></span><br><span class="line"><span class="meta">        <span class="keyword">if</span> (arr == NULL) &#123;                                                 \</span></span><br><span class="line"><span class="meta">            Header *header =                                               \</span></span><br><span class="line"><span class="meta">                malloc(sizeof(*arr) * ARR_INIT_CAPACITY + sizeof(Header)); \</span></span><br><span class="line"><span class="meta">            header-&gt;count = 0;                                             \</span></span><br><span class="line"><span class="meta">            header-&gt;capacity = ARR_INIT_CAPACITY;                          \</span></span><br><span class="line"><span class="meta">            arr = (void *)(header + 1);                                    \</span></span><br><span class="line"><span class="meta">        &#125;                                                                  \</span></span><br><span class="line"><span class="meta">        Header *header = (Header *)(arr) - 1;                              \</span></span><br><span class="line"><span class="meta">        <span class="keyword">if</span> (header-&gt;count &gt;= header-&gt;capacity) &#123;                           \</span></span><br><span class="line"><span class="meta">            header-&gt;capacity *= 2;                                         \</span></span><br><span class="line"><span class="meta">            header = realloc(header, sizeof(*arr) * header-&gt;capacity +     \</span></span><br><span class="line"><span class="meta">                                         sizeof(Header));                  \</span></span><br><span class="line"><span class="meta">            arr = (void *)(header + 1);                                    \</span></span><br><span class="line"><span class="meta">        &#125;                                                                  \</span></span><br><span class="line"><span class="meta">        (arr)[header-&gt;count++] = (x);                                      \</span></span><br><span class="line"><span class="meta">    &#125; while (0)</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，使用宏时，参数类型从二级指针简化成了一级指针。这是因为 C 语言的宏本质比较原始，<strong>仅仅是做单纯的文本替换</strong>。</p>
+<p>这段宏会在调用处直接展开，并且 <code>arr</code> 会在宏内部完成更新。而不需要考虑局部变量的问题</p>
+<blockquote>
+<p>当然，这段宏不太健壮，仍然可能出现野指针之类的问题，但只是作为一个demo来说，倒也够用</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C/" rel="tag"># C</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/17/C%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%AE%80%E5%8D%95%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/" rel="prev" title="C语言与设计模式之简单工厂模式">
+                  <i class="fa fa-angle-left"></i> C语言与设计模式之简单工厂模式
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/03/28/%E7%94%A8C%E8%AF%AD%E8%A8%80%E6%9B%BF%E4%BB%A3%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" rel="next" title="用C语言替代正则表达式">
+                  用C语言替代正则表达式 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Chillward</span>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
