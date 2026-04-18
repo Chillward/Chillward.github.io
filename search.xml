@@ -214,7 +214,7 @@
 </blockquote>
 <p>这个函数首先进行空指针检查，然后通过双重解引用访问虚函数表中的 <code>draw</code> 函数指针，最后调用具体的实现。这种设计允许我们在不知道具体类型的情况下调用正确的方法。</p>
 <h2 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h2><p>下面是一个完整的使用示例，展示了如何创建和使用不同形状：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;=== Simple Factory Pattern Demo ===\n\n&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 测试1: 使用默认参数创建形状</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Test 1: Creating shapes with default parameters\n&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="type">shape_t</span> circle1 = shape_create(SHAPE_CIRCLE);</span><br><span class="line">    <span class="keyword">if</span> (circle1) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created default circle\n&quot;</span>);</span><br><span class="line">        shape_draw(circle1);</span><br><span class="line">        shape_destroy(circle1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> rectangle1 = shape_create(SHAPE_RECTANGLE);</span><br><span class="line">    <span class="keyword">if</span> (rectangle1) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created default rectangle\n&quot;</span>);</span><br><span class="line">        shape_draw(rectangle1);</span><br><span class="line">        shape_destroy(rectangle1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 测试2: 使用带参数的工厂函数创建自定义形状</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Test 2: Creating shapes with custom parameters\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_config_t</span> circle_config = &#123;.type = SHAPE_CIRCLE,</span><br><span class="line">                                    .params.circle.radius = <span class="number">2.5f</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> circle2 = shape_create_with_param(&amp;circle_config);</span><br><span class="line">    <span class="keyword">if</span> (circle2) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created custom circle with radius 2.5\n&quot;</span>);</span><br><span class="line">        shape_draw(circle2);</span><br><span class="line">        shape_destroy(circle2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_config_t</span> rectangle_config = &#123;.type = SHAPE_RECTANGLE,</span><br><span class="line">                                       .params.rectangle.width = <span class="number">3.0f</span>,</span><br><span class="line">                                       .params.rectangle.height = <span class="number">4.0f</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> rectangle2 = shape_create_with_param(&amp;rectangle_config);</span><br><span class="line">    <span class="keyword">if</span> (rectangle2) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created custom rectangle with width 3.0 and height 4.0\n&quot;</span>);</span><br><span class="line">        shape_draw(rectangle2);</span><br><span class="line">        shape_destroy(rectangle2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 测试3: 错误处理 - 无效类型</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Test 3: Error handling - invalid shape type\n&quot;</span>);</span><br><span class="line">    <span class="type">shape_t</span> unknown_shape = shape_create(<span class="number">999</span>); <span class="comment">// 无效类型</span></span><br><span class="line">    <span class="keyword">if</span> (!unknown_shape) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Correctly rejected unknown shape type\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n=== Demo Completed ===\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;=== Simple Factory Pattern Demo ===\n\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 测试1: 使用默认参数创建形状</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Test 1: Creating shapes with default parameters\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> circle1 = shape_create(SHAPE_CIRCLE);</span><br><span class="line">    <span class="keyword">if</span> (circle1) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created default circle\n&quot;</span>);</span><br><span class="line">        shape_draw(circle1);</span><br><span class="line">        shape_destroy(circle1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> rectangle1 = shape_create(SHAPE_RECTANGLE);</span><br><span class="line">    <span class="keyword">if</span> (rectangle1) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created default rectangle\n&quot;</span>);</span><br><span class="line">        shape_draw(rectangle1);</span><br><span class="line">        shape_destroy(rectangle1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 测试2: 使用带参数的工厂函数创建自定义形状</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Test 2: Creating shapes with custom parameters\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_config_t</span> circle_config = &#123;.type = SHAPE_CIRCLE,</span><br><span class="line">                                    .params.circle.radius = <span class="number">2.5f</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> circle2 = shape_create_with_param(&amp;circle_config);</span><br><span class="line">    <span class="keyword">if</span> (circle2) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created custom circle with radius 2.5\n&quot;</span>);</span><br><span class="line">        shape_draw(circle2);</span><br><span class="line">        shape_destroy(circle2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_config_t</span> rectangle_config = &#123;.type = SHAPE_RECTANGLE,</span><br><span class="line">                                       .params.rectangle.width = <span class="number">3.0f</span>,</span><br><span class="line">                                       .params.rectangle.height = <span class="number">4.0f</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="type">shape_t</span> rectangle2 = shape_create_with_param(&amp;rectangle_config);</span><br><span class="line">    <span class="keyword">if</span> (rectangle2) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Created custom rectangle with width 3.0 and height 4.0\n&quot;</span>);</span><br><span class="line">        shape_draw(rectangle2);</span><br><span class="line">        shape_destroy(rectangle2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 测试3: 错误处理 - 无效类型</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Test 3: Error handling - invalid shape type\n&quot;</span>);</span><br><span class="line">    <span class="type">shape_t</span> unknown_shape = shape_create(<span class="number">999</span>); <span class="comment">// 无效类型</span></span><br><span class="line">    <span class="keyword">if</span> (!unknown_shape) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Correctly rejected unknown shape type\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n=== Demo Completed ===\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>当然，最后在这里赋上一个main.c</p>
@@ -5226,5 +5226,553 @@
       <tags>
         <tag>rt-thread</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>C语言下的引用计数(Gc)</title>
+    <url>/2026/04/18/C%E8%AF%AD%E8%A8%80%E4%B8%8B%E7%9A%84%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0/</url>
+    <content><![CDATA[<blockquote>
+<p><a href="https://www.youtube.com/watch?v=iotrPxUnTdQ">Reference Counting in C</a></p>
+<p>事情是这样的，Tsoding在他的频道发布了这样一期视频，是关于在C语言中实现一个简易的Rc，并且使用它来实现了一个微型的Lisp解释器。我跟着他的视频敲完了所有代码。但老实说我并没有理解多少，所以在这里写一个博客并且盼望着能够从中学到一些什么</p>
+</blockquote>
+<h3 id="一、Lisp-是什么"><a href="#一、Lisp-是什么" class="headerlink" title="一、Lisp 是什么"></a>一、Lisp 是什么</h3><h4 id="1-1-Lisp-概述"><a href="#1-1-Lisp-概述" class="headerlink" title="1.1 Lisp 概述"></a>1.1 Lisp 概述</h4><p>Lisp的全称是List Processor（列表处理机），由John McCarthy在1958年创立，是目前仍在使用的第二古老高级编程语言，仅次于Fortran。和我们熟悉的C、Java、Python等语言相比，Lisp的核心差异在于 <strong>“程序即数据”（同像性）</strong> 这一独特特质，这也是它区别于其他主流语言的核心标志。</p>
+<h4 id="1-2-Lisp-核心特征"><a href="#1-2-Lisp-核心特征" class="headerlink" title="1.2 Lisp 核心特征"></a>1.2 Lisp 核心特征</h4><ul>
+<li><p><strong>语法高度统一</strong>：一切皆为S-表达式（列表），摒弃传统中缀表示法。例如加法运算不会写成<code>1 + 2</code>，而是采用前缀表示法的<code>(+ 1 2)</code>。</p>
+</li>
+<li><p><strong>函数式编程为核心</strong>：递归是核心编程方式，函数在Lisp中是“一等公民”，可作为参数、返回值或变量存储，灵活性极高。</p>
+</li>
+<li><p><strong>早期特性奠基</strong>：是最早引入动态类型和自动内存管理的语言之一，这两大特性也成为后续编程语言内存管理方案的核心动因。</p>
+</li>
+</ul>
+<h3 id="二、Lisp-底层数据结构"><a href="#二、Lisp-底层数据结构" class="headerlink" title="二、Lisp 底层数据结构"></a>二、Lisp 底层数据结构</h3><h4 id="2-1-核心结构：Cons-Cell（点对单元）"><a href="#2-1-核心结构：Cons-Cell（点对单元）" class="headerlink" title="2.1 核心结构：Cons Cell（点对单元）"></a>2.1 核心结构：Cons Cell（点对单元）</h4><p>理解Lisp的关键，在于认清其列表的本质——它并非连续数组，而是由<strong>Cons Cell（点对单元）</strong> 构成的链表，这是Lisp数据结构的底层基石。每个Cons Cell分为两部分：<strong>CAR</strong>指向当前节点的数据（如整数、符号），<strong>CDR</strong>指向列表的“剩余部分”。</p>
+<p>一个标准的Lisp列表，本质是“嵌套的Cons Cell链条”，且必须以<strong>NIL（空列表）</strong> 结尾。例如列表<code>(1 2 3)</code>在内存中，就是三个Cons Cell串联而成：</p>
+<ol>
+<li><p>第一个Cons Cell：CAR为1、CDR指向第二个Cons Cell；</p>
+</li>
+<li><p>第二个Cons Cell：CAR为2、CDR指向第三个Cons Cell；</p>
+</li>
+<li><p>第三个Cons Cell：CAR为3、CDR指向NIL。</p>
+</li>
+</ol>
+<h4 id="2-2-易混淆概念区分"><a href="#2-2-易混淆概念区分" class="headerlink" title="2.2 易混淆概念区分"></a>2.2 易混淆概念区分</h4><ul>
+<li><p><strong>Cons Cell</strong>：底层物理结构，类似一个有两个格子的“盒子”，是构成所有Lisp数据结构的基础单元。</p>
+</li>
+<li><p><strong>点对（Dotted Pair）</strong>：当Cons Cell的CDR指向非列表（也非NIL）时，称为点对，格式如<code>(420 . 69)</code>，常用来表示坐标、键值对等二元关系。</p>
+</li>
+<li><p><strong>标准列表</strong>：只有当Cons Cell链条以NIL结尾时，才是我们常说的“标准列表”，也是Lisp中最常用的数据形式。</p>
+</li>
+</ul>
+<p>这种链表结构赋予Lisp一个重要优势——<strong>结构共享</strong>：创建新列表时无需复制已有数据，只需新建Cons Cell并指向已有链表即可，这让数据操作更高效，但也给内存管理带来了一定挑战。</p>
+<blockquote>
+<p>所以说Lisp的列表本质上就是链表</p>
+</blockquote>
+<h3 id="三、Lisp-解释器解析"><a href="#三、Lisp-解释器解析" class="headerlink" title="三、Lisp 解释器解析"></a>三、Lisp 解释器解析</h3><h4 id="3-1-Lisp-解释器核心：REPL循环"><a href="#3-1-Lisp-解释器核心：REPL循环" class="headerlink" title="3.1 Lisp 解释器核心：REPL循环"></a>3.1 Lisp 解释器核心：REPL循环</h4><p>Lisp解释器的核心是<strong>REPL循环</strong>，简单来说就是四个步骤的循环执行：</p>
+<ul>
+<li><p>读取（Read）：输入字符串并解析为Lisp内部的链表结构；</p>
+</li>
+<li><p>求值（Eval）：递归判断表达式类型（常量、变量、函数调用），若为函数调用则递归求值参数并执行逻辑（Eval是核心部分）；</p>
+</li>
+<li><p>打印（Print）：输出求值结果；</p>
+</li>
+<li><p>循环（Loop）：等待下一次输入。</p>
+</li>
+</ul>
+<h4 id="3-2-内存管理的必要性"><a href="#3-2-内存管理的必要性" class="headerlink" title="3.2 内存管理的必要性"></a>3.2 内存管理的必要性</h4><p>由于Lisp的递归链表操作、结构共享特性，多个列表可能共用同一个Cons Cell节点。若手动调用<code>free()</code>，既无法判断谁该负责释放，也容易出现内存泄漏或重复释放的问题，因此<strong>自动内存管理</strong>就成了Lisp解释器的必选项。</p>
+<blockquote>
+<p>首先，在一切开始之前，我们为什么需要用到Rc来管理这一切？</p>
+</blockquote>
+<h3 id="四、Lisp-解释器的核心内存管理方式"><a href="#四、Lisp-解释器的核心内存管理方式" class="headerlink" title="四、Lisp 解释器的核心内存管理方式"></a>四、Lisp 解释器的核心内存管理方式</h3><p>引用计数（RC）的核心逻辑很简单：给每个对象（如Lisp的Expr结构体）维护一个计数器，具体操作如下：</p>
+<ul>
+<li><p>新指针指向对象时，计数器+1（对应<code>rc_acquire</code>操作）；</p>
+</li>
+<li><p>指针失效时，计数器-1（对应<code>rc_release</code>操作）；</p>
+</li>
+<li><p>计数器归零时，立即释放该对象占用的内存。</p>
+</li>
+</ul>
+<p><strong>优点</strong>：实时性高，内存无人使用时立即回收，无不可预测停顿；实现简单，无需扫描整个内存堆。</p>
+<p><strong>缺点</strong>：每次指针赋值都要更新计数器，存在分散性能开销；无法处理循环引用（两个对象互相指向时，计数器永远无法归零，导致内存泄漏）。</p>
+<blockquote>
+<p>所谓弱引用好像就是拿来解决这个问题的</p>
+</blockquote>
+<hr>
+<p>Tsoding并没有完整的实现整个Lisp解释器，而是只简单实现了</p>
+<ul>
+<li><p>求值（Eval）：递归判断表达式类型（常量、变量、函数调用），若为函数调用则递归求值参数并执行逻辑（Eval是核心部分）；</p>
+</li>
+<li><p>打印（Print）：输出求值结果；</p>
+</li>
+</ul>
+<p>这两个部分。</p>
+<hr>
+<p>我觉得从Rc的实现来开始切入是相当合适的</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="type">ptrdiff_t</span> count;</span><br><span class="line">    <span class="type">void</span> (*destroy)(<span class="type">void</span> *data);</span><br><span class="line">&#125; Rc;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">rc_alloc</span><span class="params">(<span class="type">size_t</span> size, <span class="type">void</span> (*destroy)(<span class="type">void</span> *data))</span>;</span><br><span class="line"><span class="type">void</span> *<span class="title function_">rc_acquire</span><span class="params">(<span class="type">void</span> *data)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">rc_release</span><span class="params">(<span class="type">void</span> *data)</span>;</span><br><span class="line"><span class="type">ptrdiff_t</span> <span class="title function_">rc_count</span><span class="params">(<span class="type">void</span> *data)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这是我们rc.h中的所有的函数声明。</p>
+<p>观察Rc类型，我们可以发现其中只简单的包含两个元素，一个类型为pirtdiff_t的count，以及一个void (*)(void *)的函数指针，指向被Rc管理的类型自定义的析构函数。</p>
+<hr>
+<p>那么我们是如何通过Rc来管理自定义的的呢，这里我们就用到了C语言的一个特性：<strong>内存偏移</strong></p>
+<p>在 C 语言中，我们通常认为指针指向的是一块内存的“起点”。但 <code>rc.h</code> 利用了一个空间上的错位：<strong>用户看到的起点，其实是数据的中点。</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">+------------+-----------+</span><br><span class="line">|    Rc      |   struct  |</span><br><span class="line">+------------+-----------+</span><br></pre></td></tr></table></figure>
+
+<p>我们可以观察rc_aclloc函数的实现:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> *<span class="title function_">rc_alloc</span><span class="params">(<span class="type">size_t</span> size, <span class="type">void</span> (*destroy)(<span class="type">void</span> *data))</span></span><br><span class="line">&#123;</span><br><span class="line">    Rc *rc = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(Rc) + size);</span><br><span class="line">    assert(rc);</span><br><span class="line">    rc-&gt;count = <span class="number">0</span>;</span><br><span class="line">    rc-&gt;destroy = destroy;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;[RC] %p allocated\n&quot;</span>, rc);</span><br><span class="line">    <span class="keyword">return</span> rc + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们分配的连续内存中内嵌了 Rc 元数据头，用于存储引用计数和对应的析构函数指针。接口返回的指针直接指向自定义数据类型，调用 <code>rc_alloc</code> 后即可直接操作目标对象，Rc 元数据头作为底层实现细节被完全隐藏，无需显式访问。</p>
+<p>然后我们可以来观察rc_release函数的实现</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">rc_release</span><span class="params">(<span class="type">void</span> *data)</span></span><br><span class="line">&#123;</span><br><span class="line">    Rc *rc = (Rc *)data - <span class="number">1</span>;</span><br><span class="line">    rc-&gt;count -= <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (rc-&gt;count &lt;= <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        rc-&gt;destroy(rc + <span class="number">1</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;[RC] %p released\n&quot;</span>, rc);</span><br><span class="line">        <span class="built_in">free</span>(rc);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数的功能分三步：</p>
+<ol>
+<li><p>通过指针运算取回我们需要的header</p>
+</li>
+<li><p>减少引用次数</p>
+</li>
+<li><p>当引用次数&lt;&#x3D;0时，调用析构函数，最后进行内存释放</p>
+</li>
+</ol>
+<blockquote>
+<p>我们为什么要这么设计？</p>
+</blockquote>
+<p><strong>这种模式是高度泛用的（Generic），它是 C 语言中模拟“多态析构”的标准工程实践。</strong></p>
+<p>这段代码本质上是<strong>解耦了内存管理逻辑（Rc）与具体的业务清理逻辑（Lisp）</strong>。</p>
+<ul>
+<li><p><strong>Rc 库的视角（通用性）</strong>：<code>rc.h</code> 并不关心它管理的是 Lisp 的表达式、一个复杂的网络缓冲区，还是一个文件描述符。它只知道：“当没人用这块地时，我就通过这个预留的‘电话号码’（函数指针）通知物主来搬家。”</p>
+</li>
+<li><p><strong>业务层的视角（定制性）</strong>：不同的数据类型可以注册不同的 <code>destroy</code> 函数。</p>
+<ul>
+<li><p>如果是 <strong>Lisp <code>PAIR</code></strong>：<code>destroy</code> 会递归释放左右子节点。</p>
+</li>
+<li><p>如果是 <strong>文件对象</strong>：<code>destroy</code> 可能会负责 <code>fclose(fp)</code>。</p>
+</li>
+<li><p>如果是 <strong>线程池</strong>：<code>destroy</code> 可能会负责销毁互斥锁（Mutex）。</p>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>大概就是“我的引用用完了，剩下的内部资源清理，交给你专属的析构函数处理“这个逻辑</p>
+</blockquote>
+<p>而在rc_acquire函数中，我们所做的工作仅仅只取回头部之后将count+1,随后返回原地址</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> *<span class="title function_">rc_acquire</span><span class="params">(<span class="type">void</span> *data)</span></span><br><span class="line">&#123;</span><br><span class="line">    Rc *rc = ((Rc *)data - <span class="number">1</span>);</span><br><span class="line">    rc-&gt;count += <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> data;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以发现 <strong><code>rc_alloc</code> 并不进行“计数 +1”这个行为</strong>，它将初始计数设置为 <code>0</code>。真正的“计数 +1”是由 <strong><code>rc_acquire</code></strong> 负责的。</p>
+<p>这种设计背后有一套严密的逻辑配合：</p>
+<h6 id="1-rc-alloc-的职责：初始化"><a href="#1-rc-alloc-的职责：初始化" class="headerlink" title="1. rc_alloc 的职责：初始化"></a>1. <code>rc_alloc</code> 的职责：初始化</h6><p><code>rc_alloc</code> 的任务是分配内存并设置好“元数据”。</p>
+<ul>
+<li><p>它将 <code>rc-&gt;count</code> 初始化为 <strong><code>0</code></strong>。</p>
+</li>
+<li><p>这意味着：<strong>刚分配出来的对象，在逻辑上还没有被任何人“持有”所有权。</strong></p>
+</li>
+<li><p>这是一种“预分配”状态，等待被第一个使用者接管。</p>
+</li>
+</ul>
+<h6 id="2-rc-acquire-的职责：增加引用"><a href="#2-rc-acquire-的职责：增加引用" class="headerlink" title="2. rc_acquire 的职责：增加引用"></a>2. <code>rc_acquire</code> 的职责：增加引用</h6><p>这是真正执行 <code>rc-&gt;count += 1</code> 的地方。</p>
+<ul>
+<li>当我们希望一个指针正式指向这个对象并共享其所有权时，你必须显式调用 <code>rc_acquire</code>。</li>
+</ul>
+<h6 id="3-为什么要分两步？（配合构造函数）"><a href="#3-为什么要分两步？（配合构造函数）" class="headerlink" title="3. 为什么要分两步？（配合构造函数）"></a>3. 为什么要分两步？（配合构造函数）</h6><p>观察我们的构造函数（如 <code>make_pair</code>），可以发现这种设计的精妙之处：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">Expr *<span class="title function_">make_pair</span><span class="params">(Expr *left, Expr *right)</span></span><br><span class="line">&#123;</span><br><span class="line">    Expr *expr = alloc_expr(EXPR_PAIR); <span class="comment">// 1. 分配，count = 0</span></span><br><span class="line">    expr-&gt;<span class="built_in">pair</span>.left = rc_acquire(left); <span class="comment">// 2. 这里的 left 被新对象持有了，count + 1</span></span><br><span class="line">    expr-&gt;<span class="built_in">pair</span>.right = rc_acquire(right); <span class="comment">// 3. 这里的 right 被新对象持有了，count + 1</span></span><br><span class="line">    <span class="keyword">return</span> expr; <span class="comment">// 返回 count = 0 的新对象</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>关于这个，我们一会会提到的(确信)</p>
+</blockquote>
+<ul>
+<li><p><strong>内部成员的持有</strong>：<code>make_pair</code> 作为父节点，通过 <code>rc_acquire</code> 明确表示它“拥有”了子节点 <code>left</code> 和 <code>right</code>。</p>
+</li>
+<li><p><strong>新对象的返回</strong>：<code>make_pair</code> 返回的新对象计数仍为 <code>0</code>。直到 <code>main</code> 函数或另一个父节点决定接管它时，才会调用 <code>rc_acquire</code> 将其变为 <code>1</code>。</p>
+</li>
+</ul>
+<h6 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h6><ul>
+<li><p><strong><code>rc_alloc</code></strong>：负责 <strong>“生”，但不负责“养”</strong>，计数设为 <code>0</code>。</p>
+</li>
+<li><p><strong><code>rc_acquire</code></strong>：负责 <strong>“养”</strong>（增加所有权），计数 <code>+1</code>。</p>
+</li>
+<li><p><strong><code>rc_release</code></strong>：负责 <strong>“弃”</strong>（放弃所有权），计数 <code>-1</code>，并在无人领养（计数归零）时销毁。</p>
+</li>
+</ul>
+<p>这种“由调用者决定何时加 1”的模式，能有效避免在构造复杂树状结构（如 Lisp 列表）时出现计数混乱。</p>
+<p>Rc_count函数实际上是不太重要的，它仅仅只是返回当前对象的count而已。</p>
+<hr>
+<p>我们刚才花了不少时间，把 <code>rc.h</code> 这个头文件的功能都梳理了一遍。</p>
+<p>整体的思路是这样的：</p>
+<p>我要做一个 Lisp 解析器 → 可 Lisp 里的列表结构，靠手动管理内存根本不现实 → 所以必须自己搞一套自动内存管理机制 → 于是就实现了 <code>rc.h</code> 这套引用计数库 → 最后再用它来支撑整个解析器的运行。</p>
+<p>当然，Tsoding 本人是把这些内容混在一起开发的，中间甚至还重构了两次。他是一边写解析器的功能，一边慢慢完善 <code>rc.h</code> 的逻辑。<code>rc_alloc</code> 最开始甚至还自带 <code>count++</code> 的逻辑，一直迭代到最后，才变成现在这种谁调用谁释放的样子。</p>
+<p>虽说这种边做边改的方式，确实更贴近真实开发的流程。但我必须说实话，看完他那两个小时十八分钟的视频，我人是蒙的。当然这也就是这篇博客诞生的原因</p>
+<hr>
+<p>想要实现一个lisp解析器，我们需要些什么？</p>
+<p>首先我们应该需要一个数据结构来存储lisp的对象</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    EXPR_NIL,</span><br><span class="line">    EXPR_SYMBOL,</span><br><span class="line">    EXPR_INTEGER,</span><br><span class="line">    EXPR_PAIR,</span><br><span class="line">    __count_expr_kind,</span><br><span class="line">&#125; Expr_Kind;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">Expr</span> <span class="title">Expr</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Expr</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    Expr_Kind kind;</span><br><span class="line">    <span class="keyword">static_assert</span>(__count_expr_kind == <span class="number">4</span>, <span class="string">&quot;Amount of expression kinds has changed&quot;</span>);</span><br><span class="line">    <span class="class"><span class="keyword">union</span></span></span><br><span class="line"><span class="class">    &#123;</span></span><br><span class="line">        <span class="type">const</span> <span class="type">char</span> *symbol;</span><br><span class="line">        <span class="type">int</span> integer;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">        &#123;</span></span><br><span class="line">            Expr *left;</span><br><span class="line">            Expr *right;</span><br><span class="line">        &#125; <span class="built_in">pair</span>;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>我并没有学习过Lisp，所以关于这种数据类型，以下是Ai的回答:</p>
+<hr>
+<p>在 C 语言这种<strong>静态强类型</strong>的语言中，变量的类型在编译时就固定了。但 Lisp 是一种<strong>动态类型</strong>语言，一个变量既可以是数字，也可以是字符串，甚至可以是一个列表。</p>
+<p>为了用 C 语言模拟出 Lisp 的灵活性，这段代码使用了 <strong>标签联合体（Tagged Union，也叫有别联合）</strong> 的设计模式。下面我们逐一拆解这段代码的精妙之处，并解释它如何完美映射 Lisp 中的四大核心概念。</p>
+<hr>
+<h2 id="一、-Lisp-四大概念在代码中的映射"><a href="#一、-Lisp-四大概念在代码中的映射" class="headerlink" title="一、 Lisp 四大概念在代码中的映射"></a>一、 Lisp 四大概念在代码中的映射</h2><h3 id="1-表达式-Expression"><a href="#1-表达式-Expression" class="headerlink" title="1. 表达式 (Expression)"></a>1. 表达式 (Expression)</h3><p>在 Lisp 中，“万物皆为表达式”。代码、数据、数字、函数，全都是表达式。</p>
+<ul>
+<li><p><strong>代码体现</strong>：整个 <code>struct Expr</code> 就是一个通用的“表达式”容器。</p>
+</li>
+<li><p><strong>设计逻辑</strong>：无论你手里的 Lisp 数据是一个单独的数字，还是一个包含几万个元素的列表，在 C 语言的函数签名里，它们统一都表现为 <code>Expr *</code>。这实现了高级语言中的<strong>多态性</strong>。</p>
+</li>
+</ul>
+<h3 id="2-原子-Atom"><a href="#2-原子-Atom" class="headerlink" title="2. 原子 (Atom)"></a>2. 原子 (Atom)</h3><p>原子是不可分割的最小单元，对应代码中占位单一、不含有子表达式的类型。</p>
+<ul>
+<li><p><strong>代码体现</strong>：</p>
+<ul>
+<li><p><code>EXPR_INTEGER</code>：对应 union 中的 <code>int integer;</code>。</p>
+</li>
+<li><p><code>EXPR_SYMBOL</code>：对应 union 中的 <code>const char *symbol;</code>。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>设计逻辑</strong>：它们是“实心”的。当你拿到一个 <code>Expr</code> 且它的 <code>kind</code> 是这两者之一时，你直接读取里面的数值或字符串即可，不需要再做深层的递归解析。</p>
+</li>
+</ul>
+<h3 id="3-列表-List"><a href="#3-列表-List" class="headerlink" title="3. 列表 (List)"></a>3. 列表 (List)</h3><p>列表是 Lisp 的灵魂，由点对（Cons Cell）链式拼接而成。</p>
+<ul>
+<li><p><strong>代码体现</strong>：<code>EXPR_PAIR</code> 对应 union 中的 <code>struct { Expr *left; Expr *right; } pair;</code>。</p>
+</li>
+<li><p><strong>设计逻辑</strong>：这是典型的<strong>递归数据结构</strong>。一个 <code>pair</code> 有两个指针 <code>left</code>（通常叫 CAR）和 <code>right</code>（通常叫 CDR）。</p>
+<ul>
+<li><p><code>left</code> 指向当前列表的元素（它本身可以是一个原子，也可以是另一个列表）。</p>
+</li>
+<li><p><code>right</code> 指向列表的“剩余部分”。</p>
+<p>通过这种嵌套，C 语言成功在堆内存中还原了 Lisp 链表。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-NIL-空列表"><a href="#4-NIL-空列表" class="headerlink" title="4. NIL (空列表)"></a>4. NIL (空列表)</h3><p>NIL 代表“无”，是列表的终点，也是空列表 <code>&#39;()</code> 的化身。</p>
+<ul>
+<li><p><strong>代码体现</strong>：<code>EXPR_NIL</code>。</p>
+</li>
+<li><p><strong>设计逻辑</strong>：注意看，<code>union</code> 里面<strong>根本没有</strong>为 <code>EXPR_NIL</code> 准备任何数据字段！因为 NIL 不需要存储任何额外信息。当 <code>Expr</code> 的 <code>kind == EXPR_NIL</code> 时，程序只要知道“到头了”或者“这里为空”即可，既省内存又非常安全。</p>
+</li>
+</ul>
+<hr>
+<h2 id="二、-为什么要这样设计？"><a href="#二、-为什么要这样设计？" class="headerlink" title="二、 为什么要这样设计？"></a>二、 为什么要这样设计？</h2><p>除了完美契合 Lisp 哲学，这段代码在 C 语言的工程实践上拉满了细节：</p>
+<h3 id="1-enum-union：打造安全的动态类型"><a href="#1-enum-union：打造安全的动态类型" class="headerlink" title="1. enum + union：打造安全的动态类型"></a>1. <code>enum</code> + <code>union</code>：打造安全的动态类型</h3><p>C 语言的 <code>union</code>（联合体）允许不同的变量共享同一块内存。但 <code>union</code> 有一个致命缺点：<strong>它不知道自己当前存的到底是哪种类型。</strong> 如果你存入了一个指针，却按整数去读取，程序就会引发段错误。</p>
+<ul>
+<li><p><strong>解决方案</strong>：在 <code>union</code> 前面强行塞入一个 <code>Expr_Kind kind;</code>。</p>
+</li>
+<li><p><strong>工作流</strong>：每次你要用这个 <code>Expr</code> 时，先用 <code>switch(expr-&gt;kind)</code> 判断它是什么。如果是 <code>EXPR_INT</code>，你才去读 <code>expr-&gt;integer</code>。这个 <code>kind</code> 就是那块内存的**“身份证”**。</p>
+</li>
+</ul>
+<h3 id="2-匿名联合体-Anonymous-Union"><a href="#2-匿名联合体-Anonymous-Union" class="headerlink" title="2. 匿名联合体 (Anonymous Union)"></a>2. 匿名联合体 (Anonymous Union)</h3><p>观察代码，<code>union</code> 后面并没有变量名（没有写 <code>union { ... } data;</code>）。</p>
+<ul>
+<li><strong>好处</strong>：在访问数据时，你可以直接写 <code>expr-&gt;integer</code> 或 <code>expr-&gt;pair.left</code>，而不需要写成冗长的 <code>expr-&gt;data.integer</code>。这让代码极其干净。</li>
+</ul>
+<h3 id="3-极致的内存优化"><a href="#3-极致的内存优化" class="headerlink" title="3. 极致的内存优化"></a>3. 极致的内存优化</h3><p>因为使用了 <code>union</code>，<code>struct Expr</code> 的总大小只取决于它内部<strong>占用空间最大的那个成员</strong>。</p>
+<ul>
+<li><p>在 64 位系统上，<code>pair</code> 包含两个指针（$8 + 8 &#x3D; 16$ 字节），这是最大的。</p>
+</li>
+<li><p>所以，无论这个 <code>Expr</code> 存的是 NIL、一个整数，还是一个复杂的列表节点，它在内存中都只占固定的（16 字节的数据 + 4 字节的枚举 + 内存对齐填充）。这对于需要频繁分配小对象的 Lisp 解释器来说，内存碎片极小，性能极高。</p>
+</li>
+</ul>
+<h3 id="4-惊艳的编译时防御：-count-expr-kind-与断言"><a href="#4-惊艳的编译时防御：-count-expr-kind-与断言" class="headerlink" title="4. 惊艳的编译时防御：__count_expr_kind 与断言"></a>4. 惊艳的编译时防御：<code>__count_expr_kind</code> 与断言</h3><p>这是最体现作者 C 语言功底的地方：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> &#123;</span></span><br><span class="line">    EXPR_NIL,        <span class="comment">// 0</span></span><br><span class="line">    EXPR_SYMBOL,     <span class="comment">// 1</span></span><br><span class="line">    EXPR_INTEGER,    <span class="comment">// 2</span></span><br><span class="line">    EXPR_PAIR,       <span class="comment">// 3</span></span><br><span class="line">    __count_expr_kind, <span class="comment">// 4 （利用枚举递增特性，自动算出前面有4个元素）</span></span><br><span class="line">&#125; Expr_Kind;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static_assert</span>(__count_expr_kind == <span class="number">4</span>, <span class="string">&quot;Amount of expression kinds has changed&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><strong>设计痛点</strong>：在后续开发中，如果你想给 Lisp 增加一个“浮点数”类型（<code>EXPR_FLOAT</code>），你会在 <code>enum</code> 里插上一行。但很多程序员会忘记去修改 <code>eval</code> 里的 <code>switch-case</code>，或者忘记修改对应的分配函数，导致难以排查的 Bug。</p>
+</li>
+<li><p><strong>解决方案</strong>：作者在 <code>struct Expr</code> 的定义里直接写了 <code>static_assert</code>。如果你敢在 <code>enum</code> 里多加一个类型，<code>__count_expr_kind</code> 就会变成 5。此时<strong>编译器会直接拒绝编译并报错</strong>。它强迫你在增加新类型时，必须顺便把这个断言改成 5。而当你去改这个 5 的时候，你就会猛然醒悟：“哦！我还得去其他地方适配这个新类型！”</p>
+</li>
+</ul>
+<hr>
+<p>有了数据类型之后，我们就可以构造这一切了</p>
+<p>在<code>main.c</code>中，我们有四个构造函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">Expr *<span class="title function_">alloc_expr</span><span class="params">(Expr_Kind kind)</span></span><br><span class="line">&#123;</span><br><span class="line">    Expr *expr = rc_alloc(<span class="keyword">sizeof</span>(Expr), destroy_expr);</span><br><span class="line">    expr-&gt;kind = kind;</span><br><span class="line">    <span class="keyword">return</span> expr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static_assert</span>(__count_expr_kind == <span class="number">4</span>, <span class="string">&quot;Amount of expression kinds has changed.Change the ctors&quot;</span>);</span><br><span class="line"></span><br><span class="line">Expr *<span class="title function_">make_nil</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> alloc_expr(EXPR_NIL);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Expr *<span class="title function_">make_integer</span><span class="params">(<span class="type">int</span> integer)</span></span><br><span class="line">&#123;</span><br><span class="line">    Expr *expr = alloc_expr(EXPR_INTEGER);</span><br><span class="line">    expr-&gt;integer = integer;</span><br><span class="line">    <span class="keyword">return</span> expr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Expr *<span class="title function_">make_symbol</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *symbol)</span></span><br><span class="line">&#123;</span><br><span class="line">    Expr *expr = alloc_expr(EXPR_SYMBOL);</span><br><span class="line">    expr-&gt;symbol = symbol;</span><br><span class="line">    <span class="keyword">return</span> expr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Expr *<span class="title function_">make_pair</span><span class="params">(Expr *left, Expr *right)</span></span><br><span class="line">&#123;</span><br><span class="line">    Expr *expr = alloc_expr(EXPR_PAIR);</span><br><span class="line">    expr-&gt;<span class="built_in">pair</span>.left = rc_acquire(left);</span><br><span class="line">    expr-&gt;<span class="built_in">pair</span>.right = rc_acquire(right);</span><br><span class="line">    <span class="keyword">return</span> expr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这些函数负责将 <code>rc_alloc</code> 申请的原始内存“格式化”为具体的 Lisp 表达式。</p>
+<ul>
+<li><p><code>make_nil()</code>：创建一个空列表。</p>
+</li>
+<li><p><code>make_symbol(const char *name)</code>：创建一个符号。</p>
+</li>
+<li><p><code>make_integer(int value)</code>：创建一个整数。</p>
+</li>
+<li><p><code>make_pair(Expr *left, Expr *right)</code>：创建一个点对（Cons Cell）。这是唯一一个<strong>递归</strong>的构造函数，它会调用 <code>rc_acquire</code> 来接管子节点的所有权。</p>
+</li>
+</ul>
+<p>正是通过对rc_alloc的调用，让<code>rc.h</code>拥有了对于expr类型的管理能力</p>
+<blockquote>
+<p>为什么在make_pair的时候需要接管子节点的所有权？</p>
+</blockquote>
+<p>这是一个非常深刻的问题，触及了 <strong>生命周期管理</strong> 与 <strong>数据结构完整性</strong> 的核心。</p>
+<p>简单直接的回答是：<strong>为了防止“过河拆桥”。</strong></p>
+<p>在 C 语言中，如果你创建了一个父节点（Pair），但它不“接管”子节点的所有权，那么子节点随时可能被外界释放，导致父节点手里握着两个指向荒原的<strong>野指针</strong>。</p>
+<p>我们可以从以下三个逻辑维度来深度拆解这个设计：</p>
+<hr>
+<h3 id="1-逻辑上的“从属关系”"><a href="#1-逻辑上的“从属关系”" class="headerlink" title="1. 逻辑上的“从属关系”"></a>1. 逻辑上的“从属关系”</h3><p>在 Lisp 的列表结构中，一个 <code>Pair</code> 节点是由 <code>left</code> 和 <code>right</code> 组成的复合体。</p>
+<ul>
+<li><p>从逻辑上看，<code>left</code> 和 <code>right</code> 现在是这个 <code>Pair</code> 的<strong>组成部分</strong>。</p>
+</li>
+<li><p>如果父节点不接管所有权，它就无法保证自己生命周期内的<strong>完整性</strong>。</p>
+</li>
+</ul>
+<p><strong>如果不接管会发生什么？</strong></p>
+<p>假设你写了这样一段代码：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">Expr *a = make_integer(<span class="number">10</span>);</span><br><span class="line">Expr *p = <span class="built_in">make_pair</span>(a, make_nil());</span><br><span class="line">rc_release(a); <span class="comment">// 如果 make_pair 没调 rc_acquire</span></span><br><span class="line"><span class="comment">// 此时 a 被销毁了，p-&gt;pair.left 变成了一个野指针！</span></span><br></pre></td></tr></table></figure>
+
+<p>正是因为 <code>make_pair</code> 内部调用了 <code>rc_acquire(left)</code>，使得 <code>a</code> 指向的内存计数变为 <code>2</code>（一份在变量 <code>a</code> 手里，一份在父节点 <code>p</code> 手里）。即便外界释放了 <code>a</code>，计数依然为 <code>1</code>，内存安全无恙。</p>
+<hr>
+<h3 id="2-支撑“递归释放”的连锁反应"><a href="#2-支撑“递归释放”的连锁反应" class="headerlink" title="2. 支撑“递归释放”的连锁反应"></a>2. 支撑“递归释放”的连锁反应</h3><p>你之前在研究 <code>rc_release</code> 时看到了它会调用 <code>rc-&gt;destroy(rc + 1)</code>。这个递归清理机制之所以能跑通，全赖 <code>make_pair</code> 当初接管了所有权。</p>
+<ul>
+<li><p><strong>构建时</strong>：<code>make_pair</code> 通过 <code>rc_acquire</code> 建立了“父子契约”。</p>
+</li>
+<li><p><strong>销毁时</strong>：当父节点 <code>p</code> 被 <code>rc_release</code> 且计数归零时，它的析构函数 <code>destroy_expr</code> 也会被触发。</p>
+</li>
+<li><p><strong>权力交接</strong>：<code>destroy_expr</code> 内部会对 <code>left</code> 和 <code>right</code> 调用 <code>rc_release</code>。</p>
+</li>
+</ul>
+<p><strong>核心逻辑：</strong> 如果你当初没有 <code>acquire</code>（计数没加），现在的 <code>release</code>（计数减一）就会导致子节点被提前错误释放。只有**“生时接管，死时交出”**，才能保证整棵树的内存管理是闭环的。</p>
+<hr>
+<h3 id="3-应对“多重引用”的复杂场景"><a href="#3-应对“多重引用”的复杂场景" class="headerlink" title="3. 应对“多重引用”的复杂场景"></a>3. 应对“多重引用”的复杂场景</h3><p>Lisp 最强大的地方在于<strong>数据共享</strong>。</p>
+<p>想象一下：一个复杂的表达式 <code>A</code>，既是列表 <code>B</code> 的头部，又是列表 <code>C</code> 的尾部。</p>
+<ul>
+<li><p><strong>场景</strong>：<code>A</code> 被 <code>B</code> 和 <code>C</code> 同时持有。</p>
+</li>
+<li><p><strong>机制</strong>：</p>
+<ol>
+<li><p><code>make_pair(A, ...)</code> 给 <code>B</code> 用，<code>A</code> 计数 $+1$。</p>
+</li>
+<li><p><code>make_pair(..., A)</code> 给 <code>C</code> 用，<code>A</code> 计数再 $+1$。</p>
+</li>
+</ol>
+</li>
+<li><p><strong>结果</strong>：此时 <code>A</code> 的计数器精确地记录了它被两个父节点共享。无论 <code>B</code> 还是 <code>C</code> 谁先死，只要另一个还活着，<code>A</code> 就不会被销毁。</p>
+</li>
+</ul>
+<p>这种 <strong>“去中心化”</strong> 的内存管理，必须依靠每一个 <code>make_pair</code> 在创建时自觉地通过 <code>rc_acquire</code> 宣示主权。</p>
+<hr>
+<blockquote>
+<p>“<code>make_pair</code> 就像是一个<strong>领养机构</strong>。当你把两个子节点 <code>left</code> 和 <code>right</code> 交给它组成一个新的家庭（Pair）时，它不能只是简单地‘看着’它们，而是必须通过 <code>rc_acquire</code> 正式办理领养手续（接管所有权）。</p>
+<p>这样一来，即便原本的亲生父母（创建子节点的函数）撒手不管了，只要这个家庭还存在，孩子们就是安全的。而当这个家庭最终解散时，它也会负责任地通过析构函数，帮孩子们寻找下一条出路（递归释放）。”</p>
+</blockquote>
+<p><code>make_pair</code> 接管所有权，是为了实现 <strong>“数据结构的自完备性”</strong>。它让每一个 <code>Expr</code> 节点都变成了一个能自感知、自负责的独立生命体，从而构建出 Lisp 那样复杂而稳固的语法树。</p>
+<hr>
+<p>有构造，就会有析构</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">destroy_expr</span><span class="params">(<span class="type">void</span> *data)</span></span><br><span class="line">&#123;</span><br><span class="line">    Expr *expr = data;</span><br><span class="line">    <span class="keyword">switch</span> (expr-&gt;kind)</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">case</span> EXPR_NIL:</span><br><span class="line">    <span class="keyword">case</span> EXPR_SYMBOL:</span><br><span class="line">    <span class="keyword">case</span> EXPR_INTEGER:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> EXPR_PAIR:</span><br><span class="line">        rc_release(expr-&gt;<span class="built_in">pair</span>.left);</span><br><span class="line">        rc_release(expr-&gt;<span class="built_in">pair</span>.right);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> __count_expr_kind:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">    &#123;</span><br><span class="line">        UNREACHABLE(<span class="string">&quot;Expr_Kind&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数与<code>rc.h</code>进行配合使用，在<code>rc_release</code>中进行对应结构的资源清理，正如前文提到的，我们正式通过这层解耦，实现了对于EXPR_PAIR类型的递归资源释放。</p>
+<hr>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> dump_expr(expr) dump_expr_opt(expr, 0)</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">dump_expr_opt</span><span class="params">(Expr *expr, <span class="type">int</span> level)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; level; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;  &quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">switch</span> (expr-&gt;kind)</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">case</span> EXPR_NIL:</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;NIL(%td)\n&quot;</span>, rc_count(expr));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> EXPR_SYMBOL:</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;SYMBOL(%td): %s\n&quot;</span>, rc_count(expr), expr-&gt;symbol);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> EXPR_INTEGER:</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;INTEGER(%td): %d\n&quot;</span>, rc_count(expr), expr-&gt;integer);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> EXPR_PAIR:</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;PAIR(%td):\n&quot;</span>, rc_count(expr));</span><br><span class="line">        dump_expr_opt(expr-&gt;<span class="built_in">pair</span>.left, level + <span class="number">1</span>);</span><br><span class="line">        dump_expr_opt(expr-&gt;<span class="built_in">pair</span>.right, level + <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> __count_expr_kind:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        UNREACHABLE(<span class="string">&quot;EXPR_Kind&quot;</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是一个打印信息的调试函数，这个函数倒是没什么，就仅仅是在类型为<code>EXPR_PAIR</code>时会循环调用他自己而已。并且我们通过宏来模拟了默认参数这个东西</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">Expr *<span class="title function_">args_to_list</span><span class="params">(va_list args)</span></span><br><span class="line">&#123;</span><br><span class="line">    Expr *arg = va_arg(args, Expr *);</span><br><span class="line">    <span class="keyword">if</span> (arg-&gt;kind == EXPR_NIL)</span><br><span class="line">        <span class="keyword">return</span> arg;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">make_pair</span>(arg, args_to_list(args));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> make_list(...) make_list_impl(NULL, __VA_ARGS__, make_nil())</span></span><br><span class="line"></span><br><span class="line">Expr *<span class="title function_">make_list_impl</span><span class="params">(<span class="type">void</span> *first, ...)</span></span><br><span class="line">&#123;</span><br><span class="line">    va_list args;</span><br><span class="line">    va_start(args, first);</span><br><span class="line">    Expr *<span class="built_in">list</span> = args_to_list(args);</span><br><span class="line">    va_end(args);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">list</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这一块其实是很有意思的。</p>
+<p>我们为什么需要一个make_list呢？<strong>make_pair(make_integer(1),make_pair(make_integer(2),make_pair(make_integer(3), make_nil())));</strong></p>
+<p>我相信没有人会想看到这一串破玩意儿的。所以我们构造了args_to_list和make_list_impl这两个函数，以及make_list宏</p>
+<hr>
+<h3 id="一、-宏的“预处理陷阱”：强制哨兵机制"><a href="#一、-宏的“预处理陷阱”：强制哨兵机制" class="headerlink" title="一、 宏的“预处理陷阱”：强制哨兵机制"></a>一、 宏的“预处理陷阱”：强制哨兵机制</h3><p>在 C 语言中，处理变长参数（<code>va_list</code>）最头疼的问题是：<strong>函数不知道参数什么时候结束。</strong> 通常做法是要求调用者手动传一个 <code>NULL</code>，但这极易被遗忘。</p>
+<p>作者通过宏 <code>make_list</code> 巧妙地解决了这个问题：</p>
+<ol>
+<li><p>它在用户传入的参数 <code>__VA_ARGS__</code> 后面<strong>自动追加</strong>了一个 <code>make_nil()</code>。</p>
+</li>
+<li><p>无论你写 <code>make_list(a, b)</code> 还是 <code>make_list(a)</code>，预处理器都会在末尾补上一个 <code>NIL</code>。</p>
+</li>
+<li><p>这个补上的 <code>NIL</code> 充当了<strong>哨兵（Sentinel）</strong>，告诉后面的解析逻辑：“到这里就结束了”。</p>
+</li>
+</ol>
+<h3 id="二、-为什么非要用递归？防止列表“反过来”"><a href="#二、-为什么非要用递归？防止列表“反过来”" class="headerlink" title="二、 为什么非要用递归？防止列表“反过来”"></a>二、 为什么非要用递归？防止列表“反过来”</h3><p>你可能会好奇，为什么要专门写一个递归的 <code>args_to_list</code>，而不是直接用 <code>for</code> 循环遍历参数？</p>
+<p><strong>这里涉及到栈与链表的结构冲突：</strong></p>
+<p>如果用简单的循环去构造列表，代码逻辑通常是“每拿到一个新元素，就把它插在当前列表的最前面”。</p>
+<ul>
+<li><p><strong>输入</strong>：<code>1, 2, 3</code></p>
+</li>
+<li><p><strong>循环过程</strong>：</p>
+<ol>
+<li><p><code>NIL</code></p>
+</li>
+<li><p><code>make_pair(1, NIL)</code> -&gt; <code>(1)</code></p>
+</li>
+<li><p><code>make_pair(2, (1))</code> -&gt; <code>(2 1)</code></p>
+</li>
+<li><p><code>make_pair(3, (2 1))</code> -&gt; <code>(3 2 1)</code></p>
+</li>
+</ol>
+</li>
+<li><p><strong>结果</strong>：顺序完全反了。</p>
+</li>
+</ul>
+<p>而 <code>args_to_list</code> 通过 <strong>递归的回溯（Backtracking）</strong> 完美保持了顺序：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="built_in">make_pair</span>(arg, args_to_list(args));</span><br></pre></td></tr></table></figure>
+
+<p>在这个调用中，<code>make_pair</code> 必须等待递归底部的 <code>args_to_list</code> 返回结果后才能执行。</p>
+<p><strong>执行逻辑（“先深入，后构造”）：</strong></p>
+<ol>
+<li><p><strong>递进阶段</strong>：拿到 1（等着） -&gt; 拿到 2（等着） -&gt; 拿到 3（等着） -&gt; 撞到哨兵 <code>NIL</code>。</p>
+</li>
+<li><p><strong>回溯阶段</strong>：从 <code>NIL</code> 开始，倒序往回“焊接”：</p>
+<ul>
+<li><p><code>make_pair(3, NIL)</code></p>
+</li>
+<li><p><code>make_pair(2, (3))</code></p>
+</li>
+<li><p><code>make_pair(1, (2 3))</code></p>
+</li>
+</ul>
+</li>
+<li><p><strong>最终输出</strong>：<code>(1 2 3)</code>。</p>
+</li>
+</ol>
+<p>那么现在我们就剩下main以及eval函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">Expr *<span class="title function_">eval</span><span class="params">(Expr *expr)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (expr-&gt;kind == EXPR_PAIR)</span><br><span class="line">    &#123;</span><br><span class="line">        assert(expr-&gt;<span class="built_in">pair</span>.left-&gt;kind == EXPR_SYMBOL);</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">strcmp</span>(expr-&gt;<span class="built_in">pair</span>.left-&gt;symbol, <span class="string">&quot;+&quot;</span>) == <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="type">int</span> result = <span class="number">0</span>;</span><br><span class="line">            Expr *args = expr-&gt;<span class="built_in">pair</span>.right;</span><br><span class="line">            <span class="keyword">while</span> (args-&gt;kind != EXPR_NIL)</span><br><span class="line">            &#123;</span><br><span class="line">                assert(args-&gt;kind == EXPR_PAIR);</span><br><span class="line">                assert(args-&gt;<span class="built_in">pair</span>.left-&gt;kind == EXPR_INTEGER);</span><br><span class="line">                result += args-&gt;<span class="built_in">pair</span>.left-&gt;integer;</span><br><span class="line">                args = args-&gt;<span class="built_in">pair</span>.right;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> make_integer(result);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (<span class="built_in">strcmp</span>(expr-&gt;<span class="built_in">pair</span>.left-&gt;symbol, <span class="string">&quot;swap&quot;</span>) == <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            Expr *args = expr-&gt;<span class="built_in">pair</span>.right;</span><br><span class="line">            assert(args-&gt;kind == EXPR_PAIR);</span><br><span class="line">            assert(args-&gt;<span class="built_in">pair</span>.left-&gt;kind == EXPR_PAIR);</span><br><span class="line">            assert(args-&gt;<span class="built_in">pair</span>.right-&gt;kind == EXPR_NIL);</span><br><span class="line">            Expr *arg = args-&gt;<span class="built_in">pair</span>.left;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">make_pair</span>(arg-&gt;<span class="built_in">pair</span>.right, arg-&gt;<span class="built_in">pair</span>.left);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            TODO(<span class="string">&quot;Report unknow function error&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> expr;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>eval</code> 函数是解释器的求值入口，它根据表达式的 <code>kind</code> 标签进行逻辑分发：如果是整数等原子类型则直接原样返回；如果是列表（Pair），则默认将第一个元素视为符号指令，后续部分视为参数。在执行 <code>+</code> 指令时，它通过 <code>while</code> 循环遍历参数链表，将内部的整数逐个累加，最后返回一个新的整数对象；在执行 <code>swap</code> 指令时，它则通过重新解构和组合指针，将传入的点对进行左右对调并返回。这种设计通过大量的 <code>assert</code> 确保了输入结构的合法性，并利用底层的 <code>make_</code> 系列函数在计算过程中生成新的结果对象，是整个解释器从“静态数据”转向“动态计算”的核心环节。</p>
+<blockquote>
+<p>这个其实跟Rc的关系已经不大了，Rc更接近于管理这一切的底层</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;========== Lisp 解释器功能与内存测试 ==========\n\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// --- 测试 1: 加法功能 (+ 10 20 30) ---</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;【测试 1: 加法运算 (+ 10 20 30)】\n&quot;</span>);</span><br><span class="line">    Expr *add_expr = rc_acquire(make_list(</span><br><span class="line">        make_symbol(<span class="string">&quot;+&quot;</span>),</span><br><span class="line">        make_integer(<span class="number">10</span>),</span><br><span class="line">        make_integer(<span class="number">20</span>),</span><br><span class="line">        make_integer(<span class="number">30</span>)));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;构造表达式: &quot;</span>);</span><br><span class="line">    dump_expr(add_expr);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;当前引用计数: %td\n&quot;</span>, rc_count(add_expr));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;--- 执行 Eval ---\n&quot;</span>);</span><br><span class="line">    Expr *add_result = rc_acquire(eval(add_expr));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;计算结果: &quot;</span>);</span><br><span class="line">    dump_expr(add_result);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;--- 释放内存 ---\n&quot;</span>);</span><br><span class="line">    rc_release(add_expr);</span><br><span class="line">    rc_release(add_result);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;加法测试内存已安全释放\n\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// --- 测试 2: 结构交换 (swap (69 . 420)) ---</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;【测试 2: 结构交换 (swap (69 . 420))】\n&quot;</span>);</span><br><span class="line">    <span class="comment">// 构造 (swap (69 . 420))</span></span><br><span class="line">    Expr *swap_expr = rc_acquire(make_list(</span><br><span class="line">        make_symbol(<span class="string">&quot;swap&quot;</span>),</span><br><span class="line">        <span class="built_in">make_pair</span>(make_integer(<span class="number">69</span>), make_integer(<span class="number">420</span>))));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;原始表达式: &quot;</span>);</span><br><span class="line">    dump_expr(swap_expr);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;--- 执行 Eval ---\n&quot;</span>);</span><br><span class="line">    Expr *swap_result = rc_acquire(eval(swap_expr));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;交换后结果: &quot;</span>);</span><br><span class="line">    dump_expr(swap_result);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;结果引用计数: %td\n&quot;</span>, rc_count(swap_result));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;--- 验证：释放原始表达式 ---\n&quot;</span>);</span><br><span class="line">    rc_release(swap_expr);</span><br><span class="line">    <span class="comment">// 此时 swap_expr 已销毁，但 swap_result 应该依然有效</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;原始表达式已释放，结果依然存活: &quot;</span>);</span><br><span class="line">    dump_expr(swap_result);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;--- 最终清理 ---\n&quot;</span>);</span><br><span class="line">    rc_release(swap_result);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;所有内存已归还系统\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n================ 测试结束 ================\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里放一段ai生成的main以及运行结果</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">========== Lisp 解释器功能与内存测试 ==========</span><br><span class="line"></span><br><span class="line">【测试 1: 加法运算 (+ 10 20 30)】</span><br><span class="line">[RC] 000001F17C372460 allocated</span><br><span class="line">[RC] 000001F17C372400 allocated</span><br><span class="line">[RC] 000001F17C372490 allocated</span><br><span class="line">[RC] 000001F17C372760 allocated</span><br><span class="line">[RC] 000001F17C3722E0 allocated</span><br><span class="line">[RC] 000001F17C372310 allocated</span><br><span class="line">[RC] 000001F17C372670 allocated</span><br><span class="line">[RC] 000001F17C372220 allocated</span><br><span class="line">[RC] 000001F17C3727F0 allocated</span><br><span class="line">构造表达式: PAIR(1):</span><br><span class="line">  SYMBOL(1): +</span><br><span class="line">  PAIR(1):</span><br><span class="line">    INTEGER(1): 10</span><br><span class="line">    PAIR(1):</span><br><span class="line">      INTEGER(1): 20</span><br><span class="line">      PAIR(1):</span><br><span class="line">        INTEGER(1): 30</span><br><span class="line">        NIL(1)</span><br><span class="line">当前引用计数: 1</span><br><span class="line">--- 执行 Eval ---</span><br><span class="line">[RC] 000001F17C372340 allocated</span><br><span class="line">计算结果: INTEGER(1): 60</span><br><span class="line">--- 释放内存 ---</span><br><span class="line">[RC] 000001F17C372460 released</span><br><span class="line">[RC] 000001F17C372400 released</span><br><span class="line">[RC] 000001F17C372490 released</span><br><span class="line">[RC] 000001F17C372760 released</span><br><span class="line">[RC] 000001F17C3722E0 released</span><br><span class="line">[RC] 000001F17C372310 released</span><br><span class="line">[RC] 000001F17C372670 released</span><br><span class="line">[RC] 000001F17C372220 released</span><br><span class="line">[RC] 000001F17C3727F0 released</span><br><span class="line">[RC] 000001F17C372340 released</span><br><span class="line">加法测试内存已安全释放</span><br><span class="line"></span><br><span class="line">【测试 2: 结构交换 (swap (69 . 420))】</span><br><span class="line">[RC] 000001F17C372490 allocated</span><br><span class="line">[RC] 000001F17C372250 allocated</span><br><span class="line">[RC] 000001F17C372640 allocated</span><br><span class="line">[RC] 000001F17C372730 allocated</span><br><span class="line">[RC] 000001F17C372580 allocated</span><br><span class="line">[RC] 000001F17C372790 allocated</span><br><span class="line">[RC] 000001F17C372550 allocated</span><br><span class="line">原始表达式: PAIR(1):</span><br><span class="line">  SYMBOL(1): swap</span><br><span class="line">  PAIR(1):</span><br><span class="line">    PAIR(1):</span><br><span class="line">      INTEGER(1): 69</span><br><span class="line">      INTEGER(1): 420</span><br><span class="line">    NIL(1)</span><br><span class="line">--- 执行 Eval ---</span><br><span class="line">[RC] 000001F17C372610 allocated</span><br><span class="line">交换后结果: PAIR(1):</span><br><span class="line">  INTEGER(2): 420</span><br><span class="line">  INTEGER(2): 69</span><br><span class="line">结果引用计数: 1</span><br><span class="line">--- 验证：释放原始表达式 ---</span><br><span class="line">[RC] 000001F17C372490 released</span><br><span class="line">[RC] 000001F17C372730 released</span><br><span class="line">[RC] 000001F17C372580 released</span><br><span class="line">[RC] 000001F17C372790 released</span><br><span class="line">[RC] 000001F17C372550 released</span><br><span class="line">原始表达式已释放，结果依然存活: PAIR(1):</span><br><span class="line">  INTEGER(1): 420</span><br><span class="line">  INTEGER(1): 69</span><br><span class="line">--- 最终清理 ---</span><br><span class="line">[RC] 000001F17C372640 released</span><br><span class="line">[RC] 000001F17C372250 released</span><br><span class="line">[RC] 000001F17C372610 released</span><br><span class="line">所有内存已归还系统</span><br><span class="line"></span><br><span class="line">================ 测试结束 ================</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这个Lisp解释器对于一个没有接触过函数式编程的我来说还是太难理解了，燃尽了。。。。</p>
+</blockquote>
+<p>不过我其实还是很好奇这套gc还可以用在哪些地方上面</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>FSM有限状态机其三</title>
+    <url>/2026/04/13/FSM%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BA%E5%85%B6%E4%B8%89/</url>
+    <content><![CDATA[<p>我们在上篇博客中通过提取状态转移这个步骤为函数，实现了状态进入&#x2F;退出动作的自动执行，在这篇博客中，我们将加入<strong>层次状态</strong>这个内容</p>
+<blockquote>
+<p>顺带一提，这个层次状态真是看的我头痛，因为C语言并不是一门面向对象语言，所以我们在这里发生了一些并不令人愉快的<a href="https://www.bilibili.com/video/BV1kFJHzhERy">抽象泄露</a></p>
+</blockquote>
+<hr>
+<h2 id="一、父状态的实现机制拆解"><a href="#一、父状态的实现机制拆解" class="headerlink" title="一、父状态的实现机制拆解"></a>一、父状态的实现机制拆解</h2><h3 id="1-数据结构的基石：parent-state-数组"><a href="#1-数据结构的基石：parent-state-数组" class="headerlink" title="1. 数据结构的基石：parent_state 数组"></a>1. 数据结构的基石：<code>parent_state</code> 数组</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">State parent_state[STATE_COUNT];</span><br></pre></td></tr></table></figure>
+
+<p><strong>初始化</strong>：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">fsm-&gt;parent_state[STATE_IDLE]    = <span class="number">-1</span>;          <span class="comment">// 根状态</span></span><br><span class="line">fsm-&gt;parent_state[STATE_ACTIVE]  = <span class="number">-1</span>;          <span class="comment">// 容器状态，本身无父</span></span><br><span class="line">fsm-&gt;parent_state[STATE_PLAYING] = STATE_ACTIVE;</span><br><span class="line">fsm-&gt;parent_state[STATE_PAUSED]  = STATE_ACTIVE;</span><br></pre></td></tr></table></figure>
+
+<p>这个数组构建了一棵<strong>单父树</strong>，每个状态最多有一个直接父状态。<code>-1</code> 表示该状态是顶层节点。</p>
+<h3 id="2-事件冒泡：从子到父的查找链"><a href="#2-事件冒泡：从子到父的查找链" class="headerlink" title="2. 事件冒泡：从子到父的查找链"></a>2. 事件冒泡：从子到父的查找链</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">fsm_dispatch</span><span class="params">(StateMachine *fsm, Event evt)</span> &#123;</span><br><span class="line">    State current = fsm-&gt;current_state;</span><br><span class="line">    <span class="keyword">while</span> (current != <span class="number">-1</span>) &#123;</span><br><span class="line">        fsm-&gt;state_table[current](fsm, evt);   <span class="comment">// 尝试让当前状态处理</span></span><br><span class="line">        <span class="keyword">if</span> (fsm-&gt;current_state != current) &#123;    <span class="comment">// 状态变了？</span></span><br><span class="line">            <span class="keyword">break</span>;   <span class="comment">// 事件被处理，停止冒泡</span></span><br><span class="line">        &#125;</span><br><span class="line">        current = fsm-&gt;parent_state[current];   <span class="comment">// 未处理，向父状态回溯</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>核心逻辑</strong>：</p>
+<ul>
+<li>事件首先交给<strong>叶子状态</strong>（如 <code>Playing</code>）处理。</li>
+<li>如果该状态函数<strong>不改变 <code>current_state</code></strong>（即忽略事件），则循环继续，将 <code>current</code> 更新为其父状态（<code>Active</code>）。</li>
+<li>父状态的处理函数被调用，若它执行了转移（改变了 <code>current_state</code>），循环终止。</li>
+<li>若一直回溯到 <code>-1</code> 仍无状态处理，事件被丢弃。</li>
+</ul>
+<p>这相当于在<strong>运行时动态查找</strong>当前状态下针对该事件的有效转移，优先子状态，后父状态。</p>
+<h3 id="3-转移时的层次进入-退出顺序"><a href="#3-转移时的层次进入-退出顺序" class="headerlink" title="3. 转移时的层次进入&#x2F;退出顺序"></a>3. 转移时的层次进入&#x2F;退出顺序</h3><p>版本3中采用了<strong>硬编码判断</strong>，因为已知层次结构只有一层：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">fsm_transition_to</span><span class="params">(StateMachine *fsm, State target)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (fsm-&gt;current_state == target) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 1. 找出从当前状态到目标状态需要退出的状态路径</span></span><br><span class="line">    <span class="comment">//    原理：从当前叶子向上找父状态，直到找到与目标状态的公共祖先。</span></span><br><span class="line">    <span class="comment">//    为简化，本例硬编码处理，完整通用算法将在博客中说明。</span></span><br><span class="line">    State old = fsm-&gt;current_state;</span><br><span class="line">    State new = target;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;[Transition] %d -&gt; %d\n&quot;</span>, old, new);</span><br><span class="line">    <span class="comment">// ---------- 执行退出动作（自底向上） ----------</span></span><br><span class="line">    <span class="comment">// 退出当前叶子</span></span><br><span class="line">    <span class="keyword">if</span> (fsm-&gt;exit_actions[old])</span><br><span class="line">        fsm-&gt;exit_actions[old]();</span><br><span class="line">    <span class="comment">// 如果当前叶子有父状态且与目标的祖先不同，则继续退出父状态</span></span><br><span class="line">    <span class="keyword">if</span> ((old == STATE_PLAYING || old == STATE_PAUSED) &amp;&amp; (new == STATE_IDLE)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (fsm-&gt;exit_actions[STATE_ACTIVE])</span><br><span class="line">            fsm-&gt;exit_actions[STATE_ACTIVE]();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ---------- 更新当前状态 ----------</span></span><br><span class="line">    fsm-&gt;current_state = new;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((new == STATE_PLAYING || new == STATE_PAUSED) &amp;&amp;</span><br><span class="line">        (old != STATE_PLAYING &amp;&amp; old != STATE_PAUSED)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (fsm-&gt;entry_actions[STATE_ACTIVE])</span><br><span class="line">            fsm-&gt;entry_actions[STATE_ACTIVE]();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (fsm-&gt;entry_actions[target]) &#123;</span><br><span class="line">        fsm-&gt;entry_actions[target]();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>设计思想</strong>：</p>
+<ul>
+<li>利用 <code>parent_state</code> 的隐含知识：<code>Playing</code> 和 <code>Paused</code> 同属一个父状态 <code>Active</code>。</li>
+<li>通过判断目标状态是否在 <code>Active</code> 的“子状态集合”内，来决定是否执行父状态的进入&#x2F;退出动作。</li>
+<li>顺序上：先处理子状态自己的退出动作，再判断是否需要退出父状态；进入时相反。</li>
+</ul>
+<hr>
+<h2 id="二、为什么要这么实现？"><a href="#二、为什么要这么实现？" class="headerlink" title="二、为什么要这么实现？"></a>二、为什么要这么实现？</h2><h3 id="1-为什么不用嵌套-switch-case？"><a href="#1-为什么不用嵌套-switch-case？" class="headerlink" title="1. 为什么不用嵌套 switch-case？"></a>1. 为什么不用嵌套 <code>switch-case</code>？</h3><p>嵌套 <code>switch</code> 的层次实现：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">switch</span> (current_state) &#123;</span><br><span class="line">    <span class="keyword">case</span> STATE_PLAYING:</span><br><span class="line">    <span class="keyword">case</span> STATE_PAUSED:</span><br><span class="line">        <span class="comment">// 共享代码？</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>无法优雅地<strong>复用进入&#x2F;退出动作</strong>（<code>Active</code> 的 entry&#x2F;exit 需要在每个子状态转移时手动插入）。</li>
+<li>事件处理代码会急剧膨胀，难以维护。</li>
+</ul>
+<h3 id="2-为什么不用函数递归模拟继承？"><a href="#2-为什么不用函数递归模拟继承？" class="headerlink" title="2. 为什么不用函数递归模拟继承？"></a>2. 为什么不用函数递归模拟继承？</h3><p>递归方案（每个状态函数返回一个布尔值表示是否处理）确实更“优雅”，但：</p>
+<ul>
+<li>每次事件都需要多层函数调用，在资源紧张的MCU上可能造成栈溢出。</li>
+<li>状态处理函数需要额外返回值，接口复杂化。</li>
+</ul>
+<h3 id="3-为什么使用-parent-state-数组-循环？"><a href="#3-为什么使用-parent-state-数组-循环？" class="headerlink" title="3. 为什么使用 parent_state 数组 + 循环？"></a>3. 为什么使用 <code>parent_state</code> 数组 + 循环？</h3><ul>
+<li><strong>内存效率</strong>：每个状态只需一个字节（或枚举大小）的存储。</li>
+<li><strong>速度</strong>：while 循环比递归调用开销小，且无栈风险。</li>
+<li><strong>确定性</strong>：适合硬实时系统，行为完全可预测。</li>
+</ul>
+<hr>
+<h2 id="三、更好的实现方案？"><a href="#三、更好的实现方案？" class="headerlink" title="三、更好的实现方案？"></a>三、更好的实现方案？</h2><h3 id="方案A：状态嵌套结构体（显式层次）"><a href="#方案A：状态嵌套结构体（显式层次）" class="headerlink" title="方案A：状态嵌套结构体（显式层次）"></a>方案A：状态嵌套结构体（显式层次）</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">State</span> &#123;</span></span><br><span class="line">    StateID id;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">State</span> *<span class="title">parent</span>;</span>          <span class="comment">// 指向父状态</span></span><br><span class="line">    <span class="type">void</span> (*entry)(<span class="type">void</span>);</span><br><span class="line">    <span class="type">void</span> (*<span class="built_in">exit</span>)(<span class="type">void</span>);</span><br><span class="line">    <span class="type">void</span> (*handle)(<span class="keyword">struct</span> State *self, Event e);</span><br><span class="line">&#125; State;</span><br><span class="line"></span><br><span class="line">State active = &#123; .parent = <span class="literal">NULL</span>, ... &#125;;</span><br><span class="line">State playing = &#123; .parent = &amp;active, ... &#125;;</span><br><span class="line">State paused  = &#123; .parent = &amp;active, ... &#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：层次关系通过指针直接可见，<code>parent</code> 指针就是天然的冒泡路径。<br><strong>缺点</strong>：占用内存更大（每个状态需存储多个指针），且需额外处理状态ID到结构体指针的映射。</p>
+<blockquote>
+<p>这个其实就是之前提到过的面向对象模拟法</p>
+</blockquote>
+<h3 id="方案B：状态处理函数返回处理标志"><a href="#方案B：状态处理函数返回处理标志" class="headerlink" title="方案B：状态处理函数返回处理标志"></a>方案B：状态处理函数返回处理标志</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="title function_">bool</span> <span class="params">(*StateHandler)</span><span class="params">(StateMachine *fsm, Event evt)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">fsm_dispatch</span><span class="params">(StateMachine *fsm, Event evt)</span> &#123;</span><br><span class="line">    State current = fsm-&gt;current_state;</span><br><span class="line">    <span class="keyword">while</span> (current != <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (fsm-&gt;state_table[current](fsm, evt)) &#123;</span><br><span class="line">            <span class="keyword">break</span>;   <span class="comment">// 返回 true 表示事件已处理</span></span><br><span class="line">        &#125;</span><br><span class="line">        current = fsm-&gt;parent_state[current];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：语义清晰，不需要通过检查 <code>current_state</code> 是否改变来判断处理与否。<br><strong>缺点</strong>：状态函数必须返回布尔值，且如果转移发生在更深层调用的函数中，返回值传递会复杂化。</p>
+<blockquote>
+<p>这个其实会更直观</p>
+</blockquote>
+<h3 id="方案C：真正的LCA算法（通用层次引擎）"><a href="#方案C：真正的LCA算法（通用层次引擎）" class="headerlink" title="方案C：真正的LCA算法（通用层次引擎）"></a>方案C：真正的LCA算法（通用层次引擎）</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 伪代码</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">transition_to</span><span class="params">(StateMachine *fsm, State target)</span> &#123;</span><br><span class="line">    <span class="comment">// 1. 计算LCA（最小公共祖先）</span></span><br><span class="line">    State lca = find_lca(fsm-&gt;current_state, target);</span><br><span class="line">    <span class="comment">// 2. 从当前状态退出到LCA（自底向上）</span></span><br><span class="line">    exit_to_lca(fsm-&gt;current_state, lca);</span><br><span class="line">    <span class="comment">// 3. 从LCA进入目标状态（自顶向下）</span></span><br><span class="line">    enter_from_lca(lca, target);</span><br><span class="line">    <span class="comment">// 4. 更新当前状态</span></span><br><span class="line">    fsm-&gt;current_state = target;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是<strong>完全符合UML规范</strong>的实现，可以处理任意深度的嵌套、正交区域等。但需要：</p>
+<ul>
+<li>为每个状态存储完整的祖先路径，或维护状态深度和父链。</li>
+<li>复杂的路径比较算法。</li>
+</ul>
+<p><strong>QP&#x2F;C框架</strong>就是采用这种方案，其核心引擎约800行C代码。</p>
+<blockquote>
+<p>或许在遥远的未来，我会去研究这个QP&#x2F;C(最好是)</p>
+</blockquote>
+<h3 id="方案D：状态表-编译期层次展开（宏魔法）"><a href="#方案D：状态表-编译期层次展开（宏魔法）" class="headerlink" title="方案D：状态表 + 编译期层次展开（宏魔法）"></a>方案D：状态表 + 编译期层次展开（宏魔法）</h3><p>利用X宏或C预处理器技巧，在编译期生成扁平的状态转移表，同时将层次语义转换为索引计算。例如：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> STATES \</span></span><br><span class="line"><span class="meta">    X(IDLE)    \</span></span><br><span class="line"><span class="meta">    X(ACTIVE)  \</span></span><br><span class="line"><span class="meta">    X(PLAYING, ACTIVE) \</span></span><br><span class="line"><span class="meta">    X(PAUSED, ACTIVE)</span></span><br></pre></td></tr></table></figure>
+
+<p>通过宏生成 <code>parent_state</code> 数组和转移表。这种方法在大型项目中能减少手动维护错误，但代码可读性下降。</p>
+<blockquote>
+<p>可读性真的下降的很多了</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>这里插一嘴关于这个宏方法的实现</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// states.def —— 状态定义文件（无头文件保护，可被多次包含）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 格式：X(状态枚举名, 父状态枚举名或-1, 进入动作函数名, 退出动作函数名)</span></span><br><span class="line"><span class="comment">// 父状态为 -1 表示顶层状态</span></span><br><span class="line"></span><br><span class="line">X(STATE_IDLE,    <span class="number">-1</span>,            entry_idle,    <span class="literal">NULL</span>)</span><br><span class="line">X(STATE_ACTIVE,  <span class="number">-1</span>,            entry_active,  exit_active)</span><br><span class="line">X(STATE_PLAYING, STATE_ACTIVE,  entry_playing, exit_playing)</span><br><span class="line">X(STATE_PAUSED,  STATE_ACTIVE,  entry_paused,  exit_paused)</span><br><span class="line">X(STATE_MENU,    <span class="number">-1</span>,            entry_menu,    exit_menu)</span><br></pre></td></tr></table></figure>
+
+<p>基本上来说就是一个X宏，记录了多种元素，在需要的地方用不同的宏进行二次展开</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    State current_state;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 指向外部生成的静态表</span></span><br><span class="line">    <span class="type">const</span> State *parent_state; </span><br><span class="line">    <span class="type">void</span> (*<span class="type">const</span> *entry_actions)(<span class="type">void</span>); </span><br><span class="line">    <span class="type">void</span> (*<span class="type">const</span> *exit_actions)(<span class="type">void</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// ... 其他成员</span></span><br><span class="line">&#125; StateMachine;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. 生成状态枚举</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> &#123;</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> X(name, parent, entry_func, exit_func) name,</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;states.def&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> X</span></span><br><span class="line">    STATE_COUNT</span><br><span class="line">&#125; State;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 生成父状态数组</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> State parent_state[STATE_COUNT] = &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">define</span> X(name, parent, entry_func, exit_func) parent,</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;states.def&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> X</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 生成进入动作函数指针表</span></span><br><span class="line"><span class="type">static</span> <span class="title function_">void</span> <span class="params">(*<span class="type">const</span> entry_actions[STATE_COUNT])</span><span class="params">(<span class="type">void</span>)</span> = &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">define</span> X(name, parent, entry_func, exit_func) entry_func,</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;states.def&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> X</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 生成退出动作函数指针表</span></span><br><span class="line"><span class="type">static</span> <span class="title function_">void</span> <span class="params">(*<span class="type">const</span> exit_actions[STATE_COUNT])</span><span class="params">(<span class="type">void</span>)</span> = &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">define</span> X(name, parent, entry_func, exit_func) exit_func,</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;states.def&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> X</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 5. 生成状态名称字符串表（便于调试）</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> <span class="type">char</span> *state_names[STATE_COUNT] = &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">define</span> X(name, parent, entry_func, exit_func) #name,</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;states.def&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">undef</span> X</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">fsm_init</span><span class="params">(StateMachine *fsm)</span> &#123;</span><br><span class="line">    fsm-&gt;current_state = STATE_IDLE;</span><br><span class="line">    fsm-&gt;history_active = <span class="number">-1</span>;</span><br><span class="line">    <span class="comment">// 将生成的静态表赋值给状态机实例</span></span><br><span class="line">    fsm-&gt;parent_state  = parent_state;</span><br><span class="line">    fsm-&gt;entry_actions = entry_actions;</span><br><span class="line">    fsm-&gt;exit_actions  = exit_actions;</span><br><span class="line">    fsm-&gt;state_table   = state_table;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 执行初始状态进入动作</span></span><br><span class="line">    <span class="keyword">if</span> (fsm-&gt;entry_actions[fsm-&gt;current_state]) &#123;</span><br><span class="line">        fsm-&gt;entry_actions[fsm-&gt;current_state]();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当然，在这种将状态机成员置于全局数据段的写法下，我们在结构体内部很明显更适合存储指针而不是完整的数组成员</p>
+<hr>
+<p>当前方案采用<strong>树形结构的扁平化存储</strong>，通过维护一个 <code>parent_state</code> 数组，显式记录每个状态节点的父节点索引。</p>
+<p>数组中元素取值规则为：</p>
+<ul>
+<li>若值为 <strong>-1</strong>，表示该状态为<strong>根节点</strong>，无父节点；</li>
+<li>若为非 -1 数值，则该数值直接对应其父节点的索引，以此建立节点间的层级关联。</li>
+</ul>
+<p>整体思路是<strong>用线性数组结构模拟树形层级关系</strong>，通过索引映射替代显式的树形指针或嵌套结构。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>FSM有限状态机其二</title>
+    <url>/2026/04/13/FSM%E6%9C%89%E9%99%90%E7%8A%B6%E6%80%81%E6%9C%BA%E5%85%B6%E4%BA%8C/</url>
+    <content><![CDATA[<p>我们在上篇博客中简单探索了一下表函数法实现的FSM，我们通过函数指针跟结构体的配合来消除了巨大的 <code>switch(current_state)</code>，每个状态独立成函数，易于扩展。状态处理函数 &#x3D; δ 函数的分段实现。  <code>state_table[s](fsm, e)</code> 执行 <code>δ(s, e)</code>。</p>
+<p><strong>局限</strong>：</p>
+<ul>
+<li><p>没有“动作”的概念。转移时无法自动执行硬件初始化&#x2F;清理。</p>
+</li>
+<li><p>没有“层次”。多个状态共享行为时，代码重复。</p>
+</li>
+</ul>
+<p>我们在这篇博客中，我们要给它实现”动作”这个概念</p>
+<hr>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">StateMachine</span> &#123;</span></span><br><span class="line">    State        current_state;</span><br><span class="line">    StateHandler state_table[STATE_COUNT];</span><br><span class="line">    <span class="comment">// 进入和退出动作表</span></span><br><span class="line">    <span class="type">void</span> (*entry_actions[STATE_COUNT])(<span class="type">void</span>); <span class="comment">// 函数指针数组</span></span><br><span class="line">    <span class="type">void</span> (*exit_actions[STATE_COUNT])(<span class="type">void</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>观察我们全新的StateMachine结构体的声明，可以发现它的内部多了两个新的成员，这两个成员其实也是指针数组。存储的数据类型为<strong>void ()(void)</strong></p>
+<blockquote>
+<p>顺便一提，C语言有时候这个语法真的是有些逆天，就算我们有所谓的<strong>右左法则</strong>，但是我觉得用typedef简化复杂类型的声明也是合理的</p>
+</blockquote>
+<p>函数如其名，我们为每一个状态新增了对应的进入函数跟退出函数。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">entry_closed</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;  [Action] entry Closed: motor off\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当然，在这个简单的demo中，它们也仅仅就只是打印了一些我们需要的文本而已</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">fsm_init</span><span class="params">(StateMachine *fsm)</span> &#123;</span><br><span class="line">    fsm-&gt;current_state             = STATE_CLOSED; <span class="comment">// 初始状态</span></span><br><span class="line">    fsm-&gt;state_table[STATE_CLOSED] = state_closed;</span><br><span class="line">    fsm-&gt;state_table[STATE_OPENED] = state_opened;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册进入/退出动作</span></span><br><span class="line">    fsm-&gt;entry_actions[STATE_CLOSED] = entry_closed;</span><br><span class="line">    fsm-&gt;exit_actions[STATE_CLOSED]  = exit_closed;</span><br><span class="line">    fsm-&gt;entry_actions[STATE_OPENED] = entry_opened;</span><br><span class="line">    fsm-&gt;exit_actions[STATE_OPENED]  = exit_opened;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 手动执行初始状态的进入动作（因为初始状态没有“转移进入”）</span></span><br><span class="line">    <span class="keyword">if</span> (fsm-&gt;entry_actions[fsm-&gt;current_state]) &#123;</span><br><span class="line">        fsm-&gt;entry_actions[fsm-&gt;current_state]();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上篇博客好像没有讲解这个<strong>fsm_init</strong>函数，这个函数基本上就是初始化了一下我们所要用到的状态机结构体，我们在这个版本的代码中，仅仅只是增加了对于每个状态进入&#x2F;退出动作的注册。以及对于<strong>初始状态的进入动作</strong>的手动执行。</p>
+<p>我们在这个版本中最重要的变动就是新增了一个函数</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">fsm_transition_to</span><span class="params">(StateMachine *fsm, State next_state)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (fsm-&gt;current_state == next_state) &#123;</span><br><span class="line">        <span class="comment">// do someting here,自转移通常也需要执行exit/entry，但是按需决定</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1.执行当前状态的退出动作</span></span><br><span class="line">    <span class="keyword">if</span> (fsm-&gt;exit_actions[fsm-&gt;current_state]) &#123;</span><br><span class="line">        fsm-&gt;exit_actions[fsm-&gt;current_state]();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 2.更新状态</span></span><br><span class="line">    fsm-&gt;current_state = next_state;</span><br><span class="line">    <span class="comment">// 3.执行新状态的进入动作</span></span><br><span class="line">    <span class="keyword">if</span> (fsm-&gt;entry_actions[fsm-&gt;current_state]) &#123;</span><br><span class="line">        fsm-&gt;entry_actions[fsm-&gt;current_state]();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数专门负责状态机的<strong>状态切换</strong>，把原本放在状态处理函数里的状态跳转逻辑抽离出来，统一由它管理。</p>
+<p>它会自动执行<strong>旧状态的退出动作</strong>、<strong>更新当前状态</strong>、再执行<strong>新状态的进入动作</strong>。</p>
+<p>和 <code>fsm_dispatch</code> 思想类似，把进入 &#x2F; 退出动作封装成函数指针调用，大幅减少新增状态时的重复代码。</p>
+<p>透过这种改动，我们现在拥有了转移时自动执行硬件初始化&#x2F;清理的功能，并且将<strong>硬件操作与状态绑定</strong>，而非与事件绑定。</p>
+<p>我们在下一篇博客中，将会给这个框架新增层次状态的功能。</p>
+]]></content>
   </entry>
 </search>
